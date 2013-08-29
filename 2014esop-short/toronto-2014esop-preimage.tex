@@ -382,7 +382,7 @@ However, we do not want internal equality and external equivalence to differ too
 
 \section{Arrows and First-Order Semantics}
 
-Like monads and idioms~\cite{cit:wadler-2001-monads,cit:mcbride-2008jfp-idiom}, arrows~\cite{cit:hughes-2000scp-arrows} are used to thread effects through computations in a way that imposes structure on the computations.
+Like monads~\cite{cit:wadler-2001-monads} and idioms~\cite{cit:mcbride-2008jfp-idiom}, arrows~\cite{cit:hughes-2000scp-arrows} are used to thread effects through computations in a way that imposes structure on the computations.
 Unlike monad and idiom computations, arrow computations are always
 \begin{itemize}
 	\item Function-like: An arrow computation of type $x \arrow y$ must behave like a corresponding function of type $x \tto y$ (in a sense we explain shortly).
@@ -607,34 +607,34 @@ If we assume that $\arrowlift\genb$ defines correct behavior for arrow $b$ in te
 \begin{align*}
 \begin{aligned}[t]
 	&\begin{aligned}[t]
-		&x \botto y \ ::= \ x \tto y_\bot
+		&X \botto Y \ ::= \ X \tto Y_\bot
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
-		&\arrbot : (x \tto y) \tto (x \botto y) \\
+		&\arrbot : (X \tto Y) \tto (X \botto Y) \\
 		&\arrbot~f \ := \ f
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
-		&(\compbot) : (x \botto y) \tto (y \botto z) \tto (x \botto z) \\
+		&(\compbot) : (X \botto Y) \tto (Y \botto Z) \tto (X \botto Z) \\
 		&(f_1~\compbot~f_2)~a \ := \ if~(f_1~a = \bot)~\bot~(f_2~(f_1~a))
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
-		&(\pairbot) : (x \botto {y_1}) \tto (x \botto {y_2}) \tto (x \botto \pair{y_1,y_2}) \\
+		&(\pairbot) : (X \botto {Y_1}) \tto (X \botto {Y_2}) \tto (X \botto \pair{Y_1,Y_2}) \\
 		&(f_1~\pairbot~f_2)~a \ := \ if~(f_1~a = \bot~or~f_2~a = \bot)~\bot~{\pair{f_1~a,f_2~a}}
 	\end{aligned}
 \end{aligned}
 &\tab\tab
 \begin{aligned}[t]
 	&\begin{aligned}[t]
-		&\ifbot : \lzfcsplit{&(x \botto Bool) \tto (x \botto y) \tto \\ &(x \botto y) \tto (x \botto y)} \\
+		&\ifbot : \lzfcsplit{&(X \botto Bool) \tto (X \botto Y) \tto \\ &(X \botto Y) \tto (X \botto Y)} \\
 		&\lzfcsplit{&\ifbot~f_1~f_2~f_3~a \ := \ \\
 			&\tab\lzfccase{f_1~a}{true & f_2~a \\ false & f_3~a \\ \bot & \bot}}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
-		&\lazybot : (1 \tto (x \botto y)) \tto (x \botto y) \\
+		&\lazybot : (1 \tto (X \botto Y)) \tto (X \botto Y) \\
 		&\lazybot~f~a \ := \ f~0~a
 	\end{aligned}
 \end{aligned}
@@ -649,12 +649,11 @@ One obvious candidate is the function arrow~\eqref{eqn:function-arrow}.
 However, we will need to explicitly handle nontermination as an error value, so we need a slightly more complicated arrow for which running computations may raise an error.
 
 \figref{fig:bottom-arrow-defs} defines the \mykeyword{bottom arrow}.
-Its computations are of type $x \botto y ::= x \tto y_\bot$, where the inhabitants of $y_\bot$ are the error value $\bot$ as well as the inhabitants of $y$.
-The type $Bool_\bot$, for example, denotes the members of $Bool \u \set{\bot}$.
+Its computations are of type $X \botto Y ::= X \tto Y_\bot$, where $Y_\bot ::= Y \u \set{\bot}$ and $\bot$ is an error value.
 
-If we wish to claim that $x~\botto~y$ computations obey the arrow laws, we need a notion of equivalence that is slightly coarser than observational equivalence.
+If we wish to claim that $X~\botto~Y$ computations obey the arrow laws, we need a notion of equivalence that is slightly coarser than observational equivalence.
 \begin{definition}[bottom arrow equivalence]
-Two computations $f_1 : x \botto y$ and $f_2 : x \botto y$ are equivalent, or $f_1 \equiv f_2$, when $f_1~a \equiv f_2~a$ for all $a : x$.
+Two computations $f_1 : X \botto Y$ and $f_2 : X \botto Y$ are equivalent, or $f_1 \equiv f_2$, when $f_1~a \equiv f_2~a$ for all $a \in X$.
 \end{definition}
 
 It is not hard to show that the bottom arrow is epimorphic to the Maybe monad's Kleisli arrow; by Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
@@ -762,7 +761,7 @@ One is $ap\pre$, which applies a preimage mapping to any subset of its codomain,
 
 \begin{theorem}[$ap\pre$ computes preimages]
 \label{thm:pre-like-preimage}
-Let $f \in X \tto Y$. For all $A \subseteq X$ and $B \subseteq Y$, $ap\pre~(pre~f~A)~B \equiv preimage_\bot~f~A~B$.
+Let $f : X \botto Y$. For all $A \subseteq X$ and $B \subseteq Y$, $ap\pre~(pre~f~A)~B \equiv preimage_\bot~f~A~B$.
 \end{theorem}
 \begin{proof}
 Expand definitions; use basic facts about $(\w)$, $(\i)$ and $image$.
@@ -1023,40 +1022,41 @@ We thus think of programs interpreted as $AStore$ arrows as being completely unr
 \subsection{Partial, Probabilistic Programs}
 \label{sec:probabilistic-programs}
 
-We interpret partial and probabilistic programs using combinators that read a store at an expression index.
-
-\paragraph{Probabilitic Programs}
-To interpret probabilitic programs, we use a tree-shaped random source as the store.
+For probabilitic programs, we put an infinite binary tree in the store.
 
 \begin{definition}[random source]
 Let $R := J \to [0,1]$.
 A \keyword{random source} is any infinite binary tree $r \in R$.
 \end{definition}
 
-Let $x \arrow\genc y ::= AStore~R~(x \arrow\gen y)$.
-We define a combinator $random\genc$ that returns the number at its tree index in the random source, and extend the let-calculus for arrows $a^*$ for which $random\genc$ is defined:
-\begin{equation}
-\begin{aligned}
-	&random\genc : x \arrow\genc [0,1] \\
-	&random\genc~j \ := \ \arrowarr\gen~(fst~\arrowcomp~\pi~j)
-\\[6pt]
-	&\meaningof{random}\genc \ :\equiv \ random\genc
-\end{aligned}
-\end{equation}
-
-\paragraph{Partial Programs}
-One utimately implementable way to ensure termination is to have the store dictate which branch of each conditional, if any, can be taken.
+For partial programs, we need to ensure termination.
+One utimately implementable way to do it is to have the store dictate which branch of each conditional, if any, can be taken.
 
 \begin{definition}[branch trace]
 A \mykeyword{branch trace} is any $t \in J \to Bool_\bot$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
+
+Let $T \subset J \to Bool_\bot$ be the largest set of branch traces.
 \end{definition}
 
-Let $T \subset J \to Bool_\bot$ be the set of all branch traces, and $x \arrow\genc y ::= AStore~T~(x \arrow\gen y)$.
-The following combinator returns the branch $t~j$:
+Let $X \arrow\genc Y ::= AStore~(R \times T)~(X \arrow\gen Y)$ be an $AStore$ arrow type that threads both random stores and branch traces.
+We define a combinator $random\genc$ that returns the number at its tree index in the random source, and extend $\meaningof{\cdot}\genc$ for arrows $a^*$ for which $random\genc$ is defined:
 \begin{equation}
 \begin{aligned}
-	&branch\genc : x \arrow\genc Bool \\
-	&branch\genc~j \ := \ \arrowarr\gen~(fst~\arrowcomp~\pi~j)
+	&\begin{aligned}[t]
+		&random\genc : X \arrow\genc [0,1] \\
+		&random\genc~j \ := \ \arrowarr\gen~(fst~\arrowcomp~fst~\arrowcomp~\pi~j)
+	\end{aligned}
+&\tab\tab
+	\meaningof{random}\genc \ :\equiv \ random\genc
+\end{aligned}
+\end{equation}
+This is all we need to define probabilistic choice.
+
+For partial programs, we define a combinator that reads branch traces:
+\begin{equation}
+\begin{aligned}
+	&branch\genc : X \arrow\genc Bool \\
+	&branch\genc~j \ := \ \arrowarr\gen~(fst~\arrowcomp~snd~\arrowcomp~\pi~j)
 \end{aligned}
 \end{equation}
 Using $branch\genc$, we define an if-then-else combinator that ensures its test expression agrees with the branch trace:
@@ -1099,34 +1099,34 @@ We define a new semantic function $\meaningofconv{\cdot}\genc$ by
 with the remaining rules similar to those of $\meaningof{\cdot}\genc$.
 
 For an $AStore$ computation $k$, we obviously must run $k$ on every branch trace in $T$ and filter out $\bot$, or somehow find pairs of $\pair{t,a}$ (with $a : x$) for which $agrees$ never returns $\bot$.
-Mapping and preimage $AStore$ arrow computations do both.
-
-\paragraph{Partial, Probabilistic Programs}
-Let $S ::= R \times T$ be the set of stores.
-Define $x \arrow\genc y ::= AStore~S~(x \arrow\gen y)$, and update the $random\genc$ and $branch\genc$ combinators to reflect that stores are now pairs:
-\begin{equation}
-\begin{aligned}
-	random\genc~j &\ := \ \arrowarr\gen~(fst~\arrowcomp~fst~\arrowcomp~\pi~j)
-\\
-	branch\genc~j &\ := \ \arrowarr\gen~(fst~\arrowcomp~snd~\arrowcomp~\pi~j)
-\end{aligned}
-\end{equation}
-The definitions of $\arrowconvif\genc$ and $\meaningofconv{\cdot}\genc$ remain the same.
+Preimage $AStore$ arrow computations do both.
 
 \begin{definition}[terminating, probabilistic arrows]
-Define the type constructors for the \mykeyword{bottom* arrow} and the \mykeyword{preimage* arrow} as
+Define
 \begin{equation}
 \begin{aligned}
 	X \pbotto Y &\ ::=\ AStore~(R \times T)~(X \botto Y) \\
 	X \ppreto Y &\ ::=\ AStore~(R \times T)~(X \preto Y) \\
 \end{aligned}
 \end{equation}
+as the type constructors for the \mykeyword{bottom*} and \mykeyword{preimage* arrows}.
 \end{definition}
 
-A bottom* arrow computation's domain is $(R \times T) \times X$.
-We assume each $r \in R$ is randomly chosen, but not each $t \in T$ nor $a \in X$; therefore, neither $T$ nor $X$ should affect the probabilities of output sets.
+Suppose $f := \meaningofconv{\mathit{e}}_\pbot : X \pbotto Y$.
+Its domain is $X' := (R \times T) \times X$.
+We assume each $r \in R$ is random, but not $t \in T$ nor $a \in X$; therefore, neither $T$ nor $X$ should affect the probabilities of output sets.
+The probability of $B \subseteq Y$ is therefore
+\begin{equation}
+	P~(image~(fst~\arrowcomp~fst)~(preimage_\bot~f~X'~B))
+\end{equation}
+if $f$ always terminates.
+Suppose $h := \meaningofconv{\mathit{e}}\ppre$; then the probability is equivalently
+\begin{equation}
+	P~(image~(fst~\arrowcomp~fst)~(ap\pre~(h~X')~B))
+\end{equation}
+as long as $h$ always terminates and computes correct preimages.
 
-\subsection{Correctness}
+\subsection{Termination and Correctness}
 
 We have two arrow lifts to prove homomorphic: one from pure computations to effectful (i.e. from those that do not access the store to those that do), and one from effectful computations to effectful.
 For both, we need $AStore$ arrow equivalence to be more extensional.
@@ -1138,6 +1138,10 @@ Two $AStore$ arrow computations $k_1$ and $k_2$ are equivalent, or $k_1 \equiv k
 \begin{theorem}[pure $AStore$ arrow correctness]
 $\arrowtrans\genc$ is a homomorphism.
 \end{theorem}
+\begin{proof}
+Expand definitions and use arrow laws to factor out $\arrowarr\gen~snd$.
+\qed
+\end{proof}
 
 \begin{corollary}[pure semantic correctness]
 \label{cor:pure-astore-semantic-correctness}
@@ -1158,6 +1162,10 @@ where $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$.
 \begin{theorem}[effectful $AStore$ arrow correctness]
 If $\arrowlift\genb$ is an arrow homomorphism from $a$ to $b$, then $\arrowlift\gend$ is an arrow homomorphism from $a^*$ to $b^*$.
 \end{theorem}
+\begin{proof}
+For each of~\eqref{eqn:lift-distributes-over-comp}--\eqref{eqn:lift-distributes-over-lazy}, distribute $\arrowlift\genb$ and rewrite in terms of $\arrowlift\gend$.
+\qed
+\end{proof}
 
 \begin{corollary}[preimage* arrow correctness]
 $\liftppre$ is a homomorphism.
@@ -1167,29 +1175,15 @@ $\liftppre$ is a homomorphism.
 For all expressions $\mathit{e}$, $\meaningof{\mathit{e}}\ppre \equiv \liftppre~\meaningof{\mathit{e}}_\pbot$ and $\meaningofconv{\mathit{e}}\ppre \equiv \liftppre~\meaningofconv{\mathit{e}}_\pbot$.
 \end{corollary}
 
-\subsection{Termination}
-
 To relate $\meaningofconv{\mathit{e}}\genc$ computations to $\meaningof{\mathit{e}}\genc$ computations, we need to find the largest domain on which they should agree.
-
-\begin{equation}
-\begin{aligned}
-	&domain_\bot : (X \botto Y) \tto Set~X \tto Set~X \\
-	&domain_\bot~f~A \ := \ \setb{a \in A}{f~a \neq \bot}
-\end{aligned}
-\end{equation}
 
 \begin{definition}[maximal domain]
 \label{def:maximal-domain}
-A computation's \mykeyword{maximal domain} is the largest $A^*$ for which
-\begin{itemize}
-	\item For $f : X \botto Y$, $domain_\bot~f~A^* = A^*$.
-	\item For $h : X \preto Y$, $domain\pre~(h~A^*) = A^*$.
-\end{itemize}
-The maximal domain of $k : X \arrow\genc Y$ is that of $k~j_0$.%
+Let $f : X \pbotto Y$.
+Its \mykeyword{maximal domain} is the largest $A^* \subseteq (R \times T) \times X$ for which $A^* = \setb{a \in A^*}{f~j_0~a \neq \bot}$.
 \end{definition}
 
-Because the above statements imply termination, $A^*$ is a subset of the largest domain for which the computations terminate.
-Lifting computations preserves the maximal domain; e.g. the maximal domain of $\liftppre~f$ is the same as $f$'s.
+Because $f~j_0~a \neq \bot$ implies termination, $A^*$ is a subset of the largest domain for which $f$ terminates.
 
 \begin{comment}
 
@@ -1216,15 +1210,13 @@ For all $a \in X'$, $A \subseteq X'$ and $B \subseteq Y$,
 \end{aligned}
 \end{equation}
 \end{theorem}
+\begin{proof}
+Roughly, every $a$ for which $\meaningof{\mathit{e}}_\pbot~j_0~a$ terminates has an associated branch trace, and every $a$ for which it loops does not.
+\qed
+\end{proof}
+
 
 In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always terminate, never include inputs that give rise to errors or nontermination, and are correct.
-
-Let $f : \meaningofconv{\mathit{e}}_\pbot : X \pbotto Y$
-
-Assuming correctness, the probability of an output set $B \subseteq Y$ is
-\begin{equation}
-	P~(image~(fst~\arrowcomp~fst)~(preimage_\bot~f~A~B)
-\end{equation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1289,8 +1281,7 @@ We focus on a specific method: approximating product sets with covering rectangl
 \end{aligned}
 \end{align*}
 \hrule
-\caption[ ]{Preimage arrow lifts needed to interpret probabilistic programs.
-The definition of $unproj_2$ is like $unproj_1$'s.}
+\caption[ ]{Preimage arrow lifts needed to interpret probabilistic programs.}
 \label{fig:extra-preimage-arrow-defs}
 \end{figure*}
 
@@ -1630,9 +1621,7 @@ The following theorems assume $h := \meaningofconv{\mathit{e}}\ppre : X \ppreto 
 For all $A \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$, $ap\pre~(h~j_0~A)~B \subseteq ap\pre'~(h'~j_0~A)~B$.%
 \end{theorem}
 
-\begin{theorem}[termination]
-For all $A' \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$, $ap\pre'~(h'~j_0~A')~B$ terminates.
-\end{theorem}
+Because $\mathit{e}_1 \subseteq \mathit{e}_2$ implies termination, so does soundness.
 
 \begin{theorem}[monotonicity]
 \label{thm:monotonicity}
