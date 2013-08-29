@@ -1,0 +1,1879 @@
+%-----------------------------------------------------------------------------
+%
+%               Template for sigplanconf LaTeX Class
+%
+% Name:         sigplanconf-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for SIGPLAN conference proceedings.
+%
+% Guide:        Refer to "Author's Guide to the ACM SIGPLAN Class,"
+%               sigplanconf-guide.pdf
+%
+% Author:       Paul C. Anagnostopoulos
+%               Windfall Software
+%               978 371-2316
+%               paul@windfall.com
+%
+% Created:      15 February 2005
+%
+%-----------------------------------------------------------------------------
+
+
+\documentclass{llncs}
+
+% The following \documentclass options may be useful:
+%
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% authoryear    To obtain author/year citation style instead of numeric.
+
+\input{local-macros.tex}
+
+\renewcommand{\paragraph}[1]{\vspace{0.5\baselineskip}\noindent\textbf{{#1}.}\hspace{0.25\baselineskip}}
+\newcommand{\smallmathfont}{\fontsize{7.5}{9}\selectfont}
+
+\newenvironment{displaybreaks}%
+{%
+	\begingroup%
+	\allowdisplaybreaks%
+}%
+{%
+	\endgroup%
+	\ignorespacesafterend%
+}
+
+%\excludecomment{proof}
+
+\newcommand{\figref}[1]{Fig.~\ref{#1}}
+\newcommand{\figsref}[1]{Figs.~\ref{#1}}
+
+\newcommand{\arrow}{\rightsquigarrow}
+
+\newcommand{\restrict}[1]{\lvert_{#1}}
+\newcommand{\pto}{\rightharpoonup}
+\newcommand{\Univ}{\mathbb{U}}
+\newcommand{\Un}{\mathcal{U}}
+
+\newcommand{\join}{\vee}
+
+\newcommand{\conv}{^{\mspace{-2mu}\Downarrow\mspace{-2mu}}}
+
+\newcommand{\meaningofconv}[1]{\left\llbracket{#1}\right\rrbracket\conv}
+
+\newcommand{\arrowlift}{\ensuremath{lift}}
+\newcommand{\arrowarr}{\ensuremath{arr}}
+\newcommand{\arrowcomp}{\ensuremath{{>}\mspace{-6mu}{>}\mspace{-6mu}{>}}}
+\newcommand{\arrowpair}{\ensuremath{\mathit{\&\mspace{-7.5mu}\&\mspace{-7.5mu}\&}}}
+\newcommand{\arrowif}{\ensuremath{ifte}}
+\newcommand{\arrowconvif}{\ensuremath{ifte\conv}}
+\newcommand{\arrowlazy}{\ensuremath{lazy}}
+\newcommand{\arrowapp}{\ensuremath{app}}
+\newcommand{\arrowrun}{\ensuremath{run}}
+\newcommand{\arrowget}{\ensuremath{get}}
+\newcommand{\arrowerror}{\ensuremath{error}}
+\newcommand{\arrowtrans}{\ensuremath{\eta}}
+
+\newcommand{\gen}{_\mathrm{a}}
+\newcommand{\genb}{_\mathrm{b}}
+\newcommand{\genc}{_\mathrm{a^{\mspace{-2mu}*}}}
+\newcommand{\gend}{_\mathrm{b^{\mspace{-2mu}*}}}
+
+\DeclareMathOperator{\botto}{\arrow_{\mspace{-3mu}\bot}}
+\newcommand{\arrbot}{\arrowarr_{\mspace{-3mu}\bot}}
+\newcommand{\compbot}{\arrowcomp_{\mspace{-5mu}\bot}}
+\newcommand{\pairbot}{\arrowpair_{\mspace{-3mu}\bot}}
+\newcommand{\ifbot}{\arrowif_{\mspace{-2mu}\bot}}
+\newcommand{\lazybot}{\arrowlazy_{\mspace{-2mu}\bot}}
+
+\newcommand{\map}{_\mathrm{map}}
+\DeclareMathOperator{\mapto}{\arrow_{\mspace{-21mu}\map}}
+\newcommand{\liftmap}{\arrowlift\map}
+\newcommand{\arrmap}{\arrowarr\map}
+\newcommand{\compmap}{\arrowcomp\map}
+\newcommand{\pairmap}{\arrowpair\map}
+\newcommand{\ifmap}{\arrowif\map}
+\newcommand{\lazymap}{\arrowlazy\map}
+
+\newcommand{\pre}{_\mathrm{pre}}
+\DeclareMathOperator{\preto}{\arrow_{\mspace{-19mu}\pre}}
+\newcommand{\liftpre}{\arrowlift\pre}
+\newcommand{\arrpre}{\arrowarr\pre}
+\newcommand{\comppre}{\arrowcomp\pre}
+\newcommand{\pairpre}{\arrowpair\pre}
+\newcommand{\ifpre}{\arrowif\pre}
+\newcommand{\lazypre}{\arrowlazy\pre}
+
+\newcommand{\pbot}{{\bot^{\mspace{-4mu}*}}}
+\DeclareMathOperator{\pbotto}{\arrow_{\mspace{-3mu}\pbot}}
+\newcommand{\arrpbot}{\arrowarr_{\mspace{-3mu}\pbot}}
+\newcommand{\comppbot}{\arrowcomp_{\mspace{-5mu}\pbot}}
+\newcommand{\pairpbot}{\arrowpair_{\mspace{-3mu}\pbot}}
+\newcommand{\ifpbot}{\arrowif_{\mspace{-2mu}\pbot}}
+\newcommand{\convifpbot}{\arrowconvif_{\mspace{-2mu}\pbot}}
+\newcommand{\lazypbot}{\arrowlazy_{\mspace{-2mu}\pbot}}
+
+\newcommand{\pmap}{_\mathrm{map^{\mspace{-2mu}*}}}
+\DeclareMathOperator{\pmapto}{\arrow_{\mspace{-22mu}_{\mathrm{map*}}}}
+\newcommand{\liftpmap}{\arrowlift\pmap}
+\newcommand{\arrpmap}{\arrowarr\pmap}
+\newcommand{\comppmap}{\arrowcomp\pmap}
+\newcommand{\pairpmap}{\arrowpair\pmap}
+\newcommand{\ifpmap}{\arrowif\pmap}
+\newcommand{\convifpmap}{\arrowconvif\pmap}
+\newcommand{\lazypmap}{\arrowlazy\pmap}
+
+\newcommand{\ppre}{_\mathrm{pre^{\mspace{-2mu}*}}}
+\DeclareMathOperator{\ppreto}{\arrow_{\mspace{-19mu}_{\mathrm{pre*}}}}
+\newcommand{\liftppre}{\arrowlift\ppre}
+\newcommand{\arrppre}{\arrowarr\ppre}
+\newcommand{\compppre}{\arrowcomp\ppre}
+\newcommand{\pairppre}{\arrowpair\ppre}
+\newcommand{\ifppre}{\arrowif\ppre}
+\newcommand{\convifppre}{\arrowconvif\ppre}
+\newcommand{\lazyppre}{\arrowlazy\ppre}
+
+\newcommand{\prepto}{\pto_{\mspace{-19mu}\pre}}
+
+\title{Running Probabilistic Programs Backward}
+
+\author{Neil Toronto and Jay McCarthy\\
+\footnotesize{\texttt{neil.toronto@gmail.com} and \texttt{jay@cs.byu.edu}}}
+\institute{PLT @ Brigham Young University, Provo, Utah, USA}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+To be useful in Bayesian practice, a probabilistic language must support conditioning: imposing constraints in a way that preserves the relative probabilities of program outputs.
+Every language to date that supports probabilistic conditioning also places seemingly artificial restrictions on legal programs, such as disallowing recursion and restricting conditions to simple equality constraints such as $x = \mathrm{2}$.
+
+We develop a semantics for a first-order language with recursion, probabilistic choice and conditioning.
+Distributions over program outputs are defined by the probabilities of their preimages, a measure-theoretic approach that ensures the language is not artificially limited.
+
+Preimages are generally uncomputable, so we derive an approximating semantics for computing rectangular covers of preimages.
+We implement the approximating semantics directly in Typed Racket and Haskell.
+\end{abstract}
+
+\keywords Probability, Semantics (XXX: more?)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+It is primarily Bayesian practice that drives probabilistic language development.
+To be useful, a probabilistic language must support \keyword{conditioning}, or imposing constrants in a way that preserves the relative probabilities of outputs.
+
+Unfortunately, there is currently no efficient probabilistic language implementation that supports conditioning and places no extraneous restrictions on legal programs.
+Most commonly, languages that support conditioning disallow recursion, allow only discrete or continuous distributions, and restrict conditions to the form $\mathit{x} = \mathit{c}$.
+
+These common language restrictions arise from reasoning about probability using \keyword{densities}, which are functions from random values to \emph{changes} in probability.
+While simple and convenient, densities have many limitations.
+For example, densities for random values with different dimension are incomparable, and they cannot be defined on infinite products.
+%Both of these facts rule out using densities to define the distributions of outputs of recursive programs.
+
+\mathversion{sans}
+Densities generally cannot define distributions for the outputs of discontinuous functions.
+For example, suppose we want to model a thermometer that reports in the range $[0,100]$, and that the temperature it would report (if it could) is distributed according to a bell curve.
+We might encode the process as
+\begin{equation}
+	t'\ :=\ \lzfclet{t & normal~\mu~1}{max~0~(min~100~t)}
+\label{eqn:thermometer-example}
+\end{equation}
+While $t$'s distribution has a density (a standard bell curve at mean $\mu$), the distribution of $t'$ does not.
+%In general, densities cannot correctly model analog measuring devices.
+\mathversion{normal}
+
+Densities do not allow reasoning about arbitrary conditions.
+If $x$ and $y$ are primitive random variables---loosely, untransformed probabilistic values, such as $\mathsf{t}$ in~\eqref{eqn:thermometer-example}---then \keyword{Bayes' law for densities} gives the density of $x$ given $y$:
+\begin{equation}
+	f_x(x\,|\,y)\ =\ \frac{f_y(y\,|\,x) \cdot \pi_x(x)}{\int f_y(y\,|\,x) \cdot \pi_x(x)~dx}
+\label{eqn:bayes-law-densities}
+\end{equation}
+Bayesians interpret probabilistic processes as defining densities $\pi_x$ and $f_y$, and use~\eqref{eqn:bayes-law-densities} to discover the density of $x$ given $y = c$ for some constant $c$.
+While $x$ given $\sin(y) = \mathrm{-1}$ and $x$ given $x + y = \mathrm{0}$ are perfectly sensible to reason about, Bayes' law for densities cannot express them.
+Thus, reasoning with densities disallows all but the simplest conditions.
+
+
+\subsection{Probability Measures}
+
+Measure-theoretic probability~\cite{cit:klenke-2006-probability} is widely believed to be able to define every reasonable distribution that densities cannot.
+It mainly does this by \emph{assigning probabilities to sets} instead of \emph{assigning changes in probability to values}.
+Functions that do so are probability \keyword{measures}.
+In contrast to densities, probabilities of sets of values with different dimension \emph{are} comparable, and probability measures \emph{can} be defined on infinite products.
+
+If a probability measure $P$ assigns probabilities to subsets of $X$ and $f : X \to Y$, then the \keyword{preimage measure}
+\begin{equation}
+	\Pr[B] \ = \ P(f^{-1}(B))
+\end{equation}
+defines the distribution over $Y$, where $f^{-1}(B)$ is the subset of $f$'s domain $X$ for which $f$ yields a value in $B$.
+In the thermometer example~\eqref{eqn:thermometer-example}, $f$ would be an interpretation of the program as a function, $X$ would be the set of all random sources, and $Y$ would be $\Re$.
+For any $B \subseteq Y$, $f^{-1}(B)$ is well-defined, regardless of discontinuities.
+
+Measure-theoretic probability supports any kind of condition.
+The probability of $B' \subseteq Y$ given $B \subseteq Y$ is
+\begin{equation}
+	\Pr[B'\,|\,B]\ =\ \Pr[B' \i B]\ /\ \Pr[B]
+\label{eqn:bayes-law-preimage}
+\end{equation}
+if $\Pr[B] > \mathrm{0}$.
+If $\Pr[B] = \mathrm{0}$, conditional probabilities can be calculated by applying~\eqref{eqn:bayes-law-preimage} to decending sequences $B_1 \supseteq B_2 \supseteq B_3 \supseteq \cdots$ of positive-probability sets whose intersection is $B$, and taking a limit.
+If $Y = \Re \times \Re$, for example, the distribution over $\pair{x,y} \in Y$ given that $x + y = \mathrm{0}$ can be calculated using a descending sequence of sets defined by $B_n = \setb{\pair{x,y} \in Y}{|x + y| < \mathrm{2}^{-n}}$.
+
+Unfortunately, there is a complicated technical restriction: only \emph{measurable} subsets of $X$ and $Y$ can be assigned probabilities.
+This and having to take limits tend to drive practitioners to densities, even though they are so limited.
+
+\subsection{Measure-Theoretic Semantics}
+
+Because purely functional languages do not allow side effects (except usually nontermination), programmers must write probabilistic programs as functions from a random source to outputs.
+Monads and other categorical classes such as idioms (i.e. applicative functors) can make doing so easier~\cite{cit:hurd-2002thesis,cit:toronto-2010ifl-bayes}.
+
+It seems this approach should make it easy to interpret probabilistic programs measure-theoretically.
+For a probabilistic program $f : X \to Y$, the probability measure on output sets $B \subseteq Y$ should be defined by preimages of $B$ under $f$ and the probability measure on $X$.
+Unfortunately, it is difficult to turn this simple-sounding idea into a compositional semantics, for the following reasons.
+\begin{enumerate}
+	\item Preimages can be defined only for functions with observable domains, which excludes lambdas.%
+\label{problem:observable-domain}
+	\item If subsets of $X$ and $Y$ must be measurable, taking preimages under $f$ must preserve measurability (we say $f$ itself is measurable). Proving the conditions under which this is true is difficult, especially if $f$ may not terminate.%
+\label{problem:measurability}
+	\item It is very difficult to define probability measures for arbitrary spaces of measurable functions~\cite{cit:aumann-1961ijm-borel}.%
+\label{problem:higher-orderness}
+\end{enumerate}
+Implementing a language based on such a semantics is complicated because
+\begin{enumerate}
+	\setcounter{enumi}{3}
+	\item Contemporary mathematics is unlike any implementation's host language.%
+\label{problem:different-language}
+	\item It requires running Turing-equivalent programs backward, efficiently, on possibly uncountable sets of outputs.%
+\label{problem:backward-efficient}
+\end{enumerate}
+
+We address~\ref{problem:observable-domain} and~\ref{problem:different-language} by developing our semantics in \lzfclang~\cite{cit:toronto-2012flops-lzfc}, a $\lambda$-calculus with infinite sets, and both extensional and intensional functions.
+We address~\ref{problem:backward-efficient} by deriving and implementing a \emph{conservative approximation} of the semantics.
+
+XXX: something about difficulty~\ref{problem:measurability}
+
+For difficulty~\ref{problem:higher-orderness}, we have discovered that the ``first-orderness'' of arrows~\cite{cit:hughes-2000scp-arrows} is a perfect fit for the ``first-orderness'' of measure theory.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\mathversion{sans}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Arrow Solution Overview}
+
+\newcommand{\youarehere}[1]%
+{%
+\begin{equation}%
+\begin{CD}%
+X \botto Y   @>\liftpre>>   X \preto Y \\%
+@V{\eta_\pbot}VV              @VV{\eta\ppre}V\\%
+X \pbotto Y  @>>\liftppre>  X \ppreto Y%
+\end{CD}%
+\label{#1}%
+\end{equation}%
+}
+
+Using arrows, we define an \emph{exact} semantics and an \emph{approximating} semantics.
+Our exact semantics consists of
+\begin{itemize}
+	\item A semantic function which, like the arrow calculus~\cite{cit:lindley-2010jfp-arrow-calculus} semantic function, transforms first-order programs into the computations of an arbitrary arrow.
+	\item Arrows for evaluating expressions in different ways.
+\end{itemize}
+This commutative diagram describes the relationships among the arrows used to define the exact semantics:
+\youarehere{eqn:roadmap-diagram1}
+In the top row, $X \botto Y$ computations are functions that may raise errors and $X \preto Y$ computations compute preimages.
+The computations of the arrows in the bottom row are like those in the top, except they thread an infinite store of random values, and always terminate.
+(We can do this because in \lzfclang, Turing-uncomputable programs are definable.)
+Most of our correctness theorems rely on proofs that every morphism in~\eqref{eqn:roadmap-diagram1} is a homomorphism.
+
+Our approximating semantics consists of the same semantic function and an arrow $X \ppreto' Y$, derived from $X \ppreto Y$, for computing conservative approximations of preimages.
+An implementation is comprised of the semantic function, and the $X \botto Y$ and $X \ppreto' Y$ arrows' combinators.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Operational Metalanguage}
+
+We write programs in \lzfclang~\cite{cit:toronto-2012flops-lzfc}, an untyped, call-by-value $\lambda$-calculus designed for deriving implementable programs from contemporary mathematics.
+
+Contemporary mathematics---measure theory in particular---is usually done in \keyword{ZFC}: \keyword{Zermelo-Fraenkel} set theory with the axiom of \keyword{Choice}.
+ZFC has only first-order functions and no general recursion, which makes implementing a language defined by a transformation into ZFC quite difficult.
+The problem is exacerbated if implementing the language requires approximation.
+Targeting \lzfclang instead allows creating an exact semantics and deriving an approximating semantics without changing languages.
+
+In \lzfclang, essentially every set is a value, as well as every lambda and every set of lambdas.
+All operations, including operations on infinite sets, are assumed to complete instantly if they terminate.
+
+Almost everything definable in ZFC can be defined by a finite \lzfclang program.
+Essentially every ZFC theorem applies to \lzfclang's set values without alteration.
+Further, proofs about \lzfclang's set values apply directly to ZFC sets, assuming the existence of an inaccessible cardinal.\footnote{A mild assumption, as ZFC+$\kappa$ is a smaller theory than Coq's~\cite{cit:barras-2010-sets-coq}.}
+
+In \lzfclang, algebraic data structures are encoded as sets; e.g. the pair $\pair{x,y}$ can be encoded as $\set{\set{x},\set{x,y}}$.
+Only the \emph{existence} of encodings into sets is important, as it means data structures inherit a defining characteristic of sets: strictness.
+More precisely, the lengths of paths to data structure leaves is unbounded, but each path must be finite.
+Less precisely, data may be ``infinitely wide'' (such as $\Re$) but not ``infinitely tall'' (such as infinite trees and lists).
+
+%We assume data structures, including pairs, are encoded as \emph{primitive} ordered pairs with the first element a unique tag, so they can be distinguished by checking tags.
+%sAccessors such as $fst$ and $snd$ are trivial to define.
+
+\lzfclang is untyped so its users can define an auxiliary type system that best suits their application area.
+For this work, we use a manually checked, polymorphic type system characterized by these rules:
+\begin{itemize}
+	\item A free type variable is universally quantified; if uppercase, it denotes a set.
+	\item A set denotes a member of that set.
+	\item $x \tto y$ denotes a partial function.
+	\item $\pair{x,y}$ denotes a pair of values with types $x$ and $y$.
+	\item $Set~x$ denotes a set with members of type $x$.
+\end{itemize}
+Because the type $Set~X$ denotes the same values as the set $\powerset~X$ (i.e. subsets of the set $X$) we regard them as equivalent.
+Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
+
+We write \lzfclang programs in heavily sugared $\lambda$-calculus syntax, with an $if$ expression and additional primitives such as membership $(\in) : x \tto Set~x \tto Bool$, powerset $\powerset : Set~x \tto Set~(Set~x)$ and big union $\U : Set~(Set~x) \tto Set~x$.
+We use binding forms such as indexed unions $\U_{\mathit{x} \in \mathit{e_A}}\mathit{e}$, destructuring binds as in $swap~\pair{x,y} := \pair{y,x}$, and comprehensions like $\setb{x \in A}{x \in B}$.
+We assume we have logical operators, bounded quantifiers, and typical set operations.
+
+In set theory, because functions are encoded as sets of input-output pairs, they inherit the extensionality of sets.
+The increment function for the natural numbers, for example, is $\set{\pair{0,1},\pair{1,2},\pair{2,3},...}$.
+We call these \keyword{mappings} and intensional functions \keyword{lambdas}, and use \keyword{function} to mean either.
+For convenience, as with lambdas, we use adjacency (e.g. $(f~x)$) to apply mappings.
+
+The set $X \to Y$ contains all the \emph{total} mappings from $X$ to $Y$.
+We use total mappings as possibly infinite vectors, with application for indexing.
+Indexing functions are produced by
+\begin{equation}
+\begin{aligned}
+	&\pi : J \tto (J \to X) \tto X \\
+	&\pi~j~f \ := \ f~j
+\end{aligned}
+\end{equation}
+which is particularly useful when $f$ is unnamed.
+
+Because of the way \lzfclang's lambda terms are defined, for two lambdas $\mathit{e}_1$ and $\mathit{e}_2$, $\mathit{e}_1 = \mathit{e}_2$ reduces to $true$ when $\mathit{e}_1$ and $\mathit{e}_2$ are alpha-equivalent.
+For example, $(\fun{a}{a}) = (\fun{b}{b})$ reduces to $true$, but $(\fun{a}{2}) = (\fun{a}{1+1})$ reduces to $false$.
+
+Any \lzfclang term $\mathit{e}$ used as a truth statement means ``$\mathit{e}$ reduces to $true$.''
+Therefore, the terms $(\fun{a}{a})~1$ and $1$ are (externally) unequal, but $(\fun{a}{a})~1 = 1$.
+
+Any truth statement $\mathit{e}$ implies $\mathit{e}$ terminates.
+In particular, $\mathit{e}_1 = \mathit{e}_2$ implies $\mathit{e}_1$ and $\mathit{e}_2$ both terminate.
+However, we often want to say that $\mathit{e}_1$ and $\mathit{e}_2$ are equivalent when they both loop.
+
+\begin{definition}[observational equivalence]
+Two \lzfclang terms $\mathit{e_1}$ and $\mathit{e_2}$ are \keyword{observationally equivalent}, written $\mathit{e_1} \equiv \mathit{e_2}$, when $\mathit{e_1} = \mathit{e_2}$ or both $\mathit{e_1}$ and $\mathit{e_2}$ do not terminate.
+\end{definition}
+
+It might seem helpful to introduce even coarser notions of equivalence, such as applicative bisimilarity~\cite{cit:abramsky-1990rtfp-bisimilarity}.
+However, we do not want internal equality and external equivalence to differ too much, and we want the flexibility of extending ``$\equiv$'' with type-specific rules.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Arrows and First-Order Semantics}
+
+Like monads and idioms~\cite{cit:wadler-2001-monads,cit:mcbride-2008jfp-idiom}, arrows~\cite{cit:hughes-2000scp-arrows} are used to thread effects through computations in a way that imposes structure on the computations.
+Unlike monad and idiom computations, arrow computations are always
+\begin{itemize}
+	\item Function-like: An arrow computation of type $x \arrow y$ must behave like a corresponding function of type $x \tto y$ (in a sense we explain shortly).
+	\item First-order: There is no way to derive a computation $app : \pair{x \arrow y, x} \arrow y$ from an arrow's minimal definition.
+\end{itemize}
+The first property makes arrows a perfect fit for a compositional translation from expressions to functions, or to computations that compute preimages under those same functions.
+The second property makes arrows a perfect fit for a measure-theoretic semantics in particular, as $app$ in the function arrow is generally not measurable~\cite{cit:aumann-1961ijm-borel}.
+Targeting arrows in the semantics therefore gives some assurance that we can meet measure theory's requirement that preimage measure be defined only for measurable functions.
+
+\subsection{Alternative Arrow Definitions and Laws}
+\label{sec:arrow-definitions}
+
+To make applying measure-theoretic theorems easier, and to simplify interpreting let-calculus expressions as arrow computations, we do not give typical minimal arrow definitions.
+For each arrow $a$, instead of $first\gen$, we define $(\arrowpair\gen)$---typically called \keyword{fanout}, but its use will be clearer if we call it \keyword{pairing}---which applies two functions to an input and returns the pair of their outputs.
+One way to strengthen an arrow $a$ is to define an additional combinator $left\gen$, which can be used to choose an arrow computation based on the result of another.
+Again, we define a different combinator, $\arrowif\gen$ (``if-then-else'').
+
+In a nonstrict $\lambda$-calculus, defining a choice combinator allows writing recursive functions using nothing but arrow combinators and lifted, pure functions.
+However, a strict $\lambda$-calculus needs an extra combinator to defer computations in conditional branches.
+For example, define the \keyword{function arrow} with choice:
+\begin{equation}
+\begin{aligned}
+	\arrowarr~f &\ := \ f \\
+	(f_1~\arrowcomp~f_2)~a &\ := \ f_2~(f_1~a) \\
+	(f_1~\arrowpair~f_2)~a &\ := \ \pair{f_1~a,f_2,a} \\
+	\arrowif~f_1~f_2~f_3~a &\ := \ if~(f_1~a)~(f_2~a)~(f_3~a) \\
+\end{aligned}
+\label{eqn:function-arrow}
+\end{equation}
+and try to define the following recursive function:
+\begin{equation}
+	halt!on!true \ := \ \arrowif~(\arrowarr~id)~(\arrowarr~id)~halt!on!true
+\end{equation}
+The defining expression loops in a strict $\lambda$-calculus.
+In a nonstrict $\lambda$-calculus, it loops only when applied to $false$.
+Using $\arrowlazy~f~a := f~0~a$, which receives thunks and returns arrow computations, we can write $halt!on!true$ using $\arrowlazy~\fun{0}{halt!on!true}$ for the else branch, so that it loops only when applied to $false$ in any $\lambda$-calculus.
+
+\begin{definition}[arrow with choice]A binary type constructor $(\arrow\gen)$ and
+\begin{equation}
+\begin{aligned}
+	\arrowarr\gen &: (x \tto y) \tto (x \arrow\gen y)
+\\
+	(\arrowcomp\gen) &: (x \arrow\gen y) \tto (y \arrow\gen z) \tto (x \arrow\gen z)
+\\
+	(\arrowpair\gen) &: (x \arrow\gen y) \tto (x \arrow\gen z) \tto (x \arrow\gen \pair{y,z})
+\end{aligned}
+\label{eqn:arrow-combinators}
+\end{equation}
+define an \keyword{arrow} if certain monoid, homomorphism, and structural laws hold.
+The additional combinators
+\begin{equation}
+\begin{aligned}
+	\arrowif\gen &: (x \arrow\gen Bool) \tto (x \arrow\gen y) \tto (x \arrow\gen y) \tto (x \arrow\gen y)
+\\
+	\arrowlazy\gen &: (1 \tto (x \arrow\gen y)) \tto (x \arrow\gen y)
+\end{aligned}
+\end{equation}
+where $1 = \set{0}$, define an \keyword{arrow with choice} if certain additional homomorphism and structural laws hold.
+\end{definition}
+
+All of our arrows are arrows with choice, so we simply call them arrows.
+
+The necessary homomorphism laws can be put in terms of more general homomorphism properties that deal with distributing an arrow-to-arrow lift, which we use extensively to prove correctness.
+
+\begin{definition}[arrow homomorphism]
+\label{def:arrow-homomorphism}
+A function $lift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ is an \mykeyword{arrow homomorphism} from arrow $\mathrm{a}$ to arrow $\mathrm{b}$ if the following distributive laws hold for appropriately typed $f$, $f_1$, $f_2$ and $f_3$:
+\begin{align}
+	lift\genb~(\arrowarr\gen~f) &\ \equiv \ \arrowarr\genb~f
+	\label{eqn:lift-distributes-over-arr}
+\\
+	lift\genb~(f_1~\arrowcomp\gen~f_2) &\ \equiv \ (lift\genb~f_1)~\arrowcomp\genb~(lift\genb~f_2)
+	\label{eqn:lift-distributes-over-comp}
+\\
+	lift\genb~(f_1~\arrowpair\gen~f_2) &\ \equiv \ (lift\genb~f_1)~\arrowpair\genb~(lift\genb~f_2)
+	\label{eqn:lift-distributes-over-pair}
+\\
+	\arrowlift\genb~(\arrowif\gen~f_1~f_2~f_3) &\ \equiv \ 
+		\arrowif\genb~(lift\genb~f_1)~(lift\genb~f_2)~(lift\genb~f_3)
+	\label{eqn:lift-distributes-over-if}
+\\
+	\arrowlift\genb~(\arrowlazy\gen~f) &\ \equiv \
+		\arrowlazy\genb~\fun{0}{\arrowlift\genb~(f~0)}
+	\label{eqn:lift-distributes-over-lazy}
+\end{align}
+\end{definition}
+
+The arrow homomorphism laws state that $\arrowarr\gen : (x \tto y) \tto (x \arrow\gen y)$ must be a homomorphism from the function arrow~\eqref{eqn:function-arrow} to arrow $a$.
+Roughly, arrow computations that do not use additional combinators can be transformed into $\arrowarr\gen$ applied to a pure computation.
+They must be \emph{function-like}.
+
+Rather than prove each necessary arrow law, we prove arrows are \emph{epimorphic} (not necessarily \emph{isomorphic}) to arrows for which the laws are known to hold.
+
+\begin{definition}[arrow epimorphism]
+\label{def:arrow-epimorphism}
+An arrow homomorphism $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ that has a right inverse is an \mykeyword{arrow epimorphism} from $a$ to $b$.
+\end{definition}
+
+\begin{theorem}
+\label{thm:arrow-epimorphism}
+If $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ is an arrow epimorphism and the combinators of $a$ define an arrow, then the combinators of $b$ define an arrow.
+\end{theorem}
+\begin{proof}
+For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law for arrow $a$, distribute $\arrowlift\genb$, and cancel right inverses.
+\qed
+\end{proof}
+
+
+
+\subsection{First-Order Let-Calculus Semantics}
+
+\figref{fig:semantic-function} defines a transformation $\meaningof{\cdot}\gen$ from a first-order let-calculus to arrow computations for any arrow $a$.
+
+\begin{figure*}[t]
+\smallmathfont
+\begin{align*}
+	\mathit{p} &\ ::\equiv \ \mathit{x := e};\ ...\ ; \mathit{e} \\
+	\mathit{e} &\ ::\equiv \ \mathit{x~e}\ |\ let~\mathit{e~e}\ |\ env~\mathit{n}\ |\ \mathit{\pair{e,e}}\ |\ fst~\mathit{e}\ |\ snd~\mathit{e}\ |\ if~\mathit{e~e~e}\ |\ \mathit{v} \\
+	\mathit{v} &\ ::\equiv \ \text{[first-order constants]}
+\end{align*}
+\begin{equation*}
+	\meaningof{\mathit{x} := \mathit{e};\ ...\ ; \mathit{e_{body}}}\gen \ :\equiv\
+		\mathit{x} := \meaningof{\mathit{e}}\gen;\ ...\ ; \meaningof{\mathit{e_{body}}}\gen
+\end{equation*}
+\begin{align*}
+\begin{aligned}[t]
+	\meaningof{\mathit{x}~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\pair{\mathit{e},\pair{}}}\gen~\arrowcomp\gen~\mathit{x}
+\\
+	\meaningof{\pair{\mathit{e}_1,\mathit{e}_2}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}_1}\gen~\arrowpair\gen~\meaningof{\mathit{e}_2}\gen
+\\
+	\meaningof{fst~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~fst
+\\
+	\meaningof{snd~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~snd
+\\
+	\meaningof{\mathit{v}}\gen &\ :\equiv\ \arrowarr\gen~(const~\mathit{v})
+\\[6pt]
+	id &\ := \ \fun{a} a
+\\
+	const~b &\ := \ \fun{a} b
+\\
+\end{aligned}
+&\tab\tab\tab\tab
+\begin{aligned}[t]
+	\meaningof{let~\mathit{e}~\mathit{e_{body}}}\gen &\ :\equiv\ 
+		(\meaningof{\mathit{e}}\gen~\arrowpair\gen~\arrowarr\gen~id)~
+			\arrowcomp\gen~
+		\meaningof{\mathit{e_{body}}}\gen
+\\
+	\meaningof{env~0}\gen &\ :\equiv\ \arrowarr\gen~fst
+\\
+	\meaningof{env~(\mathit{n}+1)}\gen &\ :\equiv\ \arrowarr\gen~snd~\arrowcomp\gen~\meaningof{env~\mathit{n}}\gen
+\\
+	\meaningof{if~\mathit{e_c}~\mathit{e_t}~\mathit{e_f}}\gen &\ :\equiv\
+		\arrowif\gen~
+			\meaningof{\mathit{e_c}}\gen~
+			\meaningof{lazy~\mathit{e_t}}\gen~
+			\meaningof{lazy~\mathit{e_f}}\gen
+\\
+	\meaningof{lazy~\mathit{e}}\gen &\ :\equiv\ \arrowlazy\gen~\fun{0}{\meaningof{\mathit{e}}\gen}
+\\
+\\
+	\text{subject to} &\ \meaningof{\mathit{p}}\gen : \pair{} \arrow\gen y \ \text{for some $y$}
+\end{aligned}
+\end{align*}
+\hrule
+\caption[ ]{Transformation from a let-calculus with first-order definitions and De-Bruijn-indexed bindings to computations in arrow $\mathrm{a}$.
+%The type of a transformed expression is $1 \arrow\gen X$, or an arrow from the empty stack $\gamma = 0$ to a value of type $X$.
+}
+\label{fig:semantic-function}
+\end{figure*}
+
+A program is a sequence of definition statements followed by a final expression.
+The semantic function $\meaningof{\cdot}\gen$ transforms each defining expression and the final expression into arrow computations.
+Functions are named, but local variables and arguments are not.
+Instead, variables are referred to by De Bruijn indexes, with $0$ referring to the innermost binding.
+
+Perhaps unsurprisingly, the interpretation acts like a stack machine.
+The final expression has type $\pair{} \arrow\gen y$, where $y$ is the type of the program's value, and $\pair{}$ denotes an empty list.
+Let-bindings push values onto the stack.
+First-order functions have type $\pair{x,\pair{}} \arrow\gen y$ where $x$ is the argument type and $y$ is the return type.
+Application sends a stack containing just an $x$.
+
+We generally regard programs as if they were their final expressions.
+Thus, the following definition applies to both programs and expressions.
+
+\begin{definition}[well-defined expression]
+\label{def:well-defined-expression}
+An expression $\mathit{e}$ is \keyword{well-defined} under arrow $a$ if $\meaningof{\mathit{e}}\gen : x \arrow\gen y$ for some $x$ and $y$, and $\meaningof{\mathit{e}}\gen$ terminates.%
+\end{definition}
+
+From here on, we assume all expressions are well-defined.
+(The arrow $a$ will be clear from context.)
+This does not guarantee that \emph{running} any given interpretation terminates; it just simplifies unqualified statements about expressions.
+
+Most of our semantic correctness results rely on the following theorem.
+
+\begin{theorem}[homomorphisms distribute over expressions]
+\label{thm:homomorphism-implies-correct}
+Let $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ be an arrow homomorphism.
+For all $\mathit{e}$, $\meaningof{\mathit{e}}\genb \equiv \arrowlift\genb~\meaningof{\mathit{e}}\gen$.%
+\end{theorem}
+\begin{proof}
+By structural induction and homomorphism properties~\eqref{eqn:lift-distributes-over-arr}--\eqref{eqn:lift-distributes-over-lazy}.
+\qed
+\end{proof}
+
+
+If we assume that $\arrowlift\genb$ defines correct behavior for arrow $b$ in terms of arrow $a$, and prove that $\arrowlift\genb$ is a homomorphism, then by Theorem~\ref{thm:homomorphism-implies-correct}, $\meaningof{\cdot}\genb$ is correct.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The Bottom and Preimage Arrows}
+
+\begin{figure*}[t]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&x \botto y \ ::= \ x \tto y_\bot
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrbot : (x \tto y) \tto (x \botto y) \\
+		&\arrbot~f \ := \ f
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\compbot) : (x \botto y) \tto (y \botto z) \tto (x \botto z) \\
+		&(f_1~\compbot~f_2)~a \ := \ if~(f_1~a = \bot)~\bot~(f_2~(f_1~a))
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\pairbot) : (x \botto {y_1}) \tto (x \botto {y_2}) \tto (x \botto \pair{y_1,y_2}) \\
+		&(f_1~\pairbot~f_2)~a \ := \ if~(f_1~a = \bot~or~f_2~a = \bot)~\bot~{\pair{f_1~a,f_2~a}}
+	\end{aligned}
+\end{aligned}
+&\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\ifbot : \lzfcsplit{&(x \botto Bool) \tto (x \botto y) \tto \\ &(x \botto y) \tto (x \botto y)} \\
+		&\lzfcsplit{&\ifbot~f_1~f_2~f_3~a \ := \ \\
+			&\tab\lzfccase{f_1~a}{true & f_2~a \\ false & f_3~a \\ \bot & \bot}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\lazybot : (1 \tto (x \botto y)) \tto (x \botto y) \\
+		&\lazybot~f~a \ := \ f~0~a
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\hrule
+\caption[ ]{Bottom arrow definitions.}
+\label{fig:bottom-arrow-defs}
+\end{figure*}
+
+To use Theorem~\ref{thm:homomorphism-implies-correct} to prove correct the interpretations of expressions as preimage arrow computations, we need the preimage arrow to be homomorphic to a simpler arrow whose behavior is well-understood.
+One obvious candidate is the function arrow~\eqref{eqn:function-arrow}.
+However, we will need to explicitly handle nontermination as an error value, so we need a slightly more complicated arrow for which running computations may raise an error.
+
+\figref{fig:bottom-arrow-defs} defines the \mykeyword{bottom arrow}.
+Its computations are of type $x \botto y ::= x \tto y_\bot$, where the inhabitants of $y_\bot$ are the error value $\bot$ as well as the inhabitants of $y$.
+The type $Bool_\bot$, for example, denotes the members of $Bool \u \set{\bot}$.
+
+If we wish to claim that $x~\botto~y$ computations obey the arrow laws, we need a notion of equivalence that is slightly coarser than observational equivalence.
+\begin{definition}[bottom arrow equivalence]
+Two computations $f_1 : x \botto y$ and $f_2 : x \botto y$ are equivalent, or $f_1 \equiv f_2$, when $f_1~a \equiv f_2~a$ for all $a : x$.
+\end{definition}
+
+It is not hard to show that the bottom arrow is epimorphic to the Maybe monad's Kleisli arrow; by Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
+
+\subsection{Lazy Preimage Mappings}
+\label{sec:lazy-preimage-mappings}
+
+\begin{figure*}[t]\centering
+\smallmathfont
+\begin{align*}
+&\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \prepto Y ::= \pair{Set~Y, Set~Y \tto Set~X}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&pre : (X \botto Y) \tto (X \prepto Y) \\
+		&\lzfcsplit{&pre~f~A \ := \ \\ &\tab\pair{image_\bot~f~A, \fun{B}{preimage_\bot~f~A~B}}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&ap\pre : (X \prepto Y) \tto Set~Y \tto Set~X \\
+		&ap\pre~\pair{Y',p}~B \ := \ p~(B \i Y') 
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&domain\pre : (X \prepto Y) \tto Set~X \\
+		&domain\pre~\pair{Y',p} \ := \ p~Y'
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&range\pre : (X \prepto Y) \tto Set~Y \\
+		&range\pre~\pair{Y',p} \ := \ Y'
+	\end{aligned}
+\end{aligned}
+&&\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\pair{\cdot,\cdot}\pre : (X \prepto Y_1) \tto (X \prepto Y_2) \tto (X \prepto Y_1 \times Y_2) \\
+		&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\pre \ := \ \\
+		&\tab\lzfclet{
+			Y' & Y_1' \times Y_2' \\
+			p & \fun{B}{\U\limits_{\pair{b_1,b_2} \in B}(p_1~\set{b_1}) \i (p_2~\set{b_2})} \\
+		}{\pair{Y',p}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\circ\pre) : (Y \prepto Z) \tto (X \prepto Y) \tto (X \prepto Z) \\
+		&\pair{Z',p_2} \circ\pre h_1 \ := \ \pair{Z', \fun{C}{ap\pre~h_1~(p_2~C)}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\uplus\pre) : (X \prepto Y) \tto (X \prepto Y) \tto (X \prepto Y) \\
+		&\lzfcsplit{
+			&h_1 \uplus\pre h_2 \ := \ 
+			\lzfclet{
+					Y' & (range\pre~h_1) \u (range\pre~h_2) \\
+					p & \fun{B}{(ap\pre~h_1~B) \u (ap\pre~h_2~B)}
+				}{\pair{Y',p}}
+		}
+	\end{aligned} \\
+\end{aligned}
+\\
+&\begin{aligned}[t]
+	\\[-6pt]
+	\hline
+	\\[-6pt]
+	&\begin{aligned}[t]
+		&image_\bot : (X \botto Y) \tto Set~X \tto Set~Y \\
+		&image_\bot~f~A \ := \ (image~f~A) \w \set{\bot}
+	\end{aligned}
+\end{aligned}
+&&\begin{aligned}[t]
+\\[-6pt]
+\hline
+\\[-6pt]
+	&\begin{aligned}[t]
+		&preimage_\bot : (X \botto Y) \tto Set~X \tto Set~Y \tto Set~X \\
+		&preimage_\bot~f~A~B \ := \ \setb{a \in A}{f~a \in B}
+	\end{aligned} \\
+\end{aligned}
+\end{align*}
+\hrule
+\caption[ ]{Lazy preimage mappings and operations.}
+\label{fig:preimage-mapping-defs}
+\end{figure*}
+
+To compute with infinite sets in the language implementation, we need an abstraction that makes it easy to replace computation on concrete sets with computation on abstract sets.
+Therefore, in the preimage arrow, we confine set computations to instances of
+\begin{equation}
+	X \prepto Y \ ::= \ \pair{Set~Y, Set~Y \tto Set~X}
+\end{equation}
+Like a mapping, an $X \prepto Y$ has an observable domain---but computing the input-output pairs is delayed.
+We therefore call these \mykeyword{lazy preimage mappings}.
+The lack of $\bot$ in the type makes ignore nonterminating inputs easier further on.
+
+Converting a bottom arrow computation to a lazy preimage mapping requires computing its range, and constructing a delayed preimage computation:
+\begin{equation}
+\begin{aligned}
+	&pre : (X \botto Y) \tto Set~X \tto (X \prepto Y) \\
+	&pre~f~A \ := \ \pair{image_\bot~f~A,\fun{B}{preimage_\bot~f~A~B}}
+\end{aligned}
+\end{equation}
+\figref{fig:preimage-mapping-defs} defines $image_\bot$, $preimage_\bot$, and further operations on preimage mappings.
+One is $ap\pre$, which applies a preimage mapping to any subset of its codomain, in a way that ensures using $pre$ and $ap\pre$ to compute preimages is the same as computing them using $preimage_\bot$.
+
+\begin{theorem}[$ap\pre$ computes preimages]
+\label{thm:pre-like-preimage}
+Let $f \in X \tto Y$. For all $A \subseteq X$ and $B \subseteq Y$, $ap\pre~(pre~f~A)~B \equiv preimage_\bot~f~A~B$.
+\end{theorem}
+\begin{proof}
+Expand definitions; use basic facts about $(\w)$, $(\i)$ and $image$.
+\qed
+\end{proof}
+
+Other operations are $\pair{\cdot,\cdot}\pre$, which returns preimage mappings for computing preimages under pairing functions, and $(\circ\pre)$ and $(\uplus\pre)$, which do the same for compositions and disjoint unions.
+
+\subsection{The Preimage Arrow}
+\label{sec:preimage-arrow}
+
+Now we can define an arrow that computes preimages of output sets.
+
+Its computations should produce preimage mappings or be preimage mappings.
+However, we cannot have the latter (i.e. $X \preto Y ::= X \prepto Y$): we run into trouble trying to define $\arrpre$ because a preimage mapping needs an observable range.
+Fortunately, if we define the \mykeyword{preimage arrow} type constructor as
+\begin{equation}
+	X \preto Y \ ::= \ Set~X \tto (X \prepto Y)
+\end{equation}
+then we already have a lift $\liftpre : (X \botto Y) \tto (X \preto Y)$ from the bottom arrow to the preimage arrow: $pre$.
+By Theorem~\ref{thm:pre-like-preimage}, lifted bottom arrow computations compute correct preimages, exactly as we should expect them to.
+
+\figref{fig:preimage-arrow-defs} defines the preimage arrow.
+If the arrow combinator definitions make $\liftpre$ a homomorphism, then $\meaningof{\cdot}\pre$ is correct.
+For this to be true, we need preimage arrow computations to be equivalent when they compute the same preimages.
+
+\begin{figure*}[t]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \preto Y ::= Set~X \tto (X \prepto Y)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrpre : (X \tto Y) \tto (X \preto Y) \\
+		&\arrpre \ := \ \liftpre \circ \arrbot
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\comppre) : (X \preto Y) \tto (Y \preto Z) \tto (X \preto Z) \\
+		&(h_1~\comppre~h_2)~A \ := \ 
+			\lzfclet{
+				h_1' & h_1~A \\
+				h_2' & h_2~(range\pre~h_1')
+			}{h_2' \circ\pre h_1'}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\pairpre) : (X \preto Y) \tto (X \preto Z) \tto (X \preto Y \times Z) \\
+		&(h_1~\pairpre~h_2)~A \ := \ \pair{h_1~A,h_2~A}\pre
+	\end{aligned}
+\end{aligned}
+&\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\ifpre : \lzfcsplit{&(X \preto Bool) \tto (X \preto Y) \tto \\ &(X \preto Y) \tto (X \preto Y)} \\
+		&\lzfcsplit{&\ifpre~h_1~h_2~h_3~A \ := \ \\
+			&\tab\lzfclet{
+				h_1' & h_1~A \\
+				h_2' & h_2~(ap\pre~h_1'~\set{true}) \\
+				h_3' & h_3~(ap\pre~h_1'~\set{false})
+			}{h_2' \uplus\pre h_3'}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\lazypre : (1 \tto (X \preto Y)) \tto (X \preto Y) \\
+		&\lazypre~h~A \ := \ if~(A = \emptyset)~(pre~\emptyset)~(h~0~A)
+	\end{aligned} \\
+\\[-6pt]
+\hline
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\liftpre \ := \ pre
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\hrule
+\caption[ ]{Preimage arrow definitions.}
+\label{fig:preimage-arrow-defs}
+\end{figure*}
+
+\begin{definition}[preimage arrow equivalence]
+Two preimage arrow computations $h_1 : X \preto Y$ and $h_2 : X \preto Y$ are equivalent, or $h_1 \equiv h_2$, when 
+$ap\pre~(h_1~A)~B \equiv ap\pre~(h_2~A)~B$ for all $A \subseteq X$ and $B \subseteq Y$.
+\end{definition}
+
+\begin{theorem}[preimage arrow correctness]
+$\liftpre$ is a homomorphism.
+\end{theorem}
+
+\begin{corollary}[semantic correctness]
+\label{cor:preimage-arrow-correctness}
+For all $\mathit{e}$, $\meaningof{\mathit{e}}\pre \equiv \liftpre~\meaningof{\mathit{e}}_\bot$.
+\end{corollary}
+
+While lifted bottom arrow computations behave intuitively, preimage arrow computations in general can be unruly.
+For example:
+\begin{equation}
+\begin{aligned}
+	&unruly : Bool \preto Bool \\
+	&unruly~A \ := \ \pair{Bool \w A, \fun{B} B}
+\end{aligned}
+\end{equation}
+With this, $ap\pre~(unruly~\set{true})~\set{false} = \set{false} \i (Bool \w \set{true}) = \set{false}$---a ``preimage'' that does not even intersect the given domain $\set{true}$.
+We would like to be sure each $h : X \preto Y$ always acts as if it computes preimages under some bottom arrow computation.
+
+\begin{definition}[preimage arrow law]
+\label{def:preimage-arrow-law}
+Let $h : X \preto Y$. If there exists an $f : X \botto Y$ such that $h \equiv \liftpre~f$, then $h$ obeys the \mykeyword{preimage arrow law}.
+\end{definition}
+
+We assume from here on that the preimage arrow law holds for all $h : X \preto Y$.
+By homomorphism of $\liftpre$, preimage arrow combinators return computations that obey this law.
+The preimage arrow law implies $\liftpre$ is an epimorphism; by Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Preimages Under Partial Functions}
+
+We have defined the top of our roadmap:
+\youarehere{eqn:roadmap-diagram3}
+so that $\liftpre$ is a homomorphism.
+Now we move down each side and connect the bottom, in a way that makes every morphism a homomorphism.
+
+\subsection{Motivation}
+
+Probabilistic functions that may not terminate, but terminate with probability 1, are common.
+They come up not only when practitioners want to build data with random size or structure, but in simpler circumstances as well.
+
+Suppose $random$ retrieves a number $r~j \in [0,1]$ at index $j$ in an implicit random source $r$.
+The following function, which defines the well-known \keyword{geometric distribution} with parameter $p$, counts the number of times $random < p$ is $false$:
+\begin{equation}
+	geometric~p \ := \ if~(random < p)~0~(1 + geometric~p)
+\label{eqn:geometric-def}
+\end{equation}
+For any $p > 0$, $geometric~p$ may not terminate, but the probability of always taking the false branch is $(1-p) \times (1-p) \times (1-p) \times \cdots = 0$.
+Therefore, for $p > 0$, $geometric~p$ terminates with probability $1$.
+
+Suppose we interpret~\eqref{eqn:geometric-def} as $h : R \preto \Nat$, a preimage arrow computation from random sources in $R$ to natural numbers, and that we have a probability measure $P \in \powerset~R \pto [0,1]$.
+We could compute the probability of any output set $N \subseteq \Nat$ using $P~(h~R'~N)$, where $R' \subseteq R$ and $P~R' = 1$. We have three hurdles to overcome:
+\begin{enumerate}
+	\item Ensuring $h~R'$ terminates.
+	\item Ensuring each $r \in R$ contains enough random numbers.
+	\item Determining how $random$ indexes numbers in $r$.
+\end{enumerate}
+Ensuring $h~R'$ terminates is the most difficult, but doing the other two will provide structure that makes it much easier.
+
+\subsection{Threading and Indexing}
+
+We clearly need a new arrow that threads a random source through its computations.
+To ensure it contains enough random numbers, it should be infinite.
+
+In a pure $\lambda$-calculus, random sources are typically infinite streams, threaded monadically: each computation receives and produces a random source.
+A new combinator is defined that removes the head of the random source and passes the tail along.
+This is likely preferred because pseudorandom number generators are almost universally monadic.
+
+A little-used alternative is for the random source to be a tree, threaded applicatively:
+each computation receives, but does not produce, a random source.
+Combinators split the tree and pass subtrees to subcomputations.
+
+With either alternative, for arrows defined using pairing, the resulting definitions are large, conceptually difficult, and hard to manipulate.
+Fortunately, assigning each subcomputation a unique index into a tree-shaped random source, and passing the random source unchanged, is relatively easy.
+
+To do this, we need a set of computation indexes.
+
+\begin{definition}[binary indexing scheme]
+Let $J$ be an index set, $j_0 \in J$ a distinguished element, and $left : J \tto J$ and $right : J \tto J$ be total, injective functions. If for all $j \in J$, $j = next~j_0$ for some finite composition $next$ of $left$ and $right$, then $J$, $j_0$, $left$ and $right$ define a \mykeyword{binary indexing scheme}.
+\end{definition}
+
+For example, let $J$ be the set of lists of $\set{0,1}$, $j_0 := \pair{}$, and $left~j := \pair{0,j}$ and $right~j := \pair{1,j}$.
+Alternatively, let $J$ be the set of dyadic rationals in $(0,1)$ (i.e. those with power-of-two denominators), $j_0 := \tfrac{1}{2}$ and
+\begin{equation}
+\begin{aligned}
+	left~(p/q) &\ := \ (p-\tfrac{1}{2})/q
+\\
+	right~(p/q) &\ := \ (p+\tfrac{1}{2})/q
+\end{aligned}
+\end{equation}
+With this alternative, left-to-right evaluation order can be made to correspond with the natural order $(<)$ over $J$.
+In any case, $J$ is countable, and can be thought of as a set of indexes into an infinite binary tree.
+Values of type $J \to A$ encode an infinite binary tree of $A$ values as an infinite vector (i.e. total mapping).
+
+\subsection{Applicative, Associative Store Transformer}
+
+We thread a random store through bottom and preimage arrow computations by defining an \keyword{arrow transformer}: a type constructor that receives and produces an arrow type, and combinators for arrows of the produced type.
+
+\begin{figure*}[t]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		x \arrow\genc y \ ::= \ AStore~s~(x \arrow\gen y) \ ::= \ J \tto (\pair{s,x} \arrow\gen y)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrowarr\genc : (x \tto y) \tto (x \arrow\genc y) \\
+		&\arrowarr\genc \ := \ \arrowtrans\genc \circ \arrowarr\gen
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\arrowcomp\genc) : (x \arrow\genc y) \tto (y \arrow\genc z) \tto (x \arrow\genc z) \\
+		&(k_1~\arrowcomp\genc~k_2)~j \ := \\
+			&\tab(\arrowarr\gen~fst~\arrowpair\gen~k_1~(left~j))~\arrowcomp\gen~k_2~(right~j)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\arrowpair\genc) : (x \arrow\genc y_1) \tto (x \arrow\genc y_2) \tto (x \arrow\genc \pair{y_1,y_2}) \\
+		&(k_1~\arrowpair\genc~k_2)~j \ := \ k_1~(left~j)~\arrowpair\gen~k_2~(right~j)
+	\end{aligned} \\
+\end{aligned}
+&\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\arrowif\genc : \lzfcsplit{&(x \arrow\genc Bool) \tto (x \arrow\genc y) \tto \\ &(x \arrow\genc y) \tto (x \arrow\genc y)} \\
+		&\lzfcsplit{&\arrowif\genc~k_1~k_2~k_3~j \ := \ \\
+			&\tab\lzfcsplit{\arrowif\gen~&(k_1~(left~j)) \\ &(k_2~(left~(right~j))) \\ &(k_3~(right~(right~j)))}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrowlazy\genc : (1 \tto (x \arrow\genc y)) \tto (x \arrow\genc y) \\
+		&\arrowlazy\genc~k~j \ := \ \arrowlazy\gen~\fun{0}{k~0~j}
+	\end{aligned} \\
+\\[-6pt]
+\hline
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrowtrans\genc : (x \arrow\gen y) \tto (x \arrow\genc y) \\
+		&\arrowtrans\genc~f~j \ := \ \arrowarr\gen~snd~\arrowcomp\gen~f
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\hrule
+\caption[ ]{$AStore$ (associative store) arrow transformer definitions.}
+\label{fig:astore-arrow-defs}
+\end{figure*}
+
+The $AStore$ arrow type constructor takes a store type $s$ and an arrow $x \arrow\gen y$:
+\begin{equation}
+	AStore~s~(x \arrow\gen y) \ ::= \ J \tto (\pair{s,x} \arrow\gen y)
+\end{equation}
+Reading the type, we see that computations receive an index $j \in J$ and produce a computation that receives a store as well as an $x$.
+Lifting extracts the $x$ from the input pair and sends it on to the original computation:
+\begin{equation}
+\begin{aligned}
+	&\arrowtrans\genc : (x \arrow\gen y) \tto AStore~s~(x \arrow\gen y) \\
+	&\arrowtrans\genc~f~j \ := \ \arrowarr\gen~snd~\arrowcomp\gen~f
+\end{aligned}
+\end{equation}
+Because $f$ never accesses the store, $j$ is ignored.
+
+\figref{fig:astore-arrow-defs} defines the remaining combinators.
+Each subcomputation receives $left~j$, $right~j$, or some other unique binary index.
+We thus think of programs interpreted as $AStore$ arrows as being completely unrolled into an infinite binary tree, with each expression labeled with its tree index.
+
+\subsection{Partial, Probabilistic Programs}
+\label{sec:probabilistic-programs}
+
+We interpret partial and probabilistic programs using combinators that read a store at an expression index.
+
+\paragraph{Probabilitic Programs}
+To interpret probabilitic programs, we use a tree-shaped random source as the store.
+
+\begin{definition}[random source]
+Let $R := J \to [0,1]$.
+A \keyword{random source} is any infinite binary tree $r \in R$.
+\end{definition}
+
+Let $x \arrow\genc y ::= AStore~R~(x \arrow\gen y)$.
+We define a combinator $random\genc$ that returns the number at its tree index in the random source, and extend the let-calculus for arrows $a^*$ for which $random\genc$ is defined:
+\begin{equation}
+\begin{aligned}
+	&random\genc : x \arrow\genc [0,1] \\
+	&random\genc~j \ := \ \arrowarr\gen~(fst~\arrowcomp~\pi~j)
+\\[6pt]
+	&\meaningof{random}\genc \ :\equiv \ random\genc
+\end{aligned}
+\end{equation}
+
+\paragraph{Partial Programs}
+One utimately implementable way to ensure termination is to have the store dictate which branch of each conditional, if any, can be taken.
+
+\begin{definition}[branch trace]
+A \mykeyword{branch trace} is any $t \in J \to Bool_\bot$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
+\end{definition}
+
+Let $T \subset J \to Bool_\bot$ be the set of all branch traces, and $x \arrow\genc y ::= AStore~T~(x \arrow\gen y)$.
+The following combinator returns the branch $t~j$:
+\begin{equation}
+\begin{aligned}
+	&branch\genc : x \arrow\genc Bool \\
+	&branch\genc~j \ := \ \arrowarr\gen~(fst~\arrowcomp~\pi~j)
+\end{aligned}
+\end{equation}
+Using $branch\genc$, we define an if-then-else combinator that ensures its test expression agrees with the branch trace:
+\begin{align}
+	&\begin{aligned}
+		&agrees : \pair{Bool,Bool} \tto Bool_\bot \\
+		&agrees~\pair{b_1,b_2} \ := \ if~(b_1 = b_2)~b_1~\bot
+	\end{aligned} \\
+\nonumber \\[-6pt]
+	&\begin{aligned}
+		&\arrowconvif\genc : (x \arrow\genc Bool) \tto (x \arrow\genc y) \tto (x \arrow\genc y) \tto (x \arrow\genc y) \\
+		&\arrowconvif\genc~k_1~k_2~k_3~j \ := \
+			\arrowif\gen~\lzfcsplit{
+				&((k_1~(left~j)~\arrowpair\gen~branch\genc~j)~\arrowcomp\gen~\arrowarr\gen~agrees) \\
+				&(k_2~(left~(right~j))) \\
+				&(k_3~(right~(right~j)))
+			}
+	\end{aligned}
+	%&\begin{aligned}
+	%	&\arrowconvif\genc : (x \arrow\genc Bool) \tto (x \arrow\genc y) \tto (x \arrow\genc y) \tto (x \arrow\genc y) \\
+	%	&\arrowconvif\genc~k_1~k_2~k_3 \ := \\ 
+	%		&\tab\arrowconvif\genc~((k_1~\arrowpair\genc~branch\genc)~\arrowcomp\genc~\arrowarr\genc~agrees)~k_2~k_3
+	%\end{aligned}
+\label{eqn:ifppre-def}
+\end{align}
+If the branch trace agrees with the test expression, it computes a branch; otherwise, it returns an error.
+
+Because we assume every expression is well-defined (Definition~\ref{def:well-defined-expression}), every expression must have its recurrences guarded by $if$.
+Thus, to ensure running their interpretations always terminates, we should only need to replace $\arrowif\genc$ with $\arrowconvif\genc$.
+We define a new semantic function $\meaningofconv{\cdot}\genc$ by
+\begin{equation}
+\begin{aligned}
+	\meaningofconv{if~\mathit{e_c}~\mathit{e_t}~\mathit{e_f}}\genc &\ :\equiv\
+		\arrowconvif\genc~
+			\meaningofconv{\mathit{e_c}}\genc~
+			\meaningofconv{lazy~\mathit{e_t}}\genc~
+			\meaningofconv{lazy~\mathit{e_f}}\genc
+\end{aligned}
+\end{equation}
+with the remaining rules similar to those of $\meaningof{\cdot}\genc$.
+
+For an $AStore$ computation $k$, we obviously must run $k$ on every branch trace in $T$ and filter out $\bot$, or somehow find pairs of $\pair{t,a}$ (with $a : x$) for which $agrees$ never returns $\bot$.
+Mapping and preimage $AStore$ arrow computations do both.
+
+\paragraph{Partial, Probabilistic Programs}
+Let $S ::= R \times T$ be the set of stores.
+Define $x \arrow\genc y ::= AStore~S~(x \arrow\gen y)$, and update the $random\genc$ and $branch\genc$ combinators to reflect that stores are now pairs:
+\begin{equation}
+\begin{aligned}
+	random\genc~j &\ := \ \arrowarr\gen~(fst~\arrowcomp~fst~\arrowcomp~\pi~j)
+\\
+	branch\genc~j &\ := \ \arrowarr\gen~(fst~\arrowcomp~snd~\arrowcomp~\pi~j)
+\end{aligned}
+\end{equation}
+The definitions of $\arrowconvif\genc$ and $\meaningofconv{\cdot}\genc$ remain the same.
+
+\begin{definition}[terminating, probabilistic arrows]
+Define the type constructors for the \mykeyword{bottom* arrow} and the \mykeyword{preimage* arrow} as
+\begin{equation}
+\begin{aligned}
+	X \pbotto Y &\ ::=\ AStore~(R \times T)~(X \botto Y) \\
+	X \ppreto Y &\ ::=\ AStore~(R \times T)~(X \preto Y) \\
+\end{aligned}
+\end{equation}
+\end{definition}
+
+A bottom* arrow computation's domain is $(R \times T) \times X$.
+We assume each $r \in R$ is randomly chosen, but not each $t \in T$ nor $a \in X$; therefore, neither $T$ nor $X$ should affect the probabilities of output sets.
+
+\subsection{Correctness}
+
+We have two arrow lifts to prove homomorphic: one from pure computations to effectful (i.e. from those that do not access the store to those that do), and one from effectful computations to effectful.
+For both, we need $AStore$ arrow equivalence to be more extensional.
+
+\begin{definition}[$AStore$ arrow equivalence]
+Two $AStore$ arrow computations $k_1$ and $k_2$ are equivalent, or $k_1 \equiv k_2$, when $k_1~j \equiv k_2~j$ for all $j \in J$.
+\end{definition}
+
+\begin{theorem}[pure $AStore$ arrow correctness]
+$\arrowtrans\genc$ is a homomorphism.
+\end{theorem}
+
+\begin{corollary}[pure semantic correctness]
+\label{cor:pure-astore-semantic-correctness}
+For all pure $\mathit{e}$, $\meaningof{\mathit{e}}\genc \equiv \arrowtrans\genc~\meaningof{\mathit{e}}\gen$.
+\end{corollary}
+
+We need a lift between $AStore$ arrows.
+Let $x \arrow\genc y ::= AStore~s~(x \arrow\gen y)$ and $x \arrow\gend y ::= AStore~s~(x \arrow\gend y)$.
+Define
+\begin{equation}
+\begin{aligned}
+	&\arrowlift\gend : (x \arrow\genc y) \tto (x \arrow\gend y) \\
+	&\arrowlift\gend~f~j \ := \ \arrowlift\genb~(f~j)
+\end{aligned}
+\end{equation}
+where $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$.
+
+\begin{theorem}[effectful $AStore$ arrow correctness]
+If $\arrowlift\genb$ is an arrow homomorphism from $a$ to $b$, then $\arrowlift\gend$ is an arrow homomorphism from $a^*$ to $b^*$.
+\end{theorem}
+
+\begin{corollary}[preimage* arrow correctness]
+$\liftppre$ is a homomorphism.
+\end{corollary}
+
+\begin{corollary}[effectful semantic correctness]
+For all expressions $\mathit{e}$, $\meaningof{\mathit{e}}\ppre \equiv \liftppre~\meaningof{\mathit{e}}_\pbot$ and $\meaningofconv{\mathit{e}}\ppre \equiv \liftppre~\meaningofconv{\mathit{e}}_\pbot$.
+\end{corollary}
+
+\subsection{Termination}
+
+To relate $\meaningofconv{\mathit{e}}\genc$ computations to $\meaningof{\mathit{e}}\genc$ computations, we need to find the largest domain on which they should agree.
+
+\begin{equation}
+\begin{aligned}
+	&domain_\bot : (X \botto Y) \tto Set~X \tto Set~X \\
+	&domain_\bot~f~A \ := \ \setb{a \in A}{f~a \neq \bot}
+\end{aligned}
+\end{equation}
+
+\begin{definition}[maximal domain]
+\label{def:maximal-domain}
+A computation's \mykeyword{maximal domain} is the largest $A^*$ for which
+\begin{itemize}
+	\item For $f : X \botto Y$, $domain_\bot~f~A^* = A^*$.
+	\item For $h : X \preto Y$, $domain\pre~(h~A^*) = A^*$.
+\end{itemize}
+The maximal domain of $k : X \arrow\genc Y$ is that of $k~j_0$.%
+\end{definition}
+
+Because the above statements imply termination, $A^*$ is a subset of the largest domain for which the computations terminate.
+Lifting computations preserves the maximal domain; e.g. the maximal domain of $\liftppre~f$ is the same as $f$'s.
+
+\begin{comment}
+
+\begin{definition}[index prefix/suffix]
+\label{def:index-prefix}
+A finite $J' \subset J$ is an \mykeyword{index prefix} if $J' = \set{j_0}$ or, for some index prefix $J''$ and $j \in J''$, $J' = J'' \uplus \set{left~j}$ or $J' = J'' \uplus \set{right~j}$.
+The corresponding \mykeyword{index suffix} is $J \w J'$.
+\end{definition}
+
+It is not hard to show that every index suffix is closed under $left$ and $right$.
+
+For a given $t \in T$, an index prefix $J'$ serves as a convenient bounding set for the finitely many indexes $j$ for which $t~j \neq \bot$.
+Applying $left$ and/or $right$ repeatedly to any $j \in J'$ eventually yields a $j' \in J \w J'$, for which $t~j' = \bot$.
+\end{comment}
+
+\begin{theorem}[correct computation everywhere]
+\label{thm:correct-convergence}
+Let $\meaningofconv{\mathit{e}}_\pbot : X \pbotto Y$ have maximal domain $A^*$, and $X' := (R \times T) \times X$.
+For all $a \in X'$, $A \subseteq X'$ and $B \subseteq Y$,
+\begin{equation}
+\begin{aligned}
+	&\meaningofconv{\mathit{e}}_\pbot &&\!\!\!\!j_0~a &&\!\!\!\!= \ if~(a \in A^*)~(\meaningof{\mathit{e}}_\pbot~j_0~a)~\bot \\
+	ap\pre~(\!&\meaningofconv{\mathit{e}}\ppre &&\!\!\!\!j_0~A)~B &&\!\!\!\!= \ ap\pre~(\meaningof{\mathit{e}}\ppre~j_0~(A \i A^*))~B
+\end{aligned}
+\end{equation}
+\end{theorem}
+
+In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always terminate, never include inputs that give rise to errors or nontermination, and are correct.
+
+Let $f : \meaningofconv{\mathit{e}}_\pbot : X \pbotto Y$
+
+Assuming correctness, the probability of an output set $B \subseteq Y$ is
+\begin{equation}
+	P~(image~(fst~\arrowcomp~fst)~(preimage_\bot~f~A~B)
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Approximating Semantics}
+\label{sec:approximating-semantics}
+
+If we were to confine preimage computation to finite sets, we could implement the preimage arrow directly.
+But we would like something that works efficiently on infinite sets, even if it means approximating.
+We focus on a specific method: approximating product sets with covering rectangles.
+
+\subsection{Implementable Lifts}
+
+\begin{figure*}[t]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		id\pre~A &\ := \ \pair{A,\fun{B}{B}} \\
+		fst\pre~A &\ := \ \pair{proj_1~A,unproj_1~A} \\
+		snd\pre~A &\ := \ \pair{proj_2~A,unproj_2~A} \\
+	\end{aligned} \\
+\\[-6pt]
+\hline
+\\[-6pt]
+	&\begin{aligned}[t]
+		&proj_1 := image~fst;\ \ proj_2 := image~snd
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&unproj_1 : Set~\pair{X_1,X_2} \tto Set~X_1 \tto Set~\pair{X_1,X_2} \\
+		&unproj_1~A~B \lzfcsplit{
+			&\ :=\ preimage~(mapping~fst~A)~B \\[2pt]
+			&\ \;\equiv\ A \i (B \times proj_2~A)
+			%&\ :=\ A \i \prod_{j' \in J} if~(j' = j)~B~(proj~j'~A)
+		}
+	\end{aligned}
+\end{aligned}
+&\ \ \,
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		const\pre~b~A &\ := \ \pair{\set{b},\fun{B}{if~(B = \emptyset)~\emptyset~A}} \\
+		\pi\pre~j~A &\ := \ \pair{proj~j~A, unproj~j~A}
+	\end{aligned} \\
+\\[-6pt]
+\hline
+\\[-6pt]
+	&\begin{aligned}[t]
+		&proj : J \tto Set~(J \to X) \tto Set~X \\
+		&proj~j~A \ := \ image~(\pi~j)~A
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&unproj : J \tto Set~(J \to X) \tto Set~X \tto Set~(J \to X) \\
+		&unproj~j~A~B \lzfcsplit{
+			&\ :=\ preimage~(mapping~(\pi~j)~A)~B \\[2pt]
+			&\ \;\equiv\ A \i \prod_{i \in J} if~(j = i)~B~(proj~j~A)
+			%&\ :=\ A \i \prod_{j' \in J} if~(j' = j)~B~(proj~j'~A)
+		}
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\hrule
+\caption[ ]{Preimage arrow lifts needed to interpret probabilistic programs.
+The definition of $unproj_2$ is like $unproj_1$'s.}
+\label{fig:extra-preimage-arrow-defs}
+\end{figure*}
+
+We would like to be able to compute preimages of uncountable sets, such as real intervals.
+This would seem to be a show-stopper: $preimage~g~B$ is uncomputable for most uncountable sets $B$ no matter how cleverly they are represented.
+Further, because $pre$, $\liftpre$ and $\arrpre$ are ultimately defined in terms of $preimage$, we cannot implement them.
+
+Fortunately, we need only certain lifts.
+\figref{fig:semantic-function} (which defines $\meaningof{\cdot}\gen$) lifts $id$, $const~b$, $fst$ and $snd$.
+Section~\ref{sec:probabilistic-programs}, which defines the combinators used to interpret partial, probabilistic programs, lifts $\pi~j$ and $agrees$.
+Measurable functions made available as language primitives of course must be lifted to the preimage arrow.
+
+\figref{fig:extra-preimage-arrow-defs} gives explicit definitions for $\arrpre~id$, $\arrpre~fst$, $\arrpre~snd$, $\arrpre~(const~b)$ and $\arrpre~(\pi~j)$.
+(We will deal with $agrees$ separately.)
+By inspecting these expressions, we see that we need to model sets in a way that
+the following are representable and can be computed in finite time:
+\begin{equation}
+\begin{aligned}
+	&\text{\textbullet\ $A \i B$, $\emptyset$, $\set{true}$, $\set{false}$ and $\set{b}$ for every $const~b$} \\
+	&\text{\textbullet\ $A_1 \times A_2$, $proj_1~A$ and $proj_2~A$} \\
+	&\text{\textbullet\ $J \to X$, $proj~j~A$ and $unproj~j~A~B$} \\
+	&\text{\textbullet\ $A = \emptyset$} \\
+\end{aligned}
+\label{eqn:exact-rectangle-ops}
+\end{equation}
+Before addressing computability, we need to define families of sets under which these operations are closed.
+
+\begin{definition}[rectangular family]
+\label{def:standard-rectangle}
+For a set $X$ used as a type, $Rect~X$ denotes the \mykeyword{rectangular family} of subsets of $X$.
+For nonproduct $X$, $\emptyset \in Rect~X$ and $X \in Rect~X$, and $Rect~X$ must be closed under finite intersections.
+Products must satisfy the following rules:
+\begin{align}
+	Rect~\pair{X_1,X_2} &\ = \ (Rect~X_1) \boxtimes (Rect~X_2)
+	\label{eqn:standard-rect-finite-product-rule}
+\\
+	Rect~(J \to X) &\ = \ (Rect~X)^{\boxtimes J}
+	\label{eqn:standard-rect-arbitrary-product-rule}
+%\\
+%	X' \in Rect~X \ \implies \ Rect~X' &\ =\ \setb{X' \i A}{A \in Rect~X}
+%	\label{eqn:standard-rect-subset-rule}
+\end{align}
+where
+\begin{align}
+	\A_1 \boxtimes \A_2 &\ := \ \setb{A_1 \times A_2}{A_1 \in \A_1, A_2 \in \A_2}
+\\
+	\A^{\boxtimes J} &\ := \ \!\!\!\!\!\!\!\displaystyle\bigcup_{J' \subset J \text{ finite}}\!\!\!\!\!\! \left\{\textstyle\prod_{j \in J} A_j\ \middle|\ A_j \in \A, j \in J' \iff A_j \subset \U \A\right\}
+\label{eqn:rectangular-product}
+\end{align}
+lift cartesian products to sets of sets.
+\end{definition}
+
+For example, if $Rect~\Re$ contains all the closed real intervals, then by~\eqref{eqn:standard-rect-finite-product-rule}, $[0,2] \times [1,\pi] \in Rect~\pair{\Re,\Re}$.
+
+We additionally define $Rect~Bool ::= \powerset~Bool$.
+It is easy to show that every product rectangular family $Rect~X$ contains $\emptyset$ and $X$, and that the collection of all rectangular families is closed under products, projections, and $unproj$.
+
+Further, all of the operations in~\eqref{eqn:exact-rectangle-ops} can be exactly implemented if finite sets are modeled directly, sets in an ordered space (such as $\Re$) are modeled by intervals, and sets in $Rect~\pair{X_1,X_2}$ are modeled by pairs of type $\pair{Rect~X_1,Rect~X_2}$.
+By~\eqref{eqn:rectangular-product}, sets in $Rect~(J \to X)$ have no more than finitely many projections that are proper subsets of $X$.
+They can be modeled by \emph{finite} binary trees, whose nodes contain projections for an index prefix $J' \subset  J$ (Definition~\ref{def:index-prefix}).
+Projections with indexes in the suffix $J \w J'$ are implicitly $X$.
+
+The set of branch traces $T$ is nonrectangular, containing every $t \in J \to Bool_\bot$ for which $t~j \neq \bot$ for no more than finitely many $J$.
+Fortunately, we can model $T$ subsets by $J \to Bool_\bot$ rectangles, implicitly intersected with $T$.
+
+\begin{theorem}[rectangular $T$ projection]
+If $T' \in Rect~(J \to Bool_\bot)$, then $proj~j~(T' \i T) = proj~j~T'$ for all $j \in J$.
+Also, for all $B \subseteq Bool$, $unproj~j~(T' \i T)~B = unproj~j~T'~B \i T$.
+\end{theorem}
+
+
+\subsection{Approximate Preimage Mapping Operations}
+
+Implementing $\lazypre$ (defined in \figref{fig:preimage-arrow-defs}) requires computing $pre$, but only for the empty mapping, which is trivial: $pre~\emptyset \equiv \pair{\emptyset,\fun{B}\emptyset}$.
+Implementing the other combinators requires $(\circ\pre)$, $\pair{\cdot,\cdot}\pre$ and $(\uplus\pre)$.
+
+From the preimage mapping definitions (\figref{fig:preimage-mapping-defs}), we see that $ap\pre$ is defined using $(\i)$ and that $(\circ\pre)$ is defined using $ap\pre$, so $(\circ\pre)$ is directly implementable.
+Unfortunately, we hit a snag with $\pair{\cdot,\cdot}\pre$: it loops over possibly uncountably many members of $B$ in a big union.
+At this point, we need to approximate.
+
+\begin{theorem}[pair preimage approximation]
+\label{thm:pair-preimage-approximation}
+Let $g_1 \in X \pto Y_1$ and $g_2 \in X \pto Y_2$.
+For all $B \subseteq Y_1 \times Y_2$, $preimage~\pair{g_1,g_2}\map~B \subseteq preimage~g_1~(proj_1~B) \i preimage~g_2~(proj_2~B)$.%
+\end{theorem}
+
+It is not hard to use Theorem~\ref{thm:pair-preimage-approximation} to show that
+\begin{equation}
+\begin{aligned}
+	&\pair{\cdot,\cdot}\pre' : (X \prepto Y_1) \tto (X \prepto Y_2) \tto (X \prepto Y_1 \times Y_2) \\
+	&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\pre' \ := \ \\
+	&\tab\pair{Y_1' \times Y_2',\fun{B}{p_1~(proj_1~B) \i p_2~(proj_2~B)}}
+\end{aligned}
+\end{equation}
+computes covering rectangles of preimages under pairing.
+
+For $(\uplus\pre)$, we need an approximating replacement for $(\u)$ under which rectangular families are closed.
+In other words, we need a lattice join $(\join)$ with respect to $(\subseteq)$, with the following additional properties:
+\begin{equation}
+\begin{aligned}
+	(A_1 \times A_2) \join (B_1 \times B_2) &\ = \ (A_1 \join B_1) \times (A_2 \join B_2) \\
+	(\textstyle\prod_{j \in J} A_j) \join (\textstyle\prod_{j \in J} B_j) &\ = \ \textstyle\prod_{j \in J} A_j \join B_j
+\label{eqn:join-laws}
+\end{aligned}
+\end{equation}
+If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then rectangular families are clearly closed under $(\join)$. Further, for any $A$ and $B$, $A \u B \subseteq A \join B$.
+
+Replacing each union in $(\uplus\pre)$ with join yields the overapproximating $(\uplus\pre')$:
+\begin{equation}
+\begin{aligned}
+	&(\uplus\pre') : (X \prepto Y) \tto (X \prepto Y) \tto (X \prepto Y) \\
+	&\lzfcsplit{
+		&h_1 \uplus\pre' h_2 \ := \ 
+		\lzfclet{
+				Y' & range\pre~h_1 \join range\pre~h_2 \\
+				p & \fun{B}{ap\pre~h_1~B \join ap\pre~h_2~B}
+			}{\pair{Y',p}}
+	}
+\end{aligned}
+\end{equation}
+
+To interpret programs that may not terminate, or that terminate with probability $1$, we need to approximate $\convifppre$~\eqref{eqn:ifppre-def}, which is defined in terms of $agrees$.
+Defining its approximation in terms of an approximation of $agrees$ would not allow us to preserve the fact that expressions interpreted using $\convifppre$ always terminate.
+The best approximation of the preimage of $Bool$ under $agrees$ (as a mapping) is $Bool \times Bool$, which contains $\pair{true,false}$ and $\pair{false,true}$, and thus would not constrain the test to agree with the branch trace.
+
+A lengthy (elided) sequence of substitutions to the defining expression for $\convifppre$ results in an $agrees$-free equivalence:
+\begin{equation}
+	\convifppre~k_1~k_2~k_3~j~A\ \equiv 
+	\ \lzfclet{
+		\pair{C_k,p_k} & k_1~j_1~A \\
+		\pair{C_b,p_b} & branch\ppre~j~A \\
+		C_2 & C_k \i C_b \i \set{true} \\
+		C_3 & C_k \i C_b \i \set{false} \\
+		A_2 & p_k~C_2 \i p_b~C_2 \\
+		A_3 & p_k~C_3 \i p_b~C_3 \\
+	}{k_2~j_2~A_2 \uplus\pre k_3~j_3~A_3}
+\label{eqn:expanded-convifppre}
+\end{equation}
+where $j_1 = left~j$ and so on.
+Unfortunately, a straightforward approximation of this would still take unnecessary branches, when $A_2$ or $A_3$ overapproximates $\emptyset$.
+
+$C_b$ is the branch trace projection at $j$ (with $\bot$ removed).
+The set of indexes for which $C_b$ is either $\set{true}$ or $\set{false}$ is finite, so it is bounded by an index prefix, outside of which branch trace projections are $\set{true,false}$.
+Therefore, if the approximating ${\convifppre}'$ takes \emph{no branches} when $C_b = \set{true,false}$, but approximates with a finite computation, expressions interpreted using ${\convifppre}'$ will always terminate.
+
+We need an overapproximation for the non-branching case.
+In the exact semantics, the returned preimage mapping's range is a subset of $Y$, and it returns subsets of $A_2 \uplus A_3$.
+Therefore, ${\convifppre}'$ may return $\pair{Y,\fun{B}\lzfcsplit{A_2 \join A_3}}$ when $C_b = \set{true,false}$.
+We cannot refer to the type $Y$ in the function definition, so we represent it using $\top$ in the approximating semantics.
+Implementations can model it by a singleton ``universe'' instance for every $Rect~Y$.
+
+\begin{figure*}[tp]\centering
+\smallmathfont
+\subfloat[Definitions for preimage mappings that compute rectangular covers.]{
+\begin{minipage}{\textwidth}
+\begin{align*}
+\!\!\!\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \prepto' Y ::= \pair{Rect~Y, Rect~Y \tto Rect~X}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&ap\pre' : (X \prepto' Y) \tto Rect~Y \tto Rect~X \\
+		&ap\pre'~\pair{Y',p}~B := p~(B \i Y') 
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\circ\pre') : (Y \prepto' Z) \tto (X \prepto' Y) \tto (X \prepto' Z) \\
+		&\pair{Z',p_2} \circ\pre' h_1 := \pair{Z', \fun{C}{ap\pre'~h_1~(p_2~C)}}
+	\end{aligned} \\
+\end{aligned}
+&\tab\ 
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\pair{\cdot,\cdot}\pre' : (X \prepto' Y_1) \tto (X \prepto' Y_2) \tto (X \prepto' Y_1 \times Y_2) \\
+		&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\pre' \ := \\
+		&\tab\pair{Y_1' \times Y_2',\fun{B}{p_1~(proj_1~B) \i p_2~(proj_2~B)}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\uplus\pre') : (X \prepto' Y) \tto (X \prepto' Y) \tto (X \prepto' Y) \\
+		&\pair{Y_1',p_1} \uplus\pre' \pair{Y_2',p_2} \ := \\
+		&\tab\pair{Y_1' \join Y_2',\fun{B}{ap\pre'~\pair{Y_1',p_1}~B \join ap\pre'~\pair{Y_2',p_2}~B}
+		}
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\hrule
+\end{minipage}
+}
+
+\subfloat[An approximating preimage arrow, defined using approximating preimage mappings.]{
+\begin{minipage}{\textwidth}
+\begin{align*}
+\!\!\!\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \preto' Y ::= Rect~X \tto (X \prepto' Y)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\comppre') : (X \preto' Y) \tto (Y \preto' Z) \tto (X \preto' Z) \\
+		&(h_1~\comppre'~h_2)~A \ := \ 
+			\lzfclet{
+				h_1' & h_1~A \\
+				h_2' & h_2~(range\pre'~h_1')
+			}{h_2' \circ\pre' h_1'}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\pairpre') : (X \preto' Y_1) \tto (X \preto' Y_2) \tto (X \preto' \pair{Y_1,Y_2}) \\
+		&(h_1~\pairpre'~h_2)~A \ := \ \pair{h_1~A,h_2~A}\pre'
+	\end{aligned}
+\end{aligned}
+&\tab\ 
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\ifpre' : \lzfcsplit{&(X \preto' Bool) \tto (X \preto' Y) \tto \\ &(X \preto' Y) \tto (X \preto' Y)} \\
+		&\lzfcsplit{&\ifpre'~h_1~h_2~h_3~A \ := \ \\
+			&\tab\lzfclet{
+				h_1' & h_1~A \\
+				h_2' & h_2~(ap\pre'~h_1'~\set{true}) \\
+				h_3' & h_3~(ap\pre'~h_1'~\set{false})
+			}{h_2' \uplus\pre' h_3'}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\lazypre' : (1 \tto (X \preto' Y)) \tto (X \preto' Y) \\
+		&\lazypre'~h~A \ := \ if~(A = \emptyset)~\pair{\emptyset,\fun{B}{\emptyset}}~(h~0~A)
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\hrule
+\end{minipage}
+}
+
+\subfloat[An approximating preimage* arrow.]{
+\begin{minipage}{\textwidth}
+\begin{align*}
+\!\!\!\begin{aligned}[t]
+	&\begin{aligned}[t]
+		X \ppreto' Y &\ ::= \ J \tto (\pair{S,X} \preto' Y) \\
+		S &\ ::= \ (J \to [0,1]) \times (J \to Bool_\bot)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\compppre') : (X \ppreto' Y) \tto (Y \ppreto' Z) \tto (X \ppreto' Z) \\
+		&(k_1~\compppre'~k_2)~j \ := \\
+			&\tab(fst\pre~\pairpre'~k_1~(left~j))~\comppre'~k_2~(right~j)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\pairppre') : (X \ppreto' Y_1) \tto (X \ppreto' Y_2) \tto (X \ppreto' \pair{Y_1,Y_2}) \\
+		&(k_1~\pairppre'~k_2)~j \ := \ k_1~(left~j)~\pairpre'~k_2~(right~j)
+	\end{aligned} \\
+\end{aligned}
+&\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\ifppre' : \lzfcsplit{&(X \ppreto' Bool) \tto (X \ppreto' Y) \tto \\ &(X \ppreto' Y) \tto (X \ppreto' Y)} \\
+		&\lzfcsplit{&\ifppre'~k_1~k_2~k_3~j \ := \ \\
+			&\tab\lzfcsplit{\ifpre'~&(k_1~(left~j)) \\ &(k_2~(left~(right~j))) \\ &(k_3~(right~(right~j)))}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\lazyppre' : (1 \tto (X \ppreto' Y)) \tto (X \ppreto' Y) \\
+		&\lazyppre'~k~j \ := \ \lazypre'~\fun{0}{k~0~j}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrowtrans\ppre' : (X \preto' Y) \tto (X \ppreto' Y) \\
+		&\arrowtrans\ppre'~f~j \ := \ snd\pre~\comppre'~f
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\hrule
+\end{minipage}
+}
+
+\subfloat[Preimage* arrow combinators for probabilistic choice and guaranteed termination.]{
+\begin{minipage}{\textwidth}
+\begin{align*}
+\!\!\begin{aligned}[t]
+ 	&\begin{aligned}[t]
+		&random\ppre' : X \ppreto' [0,1] \\
+		&\lzfcsplit{&random\ppre'~j \ := \ \\ &\tab fst\pre~\comppre'~fst\pre~\comppre'~\pi\pre~j}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&branch\ppre' : X \ppreto' Bool \\
+		&\lzfcsplit{&branch\ppre'~j \ := \ \\ &\tab fst\pre~\comppre'~snd\pre~\comppre'~\pi\pre~j}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		fst\ppre' &:= \arrowtrans\ppre'~fst\pre \\
+		snd\ppre' &:= \arrowtrans\ppre'~snd\pre;\ \cdots
+	\end{aligned}
+\end{aligned}
+&\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&{\convifppre}' : (X \ppreto' Bool) \tto (X \ppreto' Y) \tto (X \ppreto' Y) \tto (X \ppreto' Y) \\
+		&{\convifppre}'~k_1~k_2~k_3~j \ := \\
+		&\tab\lzfclet{
+			\pair{C_k,p_k} & k_1~(left~j)~A \\
+			\pair{C_b,p_b} & branch\ppre~j~A \\
+			C_2 & C_k \i C_b \i \set{true} \\
+			C_3 & C_k \i C_b \i \set{false} \\
+			A_2 & p_k~C_2 \i p_b~C_2 \\
+			A_3 & p_k~C_3 \i p_b~C_3 \\
+		}{if~\lzfcsplit{
+				&(C_b = \set{true,false}) \\
+				&\pair{\top,\fun{\underline{\ \ }}\lzfcsplit{A_2 \join A_3}} \\
+				&(k_2~(left~(right~j))~A_2 \uplus\pre' k_3~(right~(right~j))~A_3)}}
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\hrule
+\end{minipage}
+}
+\caption[ ]{Implementable arrows that approximate preimage arrows.
+%Because $\arrpre$ is generally uncomputable, there is no corresponding $\arrpre'$ combinator.
+%However, specific lifts such as $fst\pre := \arrpre~fst$ are computable, and are defined in \figref{fig:extra-preimage-arrow-defs}.
+}
+\label{fig:approximating-preimage-arrow-defs}
+\end{figure*}
+
+\figref{fig:approximating-preimage-arrow-defs} defines the final approximating preimage arrow.
+This arrow, the lifts in \figref{fig:extra-preimage-arrow-defs}, and the semantic function $\meaningof{\cdot}\gen$ in \figref{fig:semantic-function} define an approximating semantics for partial, probabilistic programs.
+
+\subsection{Correctness}
+
+From here on, ${\meaningof{\cdot}\conv\ppre}'$ interprets programs as approximating preimage* arrow computations using ${\convifppre}'$.
+The following theorems assume $h := \meaningofconv{\mathit{e}}\ppre : X \ppreto Y$ and $h' := {\meaningofconv{\mathit{e}}\ppre}' : X \ppreto' Y$ for some expression $\mathit{e}$.
+
+\begin{theorem}[soundness]
+\label{thm:approximation}
+For all $A \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$, $ap\pre~(h~j_0~A)~B \subseteq ap\pre'~(h'~j_0~A)~B$.%
+\end{theorem}
+
+\begin{theorem}[termination]
+For all $A' \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$, $ap\pre'~(h'~j_0~A')~B$ terminates.
+\end{theorem}
+
+\begin{theorem}[monotonicity]
+\label{thm:monotonicity}
+$ap\pre'~(h'~j_0~A)~B$ is monotone in both $A$ and $B$.%
+\end{theorem}
+
+\begin{theorem}[decreasing]
+\label{thm:decreasing}
+For all $A \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$, $ap\pre'~(h'~j_0~A)~B \subseteq A$.%
+\end{theorem}
+
+\subsection{Preimage Refinement Algorithm}
+\label{sec:discretization}
+
+It is natural to suppose that we can compute probabilities of preimages of $B$ by computing preimages with respect to increasingly fine discretizations of $A$.
+
+\begin{definition}[preimage refinement algorithm]
+\label{def:preimage-refinement}
+Let $h' := {\meaningofconv{\mathit{e}}\ppre}' : X \ppreto' Y$, $B \in Rect~Y$, and define
+\begin{equation}
+\begin{aligned}
+	&refine : Rect~\pair{\pair{R,T},X} \tto Rect~\pair{\pair{R,T},X} \\
+	&refine~A := ap\pre'~(h'~j_0~A)~B
+\end{aligned}
+\end{equation}
+Define $partition : Rect~\pair{\pair{R,T},X} \tto Set~(Rect~\pair{\pair{R,T},X})$ to produce positive-measure, disjoint rectangles, and define
+\begin{equation}
+\begin{aligned}
+	&refine^* : Set~(Rect~\pair{\pair{R,T},X}) \tto Set~(Rect~\pair{\pair{R,T},X}) \\
+	&refine^*~\A := image~refine~\left(\U_{A \in \A} partition~A \right)
+\end{aligned}
+\end{equation}
+For any $A \in Rect~\pair{\pair{R,T},X}$, iterate $refine^*$ on $\set{A}$.
+\end{definition}
+
+Theorem~\ref{thm:decreasing} (decreasing) guarantees $refine~A$ is never larger than $A$.
+Theorem~\ref{thm:monotonicity} (monotonicity) guarantees refining a \emph{partition} of $A$ never does worse than refining $A$ itself.
+Theorem~\ref{thm:approximation} (soundness) guarantees the algorithm is \keyword{sound}: the preimage of $B$ is always contained in the covering partition $refine^*$ returns.
+
+We would like it to be \keyword{complete} in the limit, up to null sets: covering partitions' measures should converge to the true preimage measure.
+Unfortunately, preimage refinement appears to compute the \keyword{Jordan outer measure} of a preimage, which is not always its measure.
+A counterexample is the expression $rational?~random$, where $rational?$ returns $true$ when its argument is rational and loops otherwise.
+(This is definable using a $(\leq)$ primitive.)
+The preimage of $\set{true}$ has measure $0$, but its Jordan outer measure is $1$.
+
+We conjecture that a minimal requirement for preimage refinement's measures to converge is that a program must converge with probability $1$.
+There are certainly other requirements.
+We leave these and proof of convergence of measures for future work.
+
+For now, we use algorithms that depend only on soundness.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Implementations}
+\label{sec:implementation}
+
+We have four implementations: one of the exact semantics, two direct implementations of the approximating semantics, and a less direct but more efficient implementation of the approximating semantics, which we call \mykeyword{Dr. Bayes}.
+
+\subsection{Direct Implementations}
+
+If sets are restricted to be finite, the arrows used as translation targets in the exact semantics, defined in \figsref{fig:mapping-defs}, \ref{fig:bottom-arrow-defs}, \ref{fig:mapping-arrow-defs}, \ref{fig:preimage-mapping-defs}, \ref{fig:preimage-arrow-defs} and~\ref{fig:astore-arrow-defs}, can be implemented directly in any practical $\lambda$-calculus.
+Computing exact preimages is very inefficient, even under the interpretations of very small programs.
+Still, we have found our Typed Racket~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} implementation useful for finding theorem candidates.
+
+Given a rectangular set library, the approximating preimage arrows defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-preimage-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
+We have done so in Typed Racket and Haskell~\cite{cit:haskell-lang}.
+Both implementations' arrow combinator definitions are almost line-for-line transliterations from the figures.
+
+Making the rectangular set type polymorphic seems to require the equivalent of a typeclass system.
+In Haskell, it also requires multi-parameter typeclasses or indexed type families~\cite{cit:chakravarty-2005popl-type-families} to associate set types with the types of their members.
+Using indexed type families, the only significant differences between the Haskell implementation and the approximating semantics are type contexts, \texttt{newtype} wrappers for arrow types, and using \texttt{Maybe} types as bottom arrow return types.
+
+Typed Racket has no typeclass system on top of its type system, so the rectangular set type is monomorphic; thus, so are the arrow types.
+The lack of type variables in the combinator types is the only significant difference between the implementation and the approximating semantics.
+
+All three direct implementations can currently be found at XXX: URL.
+
+\subsection{Dr. Bayes}
+
+Our main implementation, \mykeyword{Dr. Bayes}, is written in Typed Racket.
+It consists of the semantic function $\meaningof{\cdot}\genc$ from \figref{fig:semantic-function} and its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow as defined in \figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}, the approximating preimage and preimage* arrows as defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-preimage-arrow-defs}, and algorithms to compute approximate probabilities.
+We use it to test the feasibility of solving real-world problems by computing approximate preimages.
+
+Dr. Bayes's arrows operate on a monomorphic rectangular set data type.
+It includes floating-point intervals to overapproximate real intervals, with which we compute approximate preimages under arithmetic and inequalities.
+Finding the smallest covering rectangle for images and preimages under $add : \pair{\Re,\Re} \tto \Re$ and other monotone functions is fairly straightforward.
+For piecewise monotone functions, we distinguish cases using $\ifpre$; e.g.
+\begin{equation}
+	\hspace{-0.5in}
+	mul\pre \ := \
+		\lzfcsplit{\ifpre~
+			&(fst\pre~\comppre~pos?\pre) \\
+			&(\lzfcsplit{\ifpre~
+				&(snd\pre~\comppre~pos?\pre) \\
+				&mul^{++}\pre \\
+				&(\lzfcsplit{\ifpre~
+					(snd\pre~\comppre~neg?\pre)~
+					mul^{+-}\pre~
+					(const\pre~0)))
+				}
+			} \\
+			&\cdots
+		}
+	\hspace{-0.5in}
+\end{equation}
+To support data types, the set type includes tagged rectangles; for ad-hoc polymorphism, it includes disjoint unions.
+
+Section~\ref{sec:discretization} outlines preimage refinement: a discretization algorithm that seems to converge for programs that halt with probability 1, consisting of repeatedly shrinking and repartitioning a program's domain.
+We do not use this algorithm directly in Dr. Bayes because it is inefficient.
+Good accuracy requires fine discretization, which is \emph{exponential} in the number of discretized axes.
+For example, a nonrecursive program that contains only 10 uses of $random$ would need to partition 10 axes of $R$, the set of random sources.
+Splitting each axis into only 4 disjoint intervals yields a partition of $R$ of size $4^{10} = 1,048,576$.
+
+Fortunately, Bayesian practitioners tend to be satisified with sampling methods, which are usually more efficient than exact methods based on enumeration.
+
+Let $g : X \mapto Y$ be the interpretation of a program as a mapping arrow computation.
+A Bayesian is primarily interested in the probability of $B' \subseteq Y$ given some condition set $B \subseteq Y$.
+This can be approximated using \keyword{rejection sampling}.
+If $A := preimage~(g~X)~B$ and $A' := preimage~(g~X)~B'$, and $xs$ is a list of samples from any superset of $A$ that has at least one element in $A$, then
+\begin{equation}
+	Pr[B'|B] \ \approx \ \frac{length~(filter~(\in A' \i A)~xs)}{length~(filter~(\in A)~xs)}
+\label{eqn:sampling-approx-conditional}
+\end{equation}
+where ``$\approx$'' (rather loosely) denotes convergence as the length of $xs$ increases.
+The probability that any given element of $xs$ is in $A$ is often extremely small, so it would clearly be best to sample only within $A$.
+While we cannot do that, we can easily sample from a partition covering $A$.
+
+For a fixed number $\mathit{d}$ of uses of $random$, $\mathit{n}$ samples, and $\mathit{m}$ repartitions that split each rectangle in two, enumerating and sampling from a covering partition has time complexity $\mathit{O}(2^\mathit{md} + \mathit{n})$.
+Fortunately, we do not have to enumerate the rectangles in the partition: we sample them instead, and sample one value from each rectangle, which is $\mathit{O(mdn)}$.
+
+We cannot directly compute $a \in A$ or $a \in A' \i A$ in~\eqref{eqn:sampling-approx-conditional}, but we can use the fact that $A$ and $A'$ are preimages, and use the interpretation of the program as a bottom arrow computation $f : X \botto Y$:
+\begin{equation}
+\begin{aligned}
+	filter~(\in A)~xs
+		&\ = \ filter~(\in preimage~(g~X)~B)~xs
+\\
+		&\ = \ filter~(\fun{a}{g~X~a \in B})~xs
+\\
+		&\ = \ filter~(\fun{a}{f~a \in B})~xs
+\end{aligned}
+\end{equation}
+Substituting into~\eqref{eqn:sampling-approx-conditional} gives
+\begin{equation}
+	Pr[B'|B] \ \approx \ \frac{length~(filter~(\fun{a}{f~a \in B' \i B})~xs)}{length~(filter~(\fun{a}{f~a \in B})~xs)}
+\end{equation}
+which converges to the probability of $B'$ given $B$ as the number of samples $xs$ from the covering partition increases.
+
+For simplicity, the preceeding discussion does not deal with projecting preimages from the domain of programs $(R \times T) \times \set{\pair{}}$ onto the set of random sources $R$.
+Shortly, Dr. Bayes samples rectangles from covering partitions of $(R \times T) \times \set{\pair{}}$ subsets, weights each rectangle by the inverse of the probability with which it is sampled, and projects onto $R$.
+This alogorithm is a variant of \keyword{importance sampling}~\cite[Section 12.4]{cit:degroot-2012book-probability}, where the candidate distribution is defined by the sampling algorithm's partitioning choices, and the target distribution is $P$.
+
+XXX: specific problems: thermometer, stochastic ray tracing
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Related Work}
+
+Any programming language research described by the words ``bijective'' or ``reversible'' might seem to have much in common with ours.
+Unfortunately, when we look more closely, we can usually draw only loose analogies and perhaps inspiration.
+An example is lenses~\cite{cit:hofmann-2012popl-edit-lenses}, which are transformations from $X$ to $Y$ that can be run forward and backward, in a way that maintains some relationship between $X$ and $Y$.
+Usually, a destructive, external process is assumed, so that, for example, a change from $y \in Y$ to $y' \in Y$ induces a corresponding change from $x \in X$ to some $x' \in X$.
+When transformations lose information, lenses must satisfy certain behavioral laws.
+In our work, no input or output is updated, and preimages are always definable regardless of non-injectivity.
+
+Many multi-paradigm languages~\cite{cit:hanus-2007lp-multi-paradigm}, especially constraint functional languages, bear a strong resemblance to our work.
+In fact, it is easy to add a $fail$ expression to our semantics, or to transform constraints into boolean program outputs.
+The most obvious difference is evaluation strategy.
+The most important difference is that our interpretation of programs returns \emph{distributions} of constrained outputs, rather than arbitrary single values that meet constraints.
+
+The forward phase in computing preimages takes a subdomain and returns an overapproximation of the function's range for that subdomain.
+This clearly generalizes interval arithmetic~\cite{cit:kearfott-1996eb-interval} to all first-order algebraic types.
+
+Our approximating semantics can be regarded as an abstract interpretation~\cite{cit:cousot-1977popl-abstract-interpretation} where the concrete domain consists of measurable sets and the abstract domain consists of rectangular sets.
+In some ways, it is quite typical: it is sound, it labels expressions, the abstract domain is a lattice, and the exact semantics it approximates performs infinite computations.
+However, it is far from typical in other ways.
+It is used to run programs, not for static analysis.
+The abstraction boundaries are the $if$ branches of completely unrolled, infinite programs, and are not fixed.
+There is no Kleene iteration.
+Infinite computations are done in a library of \lzfclang-computable combinators, not by a semantic function.
+This cleanly separates the syntax from the semantics, and allows us to prove the exact semantics correct mostly by proving simple categorical properties.
+
+Probabilistic languages can be approximately placed into two groups: those defined by an implementation, and those defined by a semantics.
+
+Some languages defined by an implementation are a probabilistic Scheme by Koller and Pfeffer~\cite{cit:koller-1997aaai-bayes-programs-short}, BUGS~\cite{cit:winbugs-language-short}, BLOG~\cite{cit:blog-language-short}, BLAISE~\cite{cit:blaise-language}, Church~\cite{cit:church-language-short}, and Kiselyov's embedded language for O'Caml based on continuations~\cite{cit:kiselyov-2008uai-monolingual}.
+The reports on these languages generally describe interpreters, compilers, and algorithms for sampling with probabilistic conditions.
+Recently, Wingate et al~\cite{cit:wingate-2011ais-lightweight,cit:wingate-2011nips-nonstandard} have defined the semantics of \emph{nonstandard interpretations} that enable efficient inference, but do not define the languages.
+
+Early work in probabilistic language semantics is not motivated by Bayesian concerns, and thus does not address conditioning.
+Kozen~\cite{cit:kozen-1979fcs-prob-programs-short} defines the meaning of bounded-space, imperative ``while'' programs as functions from probability measures to probability measures.
+Hurd~\cite{cit:hurd-2002thesis} proves properties about programs with binary random choice by encoding programs and portions of measure theory in HOL.
+Jones~\cite{cit:jones-1990thesis} develops a domain-theoretic variation of probability theory, and with it defines the probability monad, whose discrete version is a distribution-valued variation of the set or list monad.
+Ramsey and Pfeffer~\cite{cit:ramsey-2002popl-stochastic-short} define the probability monad measure-theoretically and implement a language for finite probability.
+Park~\cite{cit:park-2008toplas-prob} extends a $\lambda$-calculus with probabilistic choice from a general class of probability measures using inverse transform sampling.
+
+Some recent work in probabilistic language semantics tackles conditioning. Pfeffer's IBAL~\cite{cit:pfeffer-2007chapter-ibal} is the earliest lambda calculus with finite probabilistic choice that also defines conditional queries.
+Borgstr\"om et al~\cite{cit:borgstrom-2011esop-measure-transformer} develop Fun, a first-order functional language without recursion, extended with probabilistic choice and conditioning.
+Its semantics interprets programs as \emph{measure transformers} by transforming expressions into arrow-like combinators.
+The implementation generates a decomposition of the probability density represented by the program, if it exists.
+Bhat et al~\cite{cit:bhat-2013etaps-densities} replaces Fun's $if$ with $match$, and interprets programs more directly as probability density functions by compositionally transforming expressions into an extension of the probability monad.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Conclusions and Future Work}
+
+XXX: todo
+
+Understanding the exact semantics, and implementing the approximating semantics, requires little more than basic set theory and some experience using combinator libraries in a pure $\lambda$-calculus.
+
+the conditions under which the approximating semantics is complete in the limit, up to null sets
+
+relation to type systems
+
+constraints
+
+sampling algorithms
+
+different abstract domains
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%\appendix
+%\section{Appendix Title}
+%This is the text of the appendix, if you need one.
+
+%\acks
+%Acknowledgments, if needed.
+
+\mathversion{normal}
+
+\bibliographystyle{splncs03}
+\bibliography{local-cites}
+
+\end{document}
