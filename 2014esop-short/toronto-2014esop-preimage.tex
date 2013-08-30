@@ -168,15 +168,15 @@ We implement the approximating semantics directly in Typed Racket and Haskell.
 \section{Introduction}
 
 It is primarily Bayesian practice that drives probabilistic language development.
-To be useful, a probabilistic language must support \keyword{conditioning}, or imposing constrants in a way that preserves the relative probabilities of outputs.
+To be useful, a probabilistic language must support \keyword{conditioning}, or imposing constraints in a way that preserves the relative probabilities of outputs.
 
-Unfortunately, there is currently no efficient probabilistic language implementation that supports conditioning and places no extraneous restrictions on legal programs.
+Unfortunately, there is currently no efficient probabilistic language implementation that supports conditioning and does not restrict legal programs.
 Most commonly, languages that support conditioning disallow recursion, allow only discrete or continuous distributions, and restrict conditions to the form $\mathit{x} = \mathit{c}$.
 
 These common language restrictions arise from reasoning about probability using \keyword{densities}, which are functions from random values to \emph{changes} in probability.
 While simple and convenient, densities have many limitations.
 For example, densities for random values with different dimension are incomparable, and they cannot be defined on infinite products.
-%Both of these facts rule out using densities to define the distributions of outputs of recursive programs.
+Either limitation rules out recursion.
 
 \mathversion{sans}
 Densities generally cannot define distributions for the outputs of discontinuous functions.
@@ -186,17 +186,16 @@ We might encode the process as
 	t'\ :=\ \lzfclet{t & normal~\mu~1}{max~0~(min~100~t)}
 \label{eqn:thermometer-example}
 \end{equation}
-While $t$'s distribution has a density (a standard bell curve at mean $\mu$), the distribution of $t'$ does not.
-%In general, densities cannot correctly model analog measuring devices.
+While $t$'s distribution has a density, the distribution of $t'$ does not.
 \mathversion{normal}
 
 Densities do not allow reasoning about arbitrary conditions.
-If $x$ and $y$ are primitive random variables---loosely, untransformed probabilistic values, such as $\mathsf{t}$ in~\eqref{eqn:thermometer-example}---then \keyword{Bayes' law for densities} gives the density of $x$ given $y$:
+\keyword{Bayes' law for densities} gives the density of $x$ given a condition $y$ in terms of other densities:
 \begin{equation}
 	f_x(x\,|\,y)\ =\ \frac{f_y(y\,|\,x) \cdot \pi_x(x)}{\int f_y(y\,|\,x) \cdot \pi_x(x)~dx}
 \label{eqn:bayes-law-densities}
 \end{equation}
-Bayesians interpret probabilistic processes as defining densities $\pi_x$ and $f_y$, and use~\eqref{eqn:bayes-law-densities} to discover the density of $x$ given $y = c$ for some constant $c$.
+Bayesians interpret probabilistic processes as defining right-hand side densities $\pi_x$ and $f_y$, and use~\eqref{eqn:bayes-law-densities} to discover the density of $x$ given $y = c$ for some observed value $c$.
 While $x$ given $\sin(y) = \mathrm{-1}$ and $x$ given $x + y = \mathrm{0}$ are perfectly sensible to reason about, Bayes' law for densities cannot express them.
 Thus, reasoning with densities disallows all but the simplest conditions.
 
@@ -293,11 +292,10 @@ This commutative diagram describes the relationships among the arrows used to de
 \youarehere{eqn:roadmap-diagram1}
 In the top row, $X \botto Y$ computations are functions that may raise errors and $X \preto Y$ computations compute preimages.
 The computations of the arrows in the bottom row are like those in the top, except they thread an infinite store of random values, and always terminate.
-(We can do this because in \lzfclang, Turing-uncomputable programs are definable.)
 Most of our correctness theorems rely on proofs that every morphism in~\eqref{eqn:roadmap-diagram1} is a homomorphism.
 
-Our approximating semantics consists of the same semantic function and an arrow $X \ppreto' Y$, derived from $X \ppreto Y$, for computing conservative approximations of preimages.
-An implementation is comprised of the semantic function, and the $X \botto Y$ and $X \ppreto' Y$ arrows' combinators.
+Our approximating semantics consists of the same semantic function and arrows $X \preto' Y$ and $X \ppreto' Y$ that compute conservative approximations of preimages.
+An implementation is comprised of the semantic function, and the $X \pbotto Y$ and approximating arrows' combinators.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1551,7 +1549,7 @@ If sets are restricted to be finite, the exact semantics can be implemented dire
 Computing exact preimages is very inefficient, even under the interpretations of very small programs.
 Still, we have found our Typed Racket~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} implementation useful for finding theorem candidates.
 
-Given a rectangular set library, the approximating preimage arrows defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-preimage-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
+Given a rectangular set library, the approximating preimage arrows defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
 We have done so in Typed Racket and Haskell~\cite{cit:haskell-lang}.
 Both implementations' arrow combinator definitions are almost line-for-line transliterations from the figures.
 
@@ -1596,11 +1594,10 @@ The most obvious difference is evaluation strategy.
 The most important difference is that our interpretation of programs returns \emph{distributions} of constrained outputs, rather than arbitrary single values that meet constraints.
 \end{comment}
 
-The forward phase in computing preimages takes a subdomain and returns an overapproximation of the function's range for that subdomain.
-This clearly generalizes interval arithmetic~\cite{cit:kearfott-1996eb-interval} to all first-order algebraic types.
+Computing a preimage also computes an overapproximation of a subdomain's image, which generalizes interval arithmetic~\cite{cit:kearfott-1996eb-interval} to all first-order algebraic types.
 
-Our approximating semantics can be regarded as an abstract interpretation~\cite{cit:cousot-1977popl-abstract-interpretation} where the concrete domain consists of measurable sets and the abstract domain consists of rectangular sets.
-In some ways, it is quite typical: it is sound, it labels expressions, the abstract domain is a lattice, and the exact semantics it approximates performs infinite computations.
+Our approximating semantics can be regarded as an abstract interpretation~\cite{cit:cousot-1977popl-abstract-interpretation} with a concrete domain of arbitrary sets and an abstract domain of rectangular sets.
+In some ways, it is quite typical: it is sound, the abstract domain is a lattice, and the exact semantics it approximates performs infinite computations.
 However, it is far from typical in other ways.
 It is used to run programs, not for static analysis.
 The abstraction boundaries are the $if$ branches of completely unrolled, infinite programs, and are not fixed.
