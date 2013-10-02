@@ -508,7 +508,7 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="0.70710678"
-     inkscape:cx="577.42626"
+     inkscape:cx="317.21096"
      inkscape:cy="388.61153"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -526,7 +526,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -561,6 +561,7 @@
        id="image3998"
        xlink:href="file:///home/neil/Documents/PLT/public-writing/images/plt-logo-512.png"
        height="145.71869"
-       width="145.71869" />
+       width="145.71869"
+       style="opacity:0.5" />
   </g>
 </svg>

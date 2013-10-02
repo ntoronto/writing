@@ -26,7 +26,7 @@
 latex
               )
 
-(background-image (bitmap "slides-background.png"))
+(background-image (bitmap "title-background.png"))
 
 (slide
  (scale/improve-new-text (soft-dropshadow (bt "Debugging Floating-Point")) 2)
@@ -36,22 +36,27 @@ latex
  (scale (bt "RacketCon 2013") 1.5)
  )
 
+(background-image (bitmap "slides-background.png"))
+
+(slide-number 1)
 (slide
  #:title "Racket Floating-Point Support"
- (para "Math modules that provide floating-point functions:")
- (item (code math/flonum) ": additional elementary functions")
- (item (code math/special-functions) ": gamma, beta, psi, etc.")
- (item (code math/distributions) ": Gamma, Normal, etc.")
+ (item "Fast (JIT-ed) and compliant (IEEE 754 and C99)")
  'next
- (para "Not comprehensive (yet!) but very accurate")
+ (item "More flonum (i.e. 64-bit float) functions:")
+ (subitem (code math/special-functions) ": gamma, beta, psi, zeta, erf, etc.")
+ (subitem (code math/distributions) ": Gamma, Normal, etc.")
  'next
- (para "Debugged using these:")
- (item (code math/bigfloat) ": arbitrary-precision flonums")
- (item (code math/flonum) ": measure error, special values,"
-       "flonum functions designed to help reduce error")
- (item (code plot) " and " (code plot/typed) ": plot error over domain")
+ (item "Other floating-point modules:")
+ (subitem (code racket/extflonum) ": basic 80-bit operations")
+ (subitem (code math/bigfloat) ": arbitrary-precision floats")
+ 'next
+ (item (code math/flonum) ": a bunch of weird things like" (code fl) "," 
+       (code flnext) "," (code +max.0) "," (code flonum->ordinal) ","
+       (code fllog1p) "," (code flsqrt1pm1) "," (code flcospix))
  )
 
+(add1-slide-number)
 (slide
  #:title "You Could Have Invented Floating-Point"
  (para "Need to represent " ($"\\pm n \\times 10^m") " or " ($"\\pm n \\times 2^m") "...")
@@ -72,6 +77,7 @@ latex
              -80))
  )
 
+(add1-slide-number)
 (slide
  #:title "You Could Have Invented Floating-Point Multiplication"
  (para (code (struct: float ([sign : (U -1 1)]
@@ -92,6 +98,7 @@ latex
              800))
  )
 
+(add1-slide-number)
 (slide
  #:title "Finite Approximation"
  (item "Actual flonum fields are fixed-size, requiring")
@@ -113,6 +120,7 @@ latex
  (item "Consequence: most flonum functions aren't exact")
 )
 
+(add1-slide-number)
 (slide
  #:title "Correctness Means Minimizing Error"
  (item "A flonum's" (bt "unit in last place (ulp)") "is the distance between it and the next flonum")
@@ -134,25 +142,27 @@ latex
         2/3)
  )
 
+(add1-slide-number)
 (slide
- #:title "Correctness Example: Addition"
+ #:title "Correctness Example: Subtraction"
  (para (code > (plot3d (contour-intervals3d
                         (λ (x y) (let ([x  (fl x)] [y  (fl y)])
-                                   (define z* (+ (inexact->exact x)
+                                   (define z* (- (inexact->exact x)
                                                  (inexact->exact y)))
-                                   (flulp-error (fl+ x y) z*)))
+                                   (flulp-error (fl- x y) z*)))
                         -1 1 -1 1))))
  'next
  (plot3d-pict (contour-intervals3d
                (λ (x y)
                  (let ([x  (fl x)]
                        [y  (fl y)])
-                   (define z* (+ (inexact->exact x)
+                   (define z* (- (inexact->exact x)
                                  (inexact->exact y)))
-                   (flulp-error (fl+ x y) z*)))
+                   (flulp-error (fl- x y) z*)))
                -1 1 -1 1))
  )
 
+(add1-slide-number)
 (slide
  #:title "Correctness Example: Logarithm"
  (para (code > (require math/bigfloat) (code:comment "default sig. size: 128 bits")
@@ -169,6 +179,7 @@ latex
              0 10))
  )
 
+(add1-slide-number)
 (slide
  #:title "Correctness is Noncompositional"
  (para (code > (plot (function
@@ -184,9 +195,10 @@ latex
              0 10))
  )
 
+(add1-slide-number)
 (slide
  #:title "Debugging: Geometric Inverse CDF"
- (item "Implement " ($"f(p,u) = \\log(u) / \\log(1-p)") " for " ($"p,u \\in [0,1]"))
+ (para "Implement " ($"f(p,u) = \\log(u) / \\log(1-p)") " for " ($"p,u \\in [0,1]"))
  'next
  (item "First stab:")
  (para (code (define (geom p u)
@@ -207,6 +219,7 @@ latex
     (bigfloat->real
      (bf/ (bflog u) (bflog (bf- 1.bf p))))))
 
+(add1-slide-number)
 (slide
  #:title "Debugging: Geometric Inverse CDF"
  'alts
@@ -253,6 +266,7 @@ latex
                      #:z-label "ulps error")))
  )
 
+(add1-slide-number)
 (slide
  #:title "Argh!"
  (para "Q. Is this normal???")
@@ -262,26 +276,24 @@ latex
  (para "The good news:" (bt "You can usually fix them using just flonum ops."))
  'next
  (para "Q. How do I fix them???")
- (para "A. Most functions---not implementations, but functions themselves---have places where"
+ (para "A. Most functions---not implementations, but functions themselves---have"
+       (bt "ill-conditioned") "places where"
        "they turn low input error into high output error. Avoid these badlands.")
- 'next
- (para "Let's look at the badlands for the ops in" (code geom) "...")
  )
 
+(add1-slide-number)
 (slide
- #:title "The Badlands: Logarithm"
- (para (code > (plot (function
-                      (λ (x)
-                        (define z* (bigfloat->real (bflog (bf x))))
-                        (flulp-error (fllog (fl x)) z*)))
-                      0 10)))
- (plot-pict (function
-             (λ (x)
-               (define z* (bigfloat->real (bflog (bf x))))
-               (flulp-error (fllog (fl x)) z*))
-             0 10))
+ #:title "The Floating-Point Priest Says..."
+ (ht-append (scale (bitmap "mola-ram-fuzzy.png") 1/4)
+            (blank 20)
+            (para #:width 400
+                  "``The condition number of a function is the absolute value of the ratio of"
+                  "its derivative and its value, multiplied by the blah blah blah blah blah blah blah"
+                  "blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah.''"
+                  ))
  )
 
+(add1-slide-number)
 (slide
  #:title "The Badlands: Subtraction"
  (para (code > (plot3d (contour-intervals3d
@@ -289,6 +301,7 @@ latex
                           (define z* (- x y))
                           (flulp-error (fl- (fl x) (fl y)) z*))
                         -1 1 -1 1))))
+ 'next
  (plot3d-pict (contour-intervals3d
                (λ (x y)
                  (flulp-error (fl- (fl x) (fl y))
@@ -296,6 +309,23 @@ latex
                -1 1 -1 1))
  )
 
+(add1-slide-number)
+(slide
+ #:title "The Badlands: Logarithm"
+ (para (code > (plot (function
+                      (λ (x)
+                        (define z* (bigfloat->real (bflog (bf x))))
+                        (flulp-error (fllog (fl x)) z*)))
+                      0 10)))
+ 'next
+ (plot-pict (function
+             (λ (x)
+               (define z* (bigfloat->real (bflog (bf x))))
+               (flulp-error (fllog (fl x)) z*))
+             0 10))
+ )
+
+(add1-slide-number)
 (slide
  #:title "The Badlands: Division"
  (plot3d-pict
@@ -304,11 +334,14 @@ latex
      (define z* (/ x y))
      (flulp-error (fl/ (fl x) (fl y)) z*))
    -1 1 -1 1))
+ 'next
  (item (bt "No badlands:") "except for flonum rounding error, division error doesn't depend on"
        "inputs")
+ 'next
  (item "Multiplication error is the same way")
  )
 
+(add1-slide-number)
 (slide
  #:title "Informal Error Analysis"
  (item "Recursively reason about the body of" (code geom) ":")
@@ -328,9 +361,10 @@ latex
  'next
  (subitem "So" (code (fllog (fl- 1.0 p))) "may have" (bt "high error"))
  'next
- (item "Let's check" (code math/flonum) "for a" (code fllog) "alternative")
+ (item "Let's check" (code math/flonum) "for another incantation...")
  )
 
+(add1-slide-number)
 (slide
  #:title "log(1+x)"
  (item "Looks interesting:" (code fllog1p))
@@ -346,10 +380,12 @@ latex
 (define (geom1 p u)
   (fl/ (fllog u) (fllog1p (- p))))
 
+(add1-slide-number)
 (slide
  #:title "Debugging: Geometric Inverse CDF (Second Stab)"
  (para (code (define (geom p u)
                (fl/ (fllog u) (fllog1p (- p))))))
+ 'next
  'alts
  (list
   (list (item "Error plot for" (code geom) "for" (code p <= 1) ":")
@@ -394,9 +430,10 @@ latex
                      #:z-label "ulps error")))
  )
 
+(add1-slide-number)
 (slide
  #:title "Argh It Is Not Perfect!"
- (item "But < 3 ulps error is really, really good")
+ (item "But < 3 ulps error is very accurate")
  'next
  (item "Does" (code geom) "have badlands?")
  'next
@@ -411,6 +448,7 @@ latex
  (item "This is a property of the" (bt "function") ", so we can't do anything about it")
  )
 
+(add1-slide-number)
 (slide
  #:title "Debugging Summary"
  (item "Make direct and reference implementations")
@@ -422,11 +460,12 @@ latex
  (item "Avoid:")
  (subitem "Subtracting nearby values")
  (subitem "Taking logs of values near" (code 1.0))
- (subitem "Other badlands (e.g. very tiny square roots, most zero crossings)")
+ (subitem "Other badlands (most zero crossings, exponential growth)")
  'next
  (item "Move multiplication and division outward")
  )
 
+(add1-slide-number)
 (slide
  #:title "What If I Need Moar Bits?"
  
@@ -443,6 +482,7 @@ latex
          (fl2->real y2 y1)))
  )
 
+(add1-slide-number)
 (slide
  #:title "What If I Need Moar Bits?"
  (item (code math/bigfloat) ": arbitrary precision floats")
@@ -459,6 +499,7 @@ latex
  (item "Conclusion: ``moar bits'' is not a general solution")
  )
 
+(slide-number #f)
 (slide
  #:title "The Badlands: Square Oot"
  (para (code > (plot (function
@@ -587,24 +628,20 @@ latex
  )
 
 (slide
- #:title "Estimating Badlands"
- (para (code (: relative-error-fun
-                ((Real -> Real) Real -> (Real -> Real)))
-             (define ((relative-error-fun f e) x)
-               (define z* (f x))
-               (define z+ (f (* x (+ 1 e))))
-               (define z- (f (* x (- 1 e))))
-               (max (relative-error z+ z*) (relative-error z- z*)))))
-
- (para (code (: relative-error-fun-2d
-                ((Real Real -> Real) Real Real 
-                                     -> (Real Real -> Real)))
-             (define ((relative-error-fun-2d f ex ey) x y)
-               (define z* (f x y))
-               (define z++ (f (* x (+ 1 ex)) (* y (+ 1 ey))))
-               (define z+- (f (* x (+ 1 ex)) (* y (- 1 ey))))
-               (define z-+ (f (* x (- 1 ex)) (* y (+ 1 ey))))
-               (define z-- (f (* x (- 1 ex)) (* y (- 1 ey))))
-               (max (relative-error z++ z*) (relative-error z+- z*)
-                    (relative-error z-+ z*) (relative-error z-- z*)))))
+ #:title "Condition Number"
+ (para (code (: condition ((Flonum -> Flonum)
+                           (Flonum -> Flonum)
+                           -> (Flonum -> Flonum)))
+             (define ((condition f df) x)
+               (abs (/ (* x (df x)) (f x))))
+             code:blank
+             code:blank
+             (: condition2d ((Flonum Flonum -> Flonum)
+                             (Flonum Flonum -> (Values Flonum Flonum))
+                             -> (Flonum Flonum -> Flonum)))
+             (define ((condition2d f df) x y)
+               (define-values (dx dy) (df x y))
+               (define z (f x y))
+               (max (abs (/ (* x dx) z))
+                    (abs (/ (* y dy) z))))))
  )
