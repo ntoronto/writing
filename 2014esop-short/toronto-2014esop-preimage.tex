@@ -202,7 +202,7 @@ Densities disallow all but the simplest conditions.
 	p_x(x\,|\,y)\ =\ \frac{p_y(y\,|\,x) \cdot \pi_x(x)}{\int p_y(y\,|\,x) \cdot \pi_x(x)~dx}
 \label{eqn:bayes-law-densities}
 \end{equation}
-Bayesians interpret probabilistic processes as defining $p_y$ and $\pi_x$, and use~\eqref{eqn:bayes-law-densities} to find the density of ``$x$ given $y = c$.''
+Bayesians interpret probabilistic processes as defining $p_y$ and $\pi_x$, and use~\eqref{eqn:bayes-law-densities} to find the distribution of ``$x$ given $y = c$.''
 Even though ``$x$ given $x + y = \mathrm{0}$'' has perfectly sensible distribution, Bayes' law for densities cannot express it.
 
 %\subsection{Probability Measures}
@@ -210,7 +210,6 @@ Even though ``$x$ given $x + y = \mathrm{0}$'' has perfectly sensible distributi
 Measure-theoretic probability~\cite{cit:klenke-2006-probability} is widely believed to be able to define every reasonable distribution that densities cannot.
 It mainly does this by \emph{assigning probabilities to sets} instead of \emph{assigning changes in probability to values}.
 Functions that do so are called \keyword{probability measures}.
-%In contrast to densities, probabilities of sets of values with different dimension \emph{are} comparable, and probability measures \emph{can} be defined on infinite products.
 
 If a probability measure $P$ assigns probabilities to subsets of $X$ and $f : X \to Y$, then \keyword{preimage measure} defines the distribution over subsets of $Y$:
 \begin{equation}
@@ -227,7 +226,7 @@ $\Pr[B'\,|\,B] = \Pr[B' \i B]\ /\ \Pr[B]$.
 %\label{eqn:bayes-law-preimage}
 %\end{equation}
 If $\Pr[B] = \mathrm{0}$, conditional probabilities can be calculated as the limit of $\Pr[B'\,|\,B_n]$ for positive-probability $B_1 \supseteq B_2 \supseteq B_3 \supseteq \cdots$ whose intersection is $B$.
-For example, if $Y = \Re \times \Re$, the distribution over $\pair{x,y} \in Y$ given that $x + y = \mathrm{0}$ can be calculated using the descending sequence $B_n = \setb{\pair{x,y} \in Y}{|x + y| < \mathrm{2}^{-n}}$.
+For example, if $Y = \Re \times \Re$, the distribution of ``$\pair{x,y} \in Y$ given $x + y = \mathrm{0}$'' can be calculated using the descending sequence $B_n = \setb{\pair{x,y} \in Y}{|x + y| < \mathrm{2}^{-n}}$.
 
 Only special families of \keyword{measurable} sets can be assigned probabilities.
 Proving measurability, taking limits, and other complications tend to make measure-theoretic probability less attractive, even though it is strictly more powerful.
@@ -1523,7 +1522,7 @@ We have three implementations: two direct implementations of the approximating s
 Given a library for operating on rectangular sets, the approximating preimage arrows defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
 We have done so in Typed Racket and Haskell~\cite{cit:haskell-lang}.
 Both implementations are almost line-for-line transliterations from the figures.
-They are at \texttt{https://github.com/ntoronto/writing/tree/master/2014esop-code}.
+They are at \url{https://github.com/ntoronto/writing/tree/master/2014esop-code}.
 
 Dr. Bayes is written in Typed Racket.
 It includes $\meaningof{\cdot}\genc$ (\figref{fig:semantic-function}), its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow (\figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}), the approximating preimage and preimage* arrows (\figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-arrow-defs}), and extensions to compute approximate preimages under arithmetic.
