@@ -1101,7 +1101,7 @@ where $h := \meaningofconv{\mathit{e}}\ppre$, if $f$ and $h$ always terminate an
 
 \subsection{Correctness and Termination}
 
-For correctness, we have two arrow lifts to prove homomorphic: one from pure computations to effectful, and one from effectful computations to effectful.
+For correctness, we have two arrow lifts to prove homomorphic: one from pure computations to effectful (i.e. from those that do not access the store to those that do), and one from effectful computations to effectful.
 For both, we need $AStore$ arrow equivalence to be more extensional.
 
 \begin{definition}[$AStore$ arrow equivalence]
