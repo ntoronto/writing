@@ -1101,7 +1101,7 @@ where $h := \meaningofconv{\mathit{e}}\ppre$, if $f$ and $h$ always terminate an
 
 \subsection{Correctness and Termination}
 
-For correctness, we have two arrow lifts to prove homomorphic: one from pure computations to effectful (i.e. from those that do not access the store to those that do), and one from effectful computations to effectful.
+For correctness, we have two arrow lifts to prove homomorphic: one from pure computations to effectful, and one from effectful computations to effectful.
 For both, we need $AStore$ arrow equivalence to be more extensional.
 
 \begin{definition}[$AStore$ arrow equivalence]
@@ -1520,7 +1520,7 @@ We leave completeness conditions for future work, and for now, use algorithms th
 We have three implementations: two direct implementations of the approximating semantics, and a less direct but more efficient one called \mykeyword{Dr. Bayes}.
 
 Given a library for operating on rectangular sets, the approximating preimage arrows defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
-We have done so in Typed Racket and Haskell~\cite{cit:haskell-lang}.
+We have done so in Typed Racket~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} and Haskell~\cite{cit:haskell-lang}.
 Both implementations are almost line-for-line transliterations from the figures.
 They are at \url{https://github.com/ntoronto/writing/tree/master/2014esop-code}.
 
