@@ -30,12 +30,6 @@
 
 \input{local-macros.tex}
 
-
-\begin{comment}
-Does the phrase "operational lambda-calculus" make sense? I intend to mean that it has an operational semantics, or is intended to ...
-\end{comment}
-
-
 \newsavebox{\codebox}
 
 \renewcommand{\paragraph}[1]{\vspace{0.5\baselineskip}\noindent\textbf{{#1}.}\hspace{0.25\baselineskip}}
@@ -262,7 +256,7 @@ We address~\ref{problem:backward-efficient} by deriving and implementing a \emph
 
 We have addressed difficulty~\ref{problem:measurability} by proving that all programs' interpretations as functions are measurable if language primitives are measurable, including uncomputable primitives such as limits and real equality, regardless of nontermination.
 The proof interprets programs as extensional functions and applies well-known theorems from measure theory.
-The required machinery does not fit in this report; see the full version~\cite{cit:toronto-2014esop-long} for the entire development.
+Unfortunately, the required machinery does not fit in this report; see the full version~\cite{cit:toronto-2014esop-long} for the entire development.
 
 For difficulty~\ref{problem:higher-orderness}, we have discovered that the ``first-orderness'' of arrows~\cite{cit:hughes-2000scp-arrows} is a perfect fit for the ``first-orderness'' of measure theory.
 
@@ -323,11 +317,8 @@ Proofs about \lzfclang's set values apply directly to ZFC sets, assuming the exi
 
 In \lzfclang, algebraic data structures are encoded as sets; e.g. the pair $\pair{x,y}$ can be encoded as $\set{\set{x},\set{x,y}}$.
 Only the \emph{existence} of encodings into sets is important, as it means data structures inherit a defining characteristic of sets: strictness.
-More precisely, the lengths of paths to data structure leaves is unbounded, but each path must be finite.
+More precisely, in every data structure, every path between the root and a leaf must have finite length.
 Less precisely, data may be ``infinitely wide'' (such as $\Re$) but not ``infinitely tall'' (such as infinite trees and lists).
-
-%We assume data structures, including pairs, are encoded as \emph{primitive} ordered pairs with the first element a unique tag, so they can be distinguished by checking tags.
-%sAccessors such as $fst$ and $snd$ are trivial to define.
 
 Though \lzfclang is untyped, it helps in this work to define an auxiliary type system.
 It is manually checked, polymorphic, and characterized by these rules:
@@ -492,7 +483,7 @@ To prove arrow laws, we prove arrows are \emph{epimorphic} to arrows for which t
 An arrow homomorphism $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ that has a right inverse is an \mykeyword{arrow epimorphism} from $a$ to $b$.
 \end{definition}
 
-\begin{theorem}
+\begin{theorem}[epimorphism implies arrow laws]
 \label{thm:arrow-epimorphism}
 If $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ is an arrow epimorphism and the combinators of $a$ define an arrow, then the combinators of $b$ define an arrow.
 \end{theorem}
@@ -1009,7 +1000,7 @@ We thus think of programs interpreted as $AStore$ arrows as being completely unr
 \subsection{Partial, Probabilistic Programs}
 \label{sec:probabilistic-programs}
 
-To interpret probabilitic programs, we put an infinite random tree in the store.
+To interpret probabilistic programs, we put an infinite random tree in the store.
 
 \begin{definition}[random source]
 Let $R := J \to [0,1]$.
@@ -1017,7 +1008,7 @@ A \keyword{random source} is any infinite binary tree $r \in R$.
 \end{definition}
 
 To interpret partial programs, we need to ensure termination.
-An utimately implementable way is to have the store dictate which branch of each conditional, if any, is taken.
+One ultimately implementable way is to have the store dictate which branch of each conditional, if any, is taken.
 
 \begin{definition}[branch trace]
 A \mykeyword{branch trace} is any $t \in J \to Bool_\bot$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
@@ -1149,8 +1140,6 @@ For all expressions $\mathit{e}$, $\meaningof{\mathit{e}}\ppre \equiv \liftppre~
 
 For termination, we need to define the largest domain on which $\meaningofconv{\mathit{e}}\genc$ and $\meaningof{\mathit{e}}\genc$ computations should agree.
 
-%To relate $\meaningofconv{\mathit{e}}\genc$ computations to $\meaningof{\mathit{e}}\genc$ computations, we need to define the largest domain on which they should agree.
-
 \begin{definition}[maximal domain]
 \label{def:maximal-domain}
 Let $f : X \pbotto Y$.
@@ -1158,20 +1147,6 @@ Its \mykeyword{maximal domain} is the largest $A^* \subseteq (R \times T) \times
 \end{definition}
 
 Because $f~j_0~a \neq \bot$ implies termination, all inputs in $A^*$ are terminating.
-
-\begin{comment}
-
-\begin{definition}[index prefix/suffix]
-\label{def:index-prefix}
-A finite $J' \subset J$ is an \mykeyword{index prefix} if $J' = \set{j_0}$ or, for some index prefix $J''$ and $j \in J''$, $J' = J'' \uplus \set{left~j}$ or $J' = J'' \uplus \set{right~j}$.
-The corresponding \mykeyword{index suffix} is $J \w J'$.
-\end{definition}
-
-It is not hard to show that every index suffix is closed under $left$ and $right$.
-
-For a given $t \in T$, an index prefix $J'$ serves as a convenient bounding set for the finitely many indexes $j$ for which $t~j \neq \bot$.
-Applying $left$ and/or $right$ repeatedly to any $j \in J'$ eventually yields a $j' \in J \w J'$, for which $t~j' = \bot$.
-\end{comment}
 
 \begin{theorem}[correct termination everywhere]
 \label{thm:correct-convergence}
@@ -1197,12 +1172,6 @@ In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always ter
 
 \section{Approximating Semantics}
 \label{sec:approximating-semantics}
-
-%If we were to confine preimage computation to finite sets, we could implement the preimage arrow directly.
-%But we would like something that works efficiently on infinite sets, even if it means approximating.
-%We focus on a specific method: approximating product sets with covering rectangles.
-
-%\subsection{Implementable Lifts}
 
 \begin{figure*}[!tb]\centering
 \smallmathfont
@@ -1300,7 +1269,7 @@ They can be modeled by \emph{finite} binary trees, where unrepresented projectio
 The set of branch traces $T$ is nonrectangular, but we can model $T$ subsets by $J \to Bool_\bot$ rectangles, implicitly intersected with $T$.
 
 \begin{theorem}[$T$ model]
-If $T' \in Rect~(J \to Bool_\bot)$ and $j \in J$, then $proj~j~(T' \i T) = proj~j~T'$.
+If $T' \in Rect~(J \to Bool_\bot)$ and $j \in J$, then $proj~j~T' = proj~j~(T' \i T)$.
 If $B \subseteq Bool_\bot$, then $unproj~j~(T' \i T)~B = unproj~j~T'~B \i T$.
 \end{theorem}
 
@@ -1472,15 +1441,15 @@ and ${\arrowconvif}\ppre'$, for interpreting expressions using ${\meaningofconv{
 
 Let $h := \meaningofconv{\mathit{e}}\ppre : X \ppreto Y$ and $h' := {\meaningofconv{\mathit{e}}}\ppre' : X \ppreto' Y$ for some expression $\mathit{e}$.
 
+\begin{theorem}[monotone]
+\label{thm:monotonicity}
+$\fun{A\,B}{ap\pre'~(h'~j_0~A)~B}$ is monotone in $A$ and $B$.%
+\end{theorem}
+
 \begin{theorem}[sound, terminating, decreasing]
 \label{thm:approximation}
 For all $A \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$,
 $ap\pre~(h~j_0~A)~B \subseteq ap\pre'~(h'~j_0~A)~B \subseteq A$.
-\end{theorem}
-
-\begin{theorem}[monotone]
-\label{thm:monotonicity}
-$\fun{A\,B}{ap\pre'~(h'~j_0~A)~B}$ is monotone in $A$ and $B$.%
 \end{theorem}
 
 Given these properties, we  might try to compute preimages of $B$ by computing preimages with respect to increasingly fine discretizations of $A$.
@@ -1504,8 +1473,8 @@ Define $partition : Rect~\pair{\pair{R,T},X} \tto Set~(Rect~\pair{\pair{R,T},X})
 For any $A \in Rect~\pair{\pair{R,T},X}$, iterate $refine^*$ on $\set{A}$.
 \end{definition}
 
-Theorem~\ref{thm:monotonicity} guarantees refining a partition of $A$ never does worse than refining $A$ itself.
-Theorem~\ref{thm:approximation} guarantees $refine~A \subseteq A$ (which implies termination), and that the algorithm is \keyword{sound}: the preimage of $B$ is always contained in the covering partition $refine^*$ returns.
+Theorem~\ref{thm:monotonicity} guarantees that refining a partition of $A$ never does worse than refining $A$ itself.
+Theorem~\ref{thm:approximation} guarantees that $refine~A \subseteq A$ (which implies termination), and that the algorithm is \keyword{sound}: the preimage of $B$ is always contained in the covering partition $refine^*$ returns.
 Ideally, it would be complete in the sense that covering partitions converge to a set that overapproximates by a measure-zero subset.
 Unfortunately, convergence fails on some examples that terminate with probability less than one.
 We leave completeness conditions for future work, and for now, use algorithms that depend only on soundness.
@@ -1530,7 +1499,7 @@ The preimage arrows operate on a monomorphic rectangular set data type, which in
 
 Definition~\ref{def:preimage-refinement} outlines preimage refinement, a discretization algorithm that repeatedly shrinks and repartitions a program's domain.
 Dr. Bayes does not use this algorithm directly because it is inefficient: good accuracy requires fine discretization, which is exponential in the number of discretized axes.
-Instead of enumerating partitions of the random source, Dr. Bayes samples from them with time complexity linear in the number of samples and discretized axes.
+Instead of enumerating partitions of the random source, Dr. Bayes samples from them, with time complexity linear in the number of samples and discretized axes.
 It uses bottom* arrow computations to get output samples, rejecting those outside the requested output set.
 Thus, it relies only on preimage refinement's soundness.
 
@@ -1590,22 +1559,6 @@ The proof-of-concept ray tracer, written in Dr. Bayes, is little more than a sim
 
 \section{Related Work}
 
-\begin{comment}
-Any programming language research described by the words ``bijective'' or ``reversible'' might seem to have much in common with ours.
-Unfortunately, when we look more closely, we can usually draw only loose analogies and perhaps inspiration.
-An example is lenses~\cite{cit:hofmann-2012popl-edit-lenses}, which are transformations from $X$ to $Y$ that can be run forward and backward, in a way that maintains some relationship between $X$ and $Y$.
-Usually, a destructive, external process is assumed, so that, for example, a change from $y \in Y$ to $y' \in Y$ induces a corresponding change from $x \in X$ to some $x' \in X$.
-When transformations lose information, lenses must satisfy certain behavioral laws.
-In our work, no input or output is updated, and preimages are always definable regardless of non-injectivity.
-
-Many multi-paradigm languages~\cite{cit:hanus-2007lp-multi-paradigm}, especially constraint functional languages, bear a strong resemblance to our work.
-In fact, it is easy to add a $fail$ expression to our semantics, or to transform constraints into boolean program outputs.
-The most obvious difference is evaluation strategy.
-The most important difference is that our interpretation of programs returns \emph{distributions} of constrained outputs, rather than arbitrary single values that meet constraints.
-\end{comment}
-
-%Computing a preimage also computes an overapproximation of a subdomain's image, which generalizes interval arithmetic~\cite{cit:kearfott-1996eb-interval} to all first-order algebraic types.
-%Related to this,
 Our approximating semantics can be regarded as an abstract interpretation~\cite{cit:cousot-1977popl-abstract-interpretation}.
 It is typical in some ways: it is sound, the abstract domain is a lattice, and the concrete (i.e. exact) semantics performs infinite computations.
 It is atypical in other ways: it is used to run programs, there is no Kleene iteration, abstraction boundaries are $if$ expressions in (conceptually) infinite programs, and infinite computations are confined to a combinator library.
@@ -1620,7 +1573,7 @@ Recently, Wingate et al~\cite{cit:wingate-2011nips-nonstandard} have defined the
 Early work in probabilistic language semantics is not motivated by Bayesian concerns, and thus does not address conditioning.
 Examples are Kozen~\cite{cit:kozen-1979fcs-prob-programs-short}, Hurd~\cite{cit:hurd-2002thesis}, Jones~\cite{cit:jones-1990thesis}, Ramsey and Pfeffer~\cite{cit:ramsey-2002popl-stochastic-short}, and Park~\cite{cit:park-2008toplas-prob}.
 Recent semantics work tackles conditioning, such as IBAL~\cite{cit:pfeffer-2007chapter-ibal} and Fun~\cite{cit:borgstrom-2011esop-measure-transformer}.
-While Fun's measure-theoretic semantics looks promising, its implementations are based on probability densities, so they cannot handle recursion or aribtrary conditions.
+While Fun's measure-theoretic semantics looks promising, its implementations are based on probability densities, so they cannot handle recursion or arbitrary conditions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1628,7 +1581,7 @@ While Fun's measure-theoretic semantics looks promising, its implementations are
 
 \section{Conclusions and Future Work}
 
-To allow recursion and arbitrary conditions in probabilitic programs, we combined the power of measure theory with the unifying elegance of arrows. We
+To allow recursion and arbitrary conditions in probabilistic programs, we combined the power of measure theory with the unifying elegance of arrows. We
 \begin{enumerate}
 	\item Defined a transformation from first-order programs to arbitrary arrows.
 	\item Defined the bottom arrow as a standard translation target.
@@ -1648,15 +1601,6 @@ More broadly, we hope to advance Bayesian practice by providing a rich modeling 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-%\appendix
-%\section{Appendix Title}
-%This is the text of the appendix, if you need one.
-
-%\acks
-%Acknowledgments, if needed.
 
 \mathversion{normal}
 
