@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(require "../set-ops.rkt"
+(require "set-ops.rkt"
          "mapping.rkt")
 
 (provide (all-defined-out))

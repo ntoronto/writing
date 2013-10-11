@@ -2,46 +2,48 @@
 
 (require typed/rackunit
          "../types.rkt"
-         "../set-ops.rkt"
-         "../branch-trace.rkt"
+         "set-ops.rkt"
+         "branch-trace.rkt"
          "bot-arrow.rkt"
          "map-arrow.rkt"
          "pre-arrow.rkt"
          "partial-arrows.rkt"
          )
 
-(define-type (Arrow X Y) (PBot-Arrow X Y))
-(define arr arr/pbot)
-(define >>> >>>/pbot)
-(define pair pair/pbot)
-(define lazy lazy/pbot)
-(define ifte if/pbot)
-(define id id/pbot)
-(define fst fst/pbot)
-(define snd snd/pbot)
-(define const const/pbot)
+(begin
+  (define-type (Arrow X Y) (Bot*-Arrow X Y))
+  (define arr arr/bot*)
+  (define >>> >>>/bot*)
+  (define pair pair/bot*)
+  (define lazy lazy/bot*)
+  (define ifte if/bot*)
+  (define id id/bot*)
+  (define fst fst/bot*)
+  (define snd snd/bot*)
+  (define const const/bot*)
+  
+  (: run (All (X Y) ((Bot*-Arrow Null Y) -> (U Bottom Y))))
+  (define (run f)
+    (unjust (ap/bot* f null)))
+  )
 
-(: run (All (X Y) ((PBot-Arrow Null Y) -> (U Bottom Y))))
-(define (run f)
-  (unjust (ap/pbot f null)))
+#;
+(begin
+  (define-type (Arrow X Y) (Bot-Arrow X Y))
+  (define arr arr/bot)
+  (define >>> >>>/bot)
+  (define pair pair/bot)
+  (define lazy lazy/bot)
+  (define ifte if/bot)
+  (define id id/bot)
+  (define fst fst/bot)
+  (define snd snd/bot)
+  (define const const/bot)
 
-#|
-(define-type (Arrow X Y) (Bot-Arrow X Y))
-(define arr arr/bot)
-(define >>> >>>/bot)
-(define pair pair/bot)
-(define lazy lazy/bot)
-(define ifte if/bot)
-(define id id/bot)
-(define fst fst/bot)
-(define snd snd/bot)
-(define const const/bot)
-
-(: run (All (X Y) ((Bot-Arrow Null Y) -> (U Bottom Y))))
-(define (run f)
-  (unjust (f null)))
-|#
-
+  (: run (All (X Y) ((Bot-Arrow Null Y) -> (U Bottom Y))))
+  (define (run f)
+    (unjust (f null)))
+  )
 
 (define-syntax (env stx) (raise-syntax-error 'env "cannot be used as an expression" stx))
 

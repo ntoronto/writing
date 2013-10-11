@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(require "../branch-trace.rkt"
+(require "branch-trace.rkt"
          "preimage-mapping.rkt"
          "map-arrow.rkt")
 

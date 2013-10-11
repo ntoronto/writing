@@ -1,8 +1,8 @@
 #lang typed/racket
 
 (require "../types.rkt"
-         "../set-ops.rkt"
-         "../branch-trace.rkt"
+         "set-ops.rkt"
+         "branch-trace.rkt"
          "mapping.rkt"
          "bot-arrow.rkt")
 
@@ -13,19 +13,18 @@
 
 (define-type (Map-Arrow X Y) ((Setof X) -> (Mapping X Y)))
 
-(: bot-domain (All (X Y) ((Bot-Arrow X Y) (Setof X) -> (Setof X))))
-(define (bot-domain f A)
-  (mapping-preimage (mapping f A) (set-subtract (set-image f A) (set bottom))))
+(: domain/bot (All (X Y) ((Bot-Arrow X Y) (Setof X) -> (Setof X))))
+(define (domain/bot f A)
+  (mapping-preimage (mapping f A) (set-subtract (set-image f A) (set ⊥))))
 
 (: lift/map (All (X Y) ((Bot-Arrow X Y) -> (Map-Arrow X Y))))
 (define ((lift/map f) A)
-  ;(mapping f (bot-domain f A))
+  ;(mapping f (domain/bot f A))
   (set-filter-out
-   bottom?
-   (set-image (λ: ([x : X])
-                (define y (f x))
-                (if (bottom? y) bottom (cons x (just-value y))))
-              A)))
+   ⊥? (set-image (λ: ([x : X])
+                   (define y (f x))
+                   (if (⊥? y) y (cons x (just-value y))))
+                 A)))
 
 (: arr/map (All (X Y) ((X -> Y) -> (Map-Arrow X Y))))
 (define (arr/map f)

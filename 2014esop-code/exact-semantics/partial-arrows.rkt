@@ -1,17 +1,68 @@
 #lang typed/racket
 
 (require "../types.rkt"
-         "../set-ops.rkt"
-         "../arrow-transformer.rkt"
-         "../branch-trace.rkt"
-         "mapping.rkt"
-         "preimage-mapping.rkt"
+         "set-ops.rkt"
+         "branch-trace.rkt"
          "bot-arrow.rkt"
          "map-arrow.rkt"
          "pre-arrow.rkt"
          )
 
 (provide (all-defined-out))
+
+(define-syntax-rule (define-transformed-arrow
+                      In-Arrow arr/a >>>/a &&&/a if/a lazy/a agrees/a π/a
+                      Out-Arrow eta/a* arr/a* >>>/a* &&&/a* if/a* if*/a* lazy/a*)
+  (begin
+    (define-type (Out-Arrow X Y) (Tree-Index -> (In-Arrow (Pair Branch-Trace X) Y)))
+    
+    (: fst/a (All (X Y) (In-Arrow (Pair X Y) X)))
+    (define (fst/a xy)
+      (((inst arr/a (Pair X Y) X) car) xy))
+    
+    (: snd/a (All (X Y) (In-Arrow (Pair X Y) Y)))
+    (define (snd/a xy)
+      (((inst arr/a (Pair X Y) Y) cdr) xy))
+    
+    (: eta/a* (All (X Y) ((In-Arrow X Y) -> (Out-Arrow X Y))))
+    (define ((eta/a* f) j)
+      ((inst snd/a Branch-Trace X) . >>>/a . f))
+    
+    (: arr/a* (All (X Y) ((X -> Y) -> (Out-Arrow X Y))))
+    (define (arr/a* f)
+      (eta/a* ((inst arr/a X Y) f)))
+    
+    (: >>>/a* (All (X Y Z) ((Out-Arrow X Y) (Out-Arrow Y Z) -> (Out-Arrow X Z))))
+    (define ((f1 . >>>/a* . f2) j)
+      ((&&&/a (inst fst/a Branch-Trace X) (f1 (left j))) . >>>/a . (f2 (right j))))
+    
+    (: &&&/a* (All (X Y Z) ((Out-Arrow X Y) (Out-Arrow X Z) -> (Out-Arrow X (Pair Y Z)))))
+    (define ((f1 . &&&/a* . f2) j)
+      ((f1 (left j)) . &&&/a . (f2 (right j))))
+    
+    (: lazy/a* (All (X Y) ((-> (Out-Arrow X Y)) -> (Out-Arrow X Y))))
+    (define ((lazy/a* f) j)
+      (lazy/a (λ () ((f) j))))
+    
+    (: if/a* (All (X Y) ((Out-Arrow X Boolean) (Out-Arrow X Y) (Out-Arrow X Y) -> (Out-Arrow X Y))))
+    (define ((if/a* f1 f2 f3) j)
+      (if/a (f1 (left j))
+            (f2 (left (right j)))
+            (f3 (right (right j)))))
+    
+    (: branch/a* (All (X) (Out-Arrow X Boolean)))
+    (define (branch/a* j)
+      ((inst fst/a Branch-Trace X) . >>>/a . (π/a j)))
+    
+    (: agrees/a* (All (X) (Out-Arrow (Pair Boolean Boolean) Boolean)))
+    (define (agrees/a* j)
+      (((inst eta/a* (Pair Boolean Boolean) Boolean) agrees/a) j))
+    
+    (: if*/a* (All (X Y) ((Out-Arrow X Boolean) (Out-Arrow X Y) (Out-Arrow X Y) -> (Out-Arrow X Y))))
+    (define (if*/a* f1 f2 f3)
+      (if/a* ((f1 . &&&/a* . (inst branch/a* X)) . >>>/a* . agrees/a*) f2 f3))
+    
+    ))
 
 ;; ===================================================================================================
 ;; Partial bottom arrow
@@ -23,8 +74,8 @@
 (: ap/bot* (All (X Y) ((Bot*-Arrow X Y) X -> (Maybe Y))))
 (define (ap/bot* f x)
   (define B (set-image (f j0) (set-product some-traces (set x))))
-  (define C ((inst set-filter-out (just Y) Bottom) bottom? B))
-  (if (set-empty? C) bottom (set-take C)))
+  (define C ((inst set-filter-out (just Y) Bottom) ⊥? B))
+  (if (set-empty? C) ⊥ (set-take C)))
 
 (: id/bot* (All (X) (Bot*-Arrow X X)))
 (define (id/bot* x)

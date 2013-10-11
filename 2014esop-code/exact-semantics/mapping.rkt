@@ -1,11 +1,11 @@
 #lang typed/racket
 
-(require "../set-ops.rkt")
+(require "set-ops.rkt")
 
 (provide (all-defined-out))
 
 ;; ===================================================================================================
-;; Strict mappings
+;; Set-theoretic mappings (i.e. sets of input-output pairs)
 
 (define-type (Mapping X Y) (Setof (Pair X Y)))
 
@@ -60,53 +60,3 @@
 (: mapping-range-restrict (All (X Y) ((Mapping X Y) (Setof Y) -> (Mapping X Y))))
 (define (mapping-range-restrict f B)
   (set-filter (λ: ([xy : (Pair X Y)]) (set-member? B (cdr xy))) f))
-
-;; ===================================================================================================
-;; Lazy mappings
-#|
-(define-type (Lazy-Mapping-Fun X Y) (X -> Y))
-
-(struct: (X Y) lazy-mapping ([function : (Lazy-Mapping-Fun X Y)]
-                             [domain : (Setof X)])
-  #:transparent)
-
-(: lazy->mapping (All (X Y) ((lazy-mapping X Y) -> (Mapping X Y))))
-(define (lazy->mapping f)
-  (mapping (lazy-mapping-function f) (lazy-mapping-domain f)))
-
-(: mapping->lazy (All (X Y) ((Mapping X Y) -> (lazy-mapping X Y))))
-(define (mapping->lazy f)
-  (lazy-mapping (λ: ([x : X]) (mapping-ap/error f x))
-                (mapping-domain f)))
-
-(: lazy-mapping-range (All (X Y) ((lazy-mapping X Y) -> (Setof Y))))
-(define (lazy-mapping-range f)
-  (set-image (lazy-mapping-function f) (lazy-mapping-domain f)))
-
-(: lazy-mapping-ap (All (X Y) ((lazy-mapping X Y) X -> Y)))
-(define (lazy-mapping-ap f x)
-  (match-define (lazy-mapping g A) f)
-  (cond [(set-member? A x)  (g x)]
-        [else  (raise-argument-error 'lazy-mapping-ap "in-domain value" 1 f x)]))
-
-(: lazy-mapping-image (All (X Y) ((lazy-mapping X Y) (Setof X) -> (Setof Y))))
-(define (lazy-mapping-image f A)
-  (set-image (lazy-mapping-function f)
-             (set-intersect A (lazy-mapping-domain f))))
-
-(: lazy-mapping-preimage (All (X Y) ((lazy-mapping X Y) (Setof Y) -> (Setof X))))
-(define (lazy-mapping-preimage f B)
-  (set-preimage (lazy-mapping-function f)
-                (lazy-mapping-domain f)
-                B))
-
-(: lazy-mapping-compose (All (X Y Z) ((lazy-mapping Y Z) (lazy-mapping X Y) -> (lazy-mapping X Z))))
-(define (lazy-mapping-compose f g)
-  (lazy-mapping (λ: ([x : X]) (lazy-mapping-ap f (lazy-mapping-ap g x)))
-                (lazy-mapping-domain g)))
-
-(: lazy-mapping-restrict (All (X Y) ((lazy-mapping X Y) (Setof X) -> (lazy-mapping X Y))))
-(define (lazy-mapping-restrict f A)
-  (lazy-mapping (lazy-mapping-function f)
-                (set-intersect A (lazy-mapping-domain f))))
-|#

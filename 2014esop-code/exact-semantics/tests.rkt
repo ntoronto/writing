@@ -2,8 +2,8 @@
 
 (require typed/rackunit
          "../types.rkt"
-         "../set-ops.rkt"
-         "../branch-trace.rkt"
+         "set-ops.rkt"
+         "branch-trace.rkt"
          "bot-arrow.rkt"
          "map-arrow.rkt"
          "pre-arrow.rkt"

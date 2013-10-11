@@ -1,6 +1,6 @@
 #lang typed/racket
 
-(require "types.rkt")
+(require "../types.rkt")
 
 (provide (all-defined-out))
 
@@ -27,7 +27,7 @@
 
 (: π (Tree-Index -> (Branch-Trace -> (U Boolean Bottom))))
 (define ((π j) b)
-  (cond [(leaf? b)  bottom]
+  (cond [(leaf? b)  ⊥]
         [(empty? j)  (trace-node-value b)]
         [(zero? (first j))  ((π (rest j)) (trace-node-fst b))]
         [else               ((π (rest j)) (trace-node-snd b))]))

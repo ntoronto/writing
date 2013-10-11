@@ -1,7 +1,7 @@
 #lang typed/racket
 
 (require "../types.rkt"
-         "../branch-trace.rkt")
+         "branch-trace.rkt")
 
 (provide (all-defined-out))
 
@@ -16,13 +16,13 @@
 (: >>>/bot (All (X Y Z) ((Bot-Arrow X Y) (Bot-Arrow Y Z) -> (Bot-Arrow X Z))))
 (define ((>>>/bot f1 f2) x)
   (let ([y  (f1 x)])
-    (if (bottom? y) bottom (f2 (just-value y)))))
+    (if (⊥? y) y (f2 (just-value y)))))
 
 (: pair/bot (All (X Y Z) ((Bot-Arrow X Y) (Bot-Arrow X Z) -> (Bot-Arrow X (Pair Y Z)))))
 (define ((pair/bot f1 f2) x)
   (let ([y  (f1 x)])
-    (if (bottom? y) y (let ([z  (f2 x)])
-                        (if (bottom? z) z (just (cons (just-value y) (just-value z))))))))
+    (if (⊥? y) y (let ([z  (f2 x)])
+                   (if (⊥? z) z (just (cons (just-value y) (just-value z))))))))
 
 (: lazy/bot (All (X Y) ((-> (Bot-Arrow X Y)) -> (Bot-Arrow X Y))))
 (define ((lazy/bot f) x) ((f) x))
@@ -30,7 +30,7 @@
 (: if/bot (All (X Y) ((Bot-Arrow X Boolean) (Bot-Arrow X Y) (Bot-Arrow X Y) -> (Bot-Arrow X Y))))
 (define ((if/bot c t f) x)
   (define b (c x))
-  (cond [(bottom? b)  bottom]
+  (cond [(⊥? b)  b]
         [else  (let ([b  (just-value b)])
                  (if b (t x) (f x)))]))
 
@@ -52,9 +52,9 @@
 
 (: agrees/bot (Bot-Arrow (Pair Boolean Boolean) Boolean))
 (define (agrees/bot xy)
-  (if (equal? (car xy) (cdr xy)) (just (car xy)) bottom))
+  (if (equal? (car xy) (cdr xy)) (just (car xy)) ⊥))
 
 (: π/bot (Tree-Index -> (Bot-Arrow Branch-Trace Boolean)))
 (define ((π/bot j) b)
   (define x ((π j) b))
-  (if (bottom? x) bottom (just x)))
+  (if (⊥? x) x (just x)))
