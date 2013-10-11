@@ -11,30 +11,12 @@
          )
 
 (begin
-  (define-type (Arrow X Y) (Bot*-Arrow X Y))
-  (define arr arr/bot*)
-  (define >>> >>>/bot*)
-  (define pair pair/bot*)
-  (define lazy lazy/bot*)
-  (define ifte if/bot*)
-  (define id id/bot*)
-  (define fst fst/bot*)
-  (define snd snd/bot*)
-  (define const const/bot*)
-  
-  (: run (All (X Y) ((Bot*-Arrow Null Y) -> (U Bottom Y))))
-  (define (run f)
-    (unjust (ap/bot* f null)))
-  )
-
-#;
-(begin
   (define-type (Arrow X Y) (Bot-Arrow X Y))
   (define arr arr/bot)
   (define >>> >>>/bot)
-  (define pair pair/bot)
+  (define &&& &&&/bot)
   (define lazy lazy/bot)
-  (define ifte if/bot)
+  (define ifte ifte/bot)
   (define id id/bot)
   (define fst fst/bot)
   (define snd snd/bot)
@@ -43,6 +25,24 @@
   (: run (All (X Y) ((Bot-Arrow Null Y) -> (U Bottom Y))))
   (define (run f)
     (unjust (f null)))
+  )
+
+#;
+(begin
+  (define-type (Arrow X Y) (Bot*-Arrow X Y))
+  (define arr arr/bot*)
+  (define >>> >>>/bot*)
+  (define &&& &&&/bot*)
+  (define lazy lazy/bot*)
+  (define ifte ifte/bot*)
+  (define id id/bot*)
+  (define fst fst/bot*)
+  (define snd snd/bot*)
+  (define const const/bot*)
+  
+  (: run (All (X Y) ((Bot*-Arrow Null Y) -> (U Bottom Y))))
+  (define (run f)
+    (unjust (ap/bot* f null)))
   )
 
 (define-syntax (env stx) (raise-syntax-error 'env "cannot be used as an expression" stx))
@@ -60,17 +60,17 @@
 
 (: lett (All (X Y) ((Arrow X Y) -> (All (Z) (Arrow (Pair Y X) Z) -> (Arrow X Z)))))
 (define ((lett expr) body)
-  (>>> (pair expr (inst id X)) body))
+  ((expr . &&& . (inst id X)) . >>> . body))
 
 (define-for-syntax (S stx)
   ;(printf "stx = ~v~n" (syntax->datum stx))
   (syntax-case stx (cons car cdr if let env Pair + - neg)
     [(cons e1 e2)
-     #`(pair #,(S #'e1) #,(S #'e2))]
+     #`(#,(S #'e1) . &&& . #,(S #'e2))]
     [(car (Pair X Y) e)
-     #`(>>> #,(S #'e) (inst fst X Y))]
+     #`(#,(S #'e) . >>> . (inst fst X Y))]
     [(cdr (Pair X Y) e)
-     #`(>>> #,(S #'e) (inst snd X Y))]
+     #`(#,(S #'e) . >>> . (inst snd X Y))]
     [(if ec et ef)
      #`(ifte #,(S #'ec) (lazy (λ () #,(S #'et))) (lazy (λ () #,(S #'ef))))]
     [(let E ex X eb)
@@ -80,15 +80,15 @@
     [(env (Pair E0 E) n)
      (exact-nonnegative-integer? (syntax->datum #'n))
      (let ([n  (syntax->datum #'n)])
-       #`(>>> (inst snd E0 E) #,(S #`(env E #,(- n 1)))))]
+       #`((inst snd E0 E) . >>> . #,(S #`(env E #,(- n 1)))))]
     [(+ e1 e2)
-     #`(>>> (pair #,(S #'e1) #,(S #'e2)) (arr plus))]
+     #`((#,(S #'e1) . &&& . #,(S #'e2)) . >>> . (arr plus))]
     [(- e1 e2)
-     #`(>>> (pair #,(S #'e1) #,(S #'e2)) (arr minus))]
+     #`((#,(S #'e1) . &&& . #,(S #'e2)) . >>> . (arr minus))]
     [(neg e)
-     #`(>>> #,(S #'e) (arr neg))]
+     #`(#,(S #'e) . >>> . (arr neg))]
     [(ef ex)
-     #`(>>> #,(S #'(cons ex null)) ef)]
+     #`(#,(S #'(cons ex null)) . >>> . ef)]
     [n
      #`(const n)]
     ))

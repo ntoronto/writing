@@ -14,25 +14,28 @@
 (define ((arr/bot f) x) (just (f x)))
 
 (: >>>/bot (All (X Y Z) ((Bot-Arrow X Y) (Bot-Arrow Y Z) -> (Bot-Arrow X Z))))
-(define ((>>>/bot f1 f2) x)
+(define ((f1 . >>>/bot . f2) x)
   (let ([y  (f1 x)])
     (if (⊥? y) y (f2 (just-value y)))))
 
-(: pair/bot (All (X Y Z) ((Bot-Arrow X Y) (Bot-Arrow X Z) -> (Bot-Arrow X (Pair Y Z)))))
-(define ((pair/bot f1 f2) x)
+(: &&&/bot (All (X Y Z) ((Bot-Arrow X Y) (Bot-Arrow X Z) -> (Bot-Arrow X (Pair Y Z)))))
+(define ((f1 . &&&/bot . f2) x)
   (let ([y  (f1 x)])
     (if (⊥? y) y (let ([z  (f2 x)])
                    (if (⊥? z) z (just (cons (just-value y) (just-value z))))))))
 
-(: lazy/bot (All (X Y) ((-> (Bot-Arrow X Y)) -> (Bot-Arrow X Y))))
-(define ((lazy/bot f) x) ((f) x))
-
-(: if/bot (All (X Y) ((Bot-Arrow X Boolean) (Bot-Arrow X Y) (Bot-Arrow X Y) -> (Bot-Arrow X Y))))
-(define ((if/bot c t f) x)
+(: ifte/bot (All (X Y) ((Bot-Arrow X Boolean) (Bot-Arrow X Y) (Bot-Arrow X Y) -> (Bot-Arrow X Y))))
+(define ((ifte/bot c t f) x)
   (define b (c x))
   (cond [(⊥? b)  b]
         [else  (let ([b  (just-value b)])
                  (if b (t x) (f x)))]))
+
+(: lazy/bot (All (X Y) ((-> (Bot-Arrow X Y)) -> (Bot-Arrow X Y))))
+(define ((lazy/bot f) x) ((f) x))
+
+;; ---------------------------------------------------------------------------------------------------
+;; Bottom arrow lifts
 
 (: id/bot (All (X) (Bot-Arrow X X)))
 (define (id/bot x)

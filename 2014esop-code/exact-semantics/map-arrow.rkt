@@ -31,25 +31,28 @@
   (lift/map (arr/bot f)))
 
 (: >>>/map (All (X Y Z) ((Map-Arrow X Y) (Map-Arrow Y Z) -> (Map-Arrow X Z))))
-(define ((>>>/map g1 g2) A)
+(define ((g1 . >>>/map . g2) A)
   (let* ([g1  (g1 A)]
          [g2  (g2 (mapping-range g1))])
     (mapping-compose g2 g1)))
 
-(: pair/map (All (X Y Z) ((Map-Arrow X Y) (Map-Arrow X Z) -> (Map-Arrow X (Pair Y Z)))))
-(define ((pair/map g1 g2) A)
+(: &&&/map (All (X Y Z) ((Map-Arrow X Y) (Map-Arrow X Z) -> (Map-Arrow X (Pair Y Z)))))
+(define ((g1 . &&&/map . g2) A)
   (mapping-pair (g1 A) (g2 A)))
+
+(: ifte/map (All (X Y) ((Map-Arrow X Boolean) (Map-Arrow X Y) (Map-Arrow X Y) -> (Map-Arrow X Y))))
+(define ((ifte/map c t f) A)
+  (let* ([c  (c A)]
+         [t  (t (mapping-preimage c (set #t)))]
+         [f  (f (mapping-preimage c (set #f)))])
+    (mapping-disjoint-union t f)))
 
 (: lazy/map (All (X Y) ((-> (Map-Arrow X Y)) -> (Map-Arrow X Y))))
 (define ((lazy/map g) A)
   (if (set-empty? A) (set) ((g) A)))
 
-(: if/map (All (X Y) ((Map-Arrow X Boolean) (Map-Arrow X Y) (Map-Arrow X Y) -> (Map-Arrow X Y))))
-(define ((if/map c t f) A)
-  (let* ([c  (c A)]
-         [t  (t (mapping-preimage c (set #t)))]
-         [f  (f (mapping-preimage c (set #f)))])
-    (mapping-disjoint-union t f)))
+;; ---------------------------------------------------------------------------------------------------
+;; Mapping arrow lifts
 
 (: id/map (All (X) (Map-Arrow X X)))
 (define (id/map A)
