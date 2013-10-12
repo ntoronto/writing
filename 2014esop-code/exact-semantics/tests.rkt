@@ -319,9 +319,14 @@
 (test-eta/map* halt-on-true/map halt-on-true/map* halt-on-true-halting-set*)
 (printf "test-eta/pre*~n")
 (test-eta/pre* halt-on-true/pre halt-on-true/pre* halt-on-true-halting-set*)
+
+(define halt-on-true-halting-set+
+  (pmapping-ap (halt-on-true/pre+ halt-on-true-domain*) (set #t #f)))
 (printf "test-eta/bot+~n")
-(test-eta/bot+ halt-on-true/bot halt-on-true/bot+ halt-on-true-halting-set*)
+(test-eta/bot+ halt-on-true/bot halt-on-true/bot+ halt-on-true-halting-set+)
 (printf "test-eta/map+~n")
-(test-eta/map+ halt-on-true/map halt-on-true/map+ halt-on-true-halting-set*)
+(test-eta/map+ halt-on-true/map halt-on-true/map+ halt-on-true-halting-set+)
 (printf "test-eta/pre+~n")
-(test-eta/pre+ halt-on-true/pre halt-on-true/pre+ halt-on-true-halting-set*)
+(test-eta/pre+ halt-on-true/pre halt-on-true/pre+ halt-on-true-halting-set+)
+
+(check-true (equal? halt-on-true-halting-set* halt-on-true-halting-set+))
