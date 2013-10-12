@@ -8,11 +8,11 @@
          "pre-arrow.rkt"
          )
 
-(provide (all-defined-out))
+(provide (except-out (all-defined-out) define-transformed-arrow))
 
 (define-syntax-rule (define-transformed-arrow
                       In-Arrow arr/a >>>/a &&&/a ifte/a lazy/a agrees/a π/a
-                      Out-Arrow eta/a* arr/a* >>>/a* &&&/a* ifte/a* if*/a* lazy/a*)
+                      Out-Arrow eta/a* arr/a* >>>/a* &&&/a* ifte/a* ifte-conv/a* lazy/a*)
   (begin
     (define-type (Out-Arrow X Y) (Tree-Index -> (In-Arrow (Pair Branch-Trace X) Y)))
     
@@ -34,15 +34,11 @@
     
     (: >>>/a* (All (X Y Z) ((Out-Arrow X Y) (Out-Arrow Y Z) -> (Out-Arrow X Z))))
     (define ((f1 . >>>/a* . f2) j)
-      ((&&&/a (inst fst/a Branch-Trace X) (f1 (left j))) . >>>/a . (f2 (right j))))
+      (((inst fst/a Branch-Trace X) . &&&/a . (f1 (left j))) . >>>/a . (f2 (right j))))
     
     (: &&&/a* (All (X Y Z) ((Out-Arrow X Y) (Out-Arrow X Z) -> (Out-Arrow X (Pair Y Z)))))
     (define ((f1 . &&&/a* . f2) j)
       ((f1 (left j)) . &&&/a . (f2 (right j))))
-    
-    (: lazy/a* (All (X Y) ((-> (Out-Arrow X Y)) -> (Out-Arrow X Y))))
-    (define ((lazy/a* f) j)
-      (lazy/a (λ () ((f) j))))
     
     (: ifte/a* (All (X Y) ((Out-Arrow X Boolean) (Out-Arrow X Y) (Out-Arrow X Y) -> (Out-Arrow X Y))))
     (define ((ifte/a* f1 f2 f3) j)
@@ -50,17 +46,20 @@
               (f2 (left (right j)))
               (f3 (right (right j)))))
     
+    (: lazy/a* (All (X Y) ((-> (Out-Arrow X Y)) -> (Out-Arrow X Y))))
+    (define ((lazy/a* f) j)
+      (lazy/a (λ () ((f) j))))
+    
     (: branch/a* (All (X) (Out-Arrow X Boolean)))
     (define (branch/a* j)
       ((inst fst/a Branch-Trace X) . >>>/a . (π/a j)))
     
-    (: agrees/a* (All (X) (Out-Arrow (Pair Boolean Boolean) Boolean)))
-    (define (agrees/a* j)
-      (((inst eta/a* (Pair Boolean Boolean) Boolean) agrees/a) j))
-    
-    (: if*/a* (All (X Y) ((Out-Arrow X Boolean) (Out-Arrow X Y) (Out-Arrow X Y) -> (Out-Arrow X Y))))
-    (define (if*/a* f1 f2 f3)
-      (ifte/a* ((f1 . &&&/a* . (inst branch/a* X)) . >>>/a* . agrees/a*) f2 f3))
+    (: ifte-conv/a* (All (X Y) ((Out-Arrow X Boolean) (Out-Arrow X Y) (Out-Arrow X Y)
+                                                      -> (Out-Arrow X Y))))
+    (define ((ifte-conv/a* f1 f2 f3) j)
+      (ifte/a (((f1 (left j)) . &&&/a . ((inst branch/a* X) j)) . >>>/a . agrees/a)
+              (f2 (left (right j)))
+              (f3 (right (right j)))))
     
     ))
 
@@ -69,7 +68,7 @@
 
 (define-transformed-arrow
   Bot-Arrow arr/bot >>>/bot &&&/bot ifte/bot lazy/bot agrees/bot π/bot
-  Bot*-Arrow eta/bot* arr/bot* >>>/bot* &&&/bot* ifte/bot* if*/bot* lazy/bot*)
+  Bot*-Arrow eta/bot* arr/bot* >>>/bot* &&&/bot* ifte/bot* ifte-conv/bot* lazy/bot*)
 
 (: ap/bot* (All (X Y) ((Bot*-Arrow X Y) X -> (Maybe Y))))
 (define (ap/bot* f x)
@@ -98,7 +97,7 @@
 
 (define-transformed-arrow
   Map-Arrow arr/map >>>/map &&&/map ifte/map lazy/map agrees/map π/map
-  Map*-Arrow eta/map* arr/map* >>>/map* &&&/map* ifte/map* if*/map* lazy/map*)
+  Map*-Arrow eta/map* arr/map* >>>/map* &&&/map* ifte/map* ifte-conv/map* lazy/map*)
 
 (: lift/map* (All (X Y) ((Bot*-Arrow X Y) -> (Map*-Arrow X Y))))
 (define ((lift/map* f) j)
@@ -125,7 +124,7 @@
 
 (define-transformed-arrow
   Pre-Arrow arr/pre >>>/pre &&&/pre ifte/pre lazy/pre agrees/pre π/pre
-  Pre*-Arrow eta/pre* arr/pre* >>>/pre* &&&/pre* ifte/pre* if*/pre* lazy/pre*)
+  Pre*-Arrow eta/pre* arr/pre* >>>/pre* &&&/pre* ifte/pre* ifte-conv/pre* lazy/pre*)
 
 (: lift/pre* (All (X Y) ((Map*-Arrow X Y) -> (Pre*-Arrow X Y))))
 (define ((lift/pre* f) j)
