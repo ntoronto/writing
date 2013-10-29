@@ -1,0 +1,1211 @@
+%-----------------------------------------------------------------------------
+%
+%               Template for sigplanconf LaTeX Class
+%
+% Name:         sigplanconf-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for SIGPLAN conference proceedings.
+%
+% Guide:        Refer to "Author's Guide to the ACM SIGPLAN Class,"
+%               sigplanconf-guide.pdf
+%
+% Author:       Paul C. Anagnostopoulos
+%               Windfall Software
+%               978 371-2316
+%               paul@windfall.com
+%
+% Created:      15 February 2005
+%
+%-----------------------------------------------------------------------------
+
+\documentclass[preprint]{sigplanconf}
+
+\input{local-macros.tex}
+
+\newsavebox{\codebox}
+
+\newcommand{\smallmathfont}{\fontsize{7.5}{9}\selectfont}
+
+\newenvironment{displaybreaks}%
+{%
+	\begingroup%
+	\allowdisplaybreaks%
+}%
+{%
+	\endgroup%
+	\ignorespacesafterend%
+}
+
+%\excludecomment{proof}
+
+\newcommand{\figref}[1]{Fig.~\ref{#1}}
+\newcommand{\figsref}[1]{Figs.~\ref{#1}}
+
+\newcommand{\arrow}{\rightsquigarrow}
+
+\newcommand{\restrict}[1]{\lvert_{#1}}
+\newcommand{\pto}{\rightharpoonup}
+\newcommand{\Univ}{\mathbb{U}}
+\newcommand{\Un}{\mathcal{U}}
+
+\newcommand{\join}{\vee}
+
+\newcommand{\conv}{^{\mspace{-2mu}\Downarrow\mspace{-2mu}}}
+
+\newcommand{\meaningofconv}[1]{\left\llbracket{#1}\right\rrbracket\conv}
+
+\newcommand{\arrowlift}{\ensuremath{lift}}
+\newcommand{\arrowarr}{\ensuremath{arr}}
+\newcommand{\arrowcomp}{\ensuremath{{>}\mspace{-6mu}{>}\mspace{-6mu}{>}}}
+\newcommand{\arrowpair}{\ensuremath{\mathit{\&\mspace{-7.5mu}\&\mspace{-7.5mu}\&}}}
+\newcommand{\arrowif}{\ensuremath{ifte}}
+\newcommand{\arrowconvif}{\ensuremath{ifte\conv}}
+\newcommand{\arrowlazy}{\ensuremath{lazy}}
+\newcommand{\arrowapp}{\ensuremath{app}}
+\newcommand{\arrowrun}{\ensuremath{run}}
+\newcommand{\arrowget}{\ensuremath{get}}
+\newcommand{\arrowerror}{\ensuremath{error}}
+\newcommand{\arrowtrans}{\ensuremath{\eta}}
+
+\newcommand{\gen}{_\mathrm{a}}
+\newcommand{\genb}{_\mathrm{b}}
+\newcommand{\genc}{_\mathrm{a^{\mspace{-2mu}*}}}
+\newcommand{\gend}{_\mathrm{b^{\mspace{-2mu}*}}}
+
+\DeclareMathOperator{\botto}{\arrow_{\mspace{-3mu}\bot}}
+\newcommand{\arrbot}{\arrowarr_{\mspace{-3mu}\bot}}
+\newcommand{\compbot}{\arrowcomp_{\mspace{-5mu}\bot}}
+\newcommand{\pairbot}{\arrowpair_{\mspace{-3mu}\bot}}
+\newcommand{\ifbot}{\arrowif_{\mspace{-2mu}\bot}}
+\newcommand{\lazybot}{\arrowlazy_{\mspace{-2mu}\bot}}
+
+\newcommand{\map}{_\mathrm{map}}
+\DeclareMathOperator{\mapto}{\arrow_{\mspace{-21mu}\map}}
+\newcommand{\liftmap}{\arrowlift\map}
+\newcommand{\arrmap}{\arrowarr\map}
+\newcommand{\compmap}{\arrowcomp\map}
+\newcommand{\pairmap}{\arrowpair\map}
+\newcommand{\ifmap}{\arrowif\map}
+\newcommand{\lazymap}{\arrowlazy\map}
+
+\newcommand{\pre}{_\mathrm{pre}}
+\DeclareMathOperator{\preto}{\arrow_{\mspace{-19mu}\pre}}
+\newcommand{\liftpre}{\arrowlift\pre}
+\newcommand{\arrpre}{\arrowarr\pre}
+\newcommand{\comppre}{\arrowcomp\pre}
+\newcommand{\pairpre}{\arrowpair\pre}
+\newcommand{\ifpre}{\arrowif\pre}
+\newcommand{\lazypre}{\arrowlazy\pre}
+
+\newcommand{\pbot}{{\bot^{\mspace{-4mu}*}}}
+\DeclareMathOperator{\pbotto}{\arrow_{\mspace{-3mu}\pbot}}
+\newcommand{\arrpbot}{\arrowarr_{\mspace{-3mu}\pbot}}
+\newcommand{\comppbot}{\arrowcomp_{\mspace{-5mu}\pbot}}
+\newcommand{\pairpbot}{\arrowpair_{\mspace{-3mu}\pbot}}
+\newcommand{\ifpbot}{\arrowif_{\mspace{-2mu}\pbot}}
+\newcommand{\convifpbot}{\arrowconvif_{\mspace{-2mu}\pbot}}
+\newcommand{\lazypbot}{\arrowlazy_{\mspace{-2mu}\pbot}}
+
+\newcommand{\pmap}{_\mathrm{map^{\mspace{-2mu}*}}}
+\DeclareMathOperator{\pmapto}{\arrow_{\mspace{-22mu}_{\mathrm{map*}}}}
+\newcommand{\liftpmap}{\arrowlift\pmap}
+\newcommand{\arrpmap}{\arrowarr\pmap}
+\newcommand{\comppmap}{\arrowcomp\pmap}
+\newcommand{\pairpmap}{\arrowpair\pmap}
+\newcommand{\ifpmap}{\arrowif\pmap}
+\newcommand{\convifpmap}{\arrowconvif\pmap}
+\newcommand{\lazypmap}{\arrowlazy\pmap}
+
+\newcommand{\ppre}{_\mathrm{pre^{\mspace{-2mu}*}}}
+\DeclareMathOperator{\ppreto}{\arrow_{\mspace{-19mu}_{\mathrm{pre*}}}}
+\newcommand{\liftppre}{\arrowlift\ppre}
+\newcommand{\arrppre}{\arrowarr\ppre}
+\newcommand{\compppre}{\arrowcomp\ppre}
+\newcommand{\pairppre}{\arrowpair\ppre}
+\newcommand{\ifppre}{\arrowif\ppre}
+\newcommand{\convifppre}{\arrowconvif\ppre}
+\newcommand{\lazyppre}{\arrowlazy\ppre}
+
+\newcommand{\prepto}{\pto_{\mspace{-19mu}\pre}}
+
+\DeclarePairedDelimiter{\ivl}{[\mspace{-4.5mu}(}{)\mspace{-4.5mu}]}
+
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{PLDI'14}{June 9--11, 2014, Edinburgh, Scotland, UK}
+\copyrightyear{2013}
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm} 
+\doi{nnnnnnn.nnnnnnn}
+
+% Uncomment one of the following two, if you are not going for the 
+% traditional copyright transfer agreement.
+
+\exclusivelicense                % ACM gets exclusive license to publish, 
+                                 % you retain copyright
+
+%\permissiontopublish             % ACM gets nonexclusive license to publish
+                                  % (paid open-access papers, 
+                                  % short abstracts)
+
+%\titlebanner{banner above paper title}        % These are ignored unless
+%\preprintfooter{short description of paper}   % 'preprint' option specified.
+
+\title{Applications of Preimage Analysis}
+\subtitle{}
+
+\makeatletter
+
+\if \@preprint
+  \authorinfo{\ }{\ }{\ }
+\else
+  \authorinfo{Neil Toronto\and Jay McCarthy}
+             {PLT @ Brigham Young University, Provo, Utah, USA}
+             {neil.toronto@gmail.com \and jay@cs.byu.edu}
+\fi
+
+\makeatother
+
+\maketitle
+
+\begin{abstract}
+XXX: todo
+\end{abstract}
+
+\category{CR-number}{subcategory}{third-level}
+
+% general terms are not compulsory anymore, 
+% you may leave them out
+%\terms
+%term1, term2
+
+\keywords
+keyword1, keyword2
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\mathversion{sans}
+
+\section{Introduction}
+
+(Citation to make Kile happy with BibTeX: \cite{cit:sergey-2013pldi-monadic-abstract})
+
+\section{Finite Program Semantics}
+
+\section{Set Representation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Preimages Under Primitives}
+
+\newcommand{\cl}[1]{\overline{\vphantom{i}{#1}}}
+\newcommand{\sub}[1]{_{_{#1}}}
+
+XXX: lifts are generally uncomputable, but many specific lifts are computable or approximately computable
+
+XXX: something about computing functions backward by computing inverses forward
+
+XXX: obvious how to do this with invertible functions (though infinite endpoints are a little tricky); not obvious how to do the same with two-argument functions
+
+\begin{comment}
+Math facts:
+
+Every totally ordered space is Tychonoff: completely regular and Hausdorff (aka T2)
+T2 spaces are T1
+
+T1 spaces:
+Limit point compactness is equivalent to countable compactness
+Singletons are closed sets
+
+T2 spaces:
+Every sequence has a unique limit
+Compact sets are closed
+Every pair of compact sets can be separated by neighborhoods
+Continuous functions into T2 spaces are determined by their values on dense subsets
+
+Tychonoff spaces:
+Subpaces of Tychonoff spaces are Tychonoff
+Products of Tychonoff spaces are Tychonoff
+
+There are no M-point compactifications for R^N, N > 1, M > 1
+
+
+
+\end{comment}
+
+\subsection{Invertible Primitives}
+
+We consider only strictly monotone functions on $\Re$.
+Further on, we recover more generality by using language conditionals to implement \emph{piecewise} monotone functions.
+
+One reason we consider only strictly monotone functions is that they are easy to make invertible.
+Recall that a function is invertible if and only if it is injective (one-to-one) and surjective (onto).
+
+\begin{lemma}
+\label{lem:monotone-implies-invertible}
+If $f : A \to B$ is strictly montone, $f$ is injective.
+If $f$ is additionally surjective, $f$ and its inverse are continuous.
+\end{lemma}
+
+Preimages under invertible functions can be computed using their inverses.
+We are primarily interested in computing preimages under restricted functions.
+
+\begin{lemma}
+\label{lem:invertible-function-preimages}
+Let $A' \subseteq A$, $B' \subseteq B$, and $f : A \to B$ have inverse $f^{-1} : B \to A$.
+Let $f' := restrict~f~A'$. Then
+\begin{equation}
+	preimage~f'~B'\ =\ A' \i image~f^{-1}~B'
+\end{equation}
+\end{lemma}
+
+These facts suggest that we can compute images (or preimages) of intervals under any strictly monotone, surjective $f$ by applying $f$ (or its inverse) to interval endpoints to yield an interval.
+This is evident for endpoints in $A$.
+Limit endpoints like $+\infty$ require a larger $\cl{f}$ defined on a compact superset of $A$.
+
+The next theorem is easier to state with interval notation in which the kind of interval is not baked into the syntax.
+
+\begin{definition}[interval]
+$\ivl{a_1,a_2,\alpha_1,\alpha_2}$ denotes an interval, where $a_1,a_2 \in \cl{\Re}$ are extended real endpoints, and $\alpha_1,\alpha_2 \in Bool$ determine whether $a_1$ and $a_2$ are contained in the interval.
+\end{definition}
+
+\begin{example}
+Examples of intervals using $\ivl{\cdots}$ notation are
+\begin{equation}
+\begin{aligned}
+	\ivl{0,1,true,false} &= [0,1) \\
+	\ivl{-\infty,0,false,true} &= (-\infty,0] \\
+	\ivl{-\infty,+\infty,false,false} &= (-\infty,+\infty) = \Re \\
+	\ivl{-\infty,+\infty,true,true} &= [-\infty,+\infty] = \cl{\Re}
+\end{aligned}
+\end{equation}
+All but the last are subsets of $\Re$.
+\exampleqed
+\end{example}
+
+\begin{theorem}[images of intervals by endpoints]
+\label{thm:images-of-intervals}
+Let $\cl{A}$ and $\cl{B}$ be compact subsets of $\cl{\Re}$, $\cl{f} : \cl{A} \to \cl{B}$ strictly monotone and surjective, and $f$ the restriction of $\cl{f}$ to some $A \subseteq \cl{A}$.
+For all nonempty $\ivl{a_1,a_2,\alpha_1,\alpha_2} \subseteq A$,
+\begin{itemize}
+	\item If $\cl{f}$ is increasing, $image~f~\ivl{a_1,a_2,\alpha_1,\alpha_2} = \ivl{\cl{f}~a_1, \cl{f}~a_2,\alpha_1,\alpha_2}$.
+	\item If $\cl{f}$ is decreasing, $image~f~\ivl{a_1,a_2,\alpha_1,\alpha_2} = \ivl{\cl{f}~a_2, \cl{f}~a_1,\alpha_2,\alpha_1}$.
+\end{itemize}
+\end{theorem}
+\begin{proof}
+Because $\cl{A}$ is compact and totally ordered, every subset of $\cl{A}$ has a lower and an upper bound in $\cl{A}$.
+Therefore, the endpoints of every interval subset of $A$ are in $\cl{A}$.
+
+Let $(a_1,a_2] \subseteq A$.
+Suppose $\cl{f}$ is strictly increasing; thus $a_1 < a \leq a_2$ if and only if $\cl{f}~a_1 < \cl{f}~a \leq \cl{f}~a_2$, so $image~f~(a_1,a_2] = image~\cl{f}~(a_1,a_2] = (\cl{f}~a_1,\cl{f}~a_2]$.
+The remaining cases are similar.
+\end{proof}
+
+To use Theorem~\ref{thm:images-of-intervals} to compute preimages under $f$ by computing images under its inverse $f^{-1}$, we must know whether $f^{-1}$ is increasing or decreasing.
+The following lemma can help.
+
+\begin{lemma}
+\label{lem:inverse-direction}
+If $f : A \to B$ is strictly monotone and surjective with inverse $f^{-1} : B \to A$, then $f$ is increasing if and only if $f^{-1}$ is increasing.
+\end{lemma}
+
+\begin{example}
+To extend $log : (0,+\infty) \to \Re$ to $[0,+\infty]$, define
+\begin{equation}
+\begin{aligned}
+	\cl{log}~a\ :\!\!&= \lim_{a' \to a} log~a'
+\\
+	&=\
+		\lzfccond{
+			a = 0 & -\infty \\
+			a = +\infty & +\infty \\
+			else & log~a \\
+		}
+\end{aligned}
+\end{equation}
+The extension of its inverse $exp$ is $\cl{exp} : \cl{\Re} \to [0,+\infty]$, defined similarly, which by Lemma~\ref{lem:inverse-direction} is also strictly increasing.
+Thus,
+\begin{equation}
+\begin{aligned}
+	image~log~(0,1]\ &=\ (\cl{log}~0,\cl{log}~1] = (-\infty,0]
+\\[6pt]
+	preimage~log~[0,+\infty)
+		\ &=\ image~exp~[0,+\infty)
+\\
+		\ &=\ [\mspace{2mu}\cl{exp}~0,\cl{exp}~{+\infty})
+		= [1,+\infty)
+\end{aligned}
+\end{equation}
+by Theorem~\ref{thm:images-of-intervals} and Lemma~\ref{lem:invertible-function-preimages},
+\exampleqed
+\end{example}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Two-Argument Primitives}
+
+We do not expect to be able to compute preimages under $\Re \times \Re \pto \Re$ primitives by simply inverting them.
+Two-argument invertible real functions are difficult to define and are usually pathological.
+
+Instead, we compute approximate preimages only, using inverses with respect to one argument (with the other held constant).
+
+\begin{definition}[axial inverse]
+\label{def:axial-inverse}
+Let $f_c : A \times B \to C$.
+Functions $f_a : B \times C \to A$ and $f_b : C \times A \to B$ defined so that
+\begin{equation}
+	f_c~\pair{a,b} = c\ \iff\ f_a~\pair{b,c} = a\ \iff\ f_b~\pair{c,a} = b
+\end{equation}
+are \mykeyword{axial inverses} with respect to $f_c$'s first and second arguments.
+\end{definition}
+
+We call $f_c$ \mykeyword{axis-invertible} when it has axial inverses $f_a$ and $f_b$.
+We call $f_a$ the \mykeyword{first axial inverse} of $f_c$ because it is the inverse of $f_c$ along the first axis: $f_a$ with only $c$ varying (i.e. $\fun{c \in C} f_a~\pair{b,c}$), is the inverse of $f_c$ with only $a$ varying (i.e. $\fun{a \in A} f_c~\pair{a,b}$).
+Similarly, $f_b$ is the \mykeyword{second axial inverse}.
+
+TODO: plot of $f_c$ with $b$ fixed?
+
+\begin{example}
+\label{ex:plus-axial-inverses}
+Let $add_c : \Re \times \Re \to \Re$, $add_c~\pair{a,b} := a+b$.
+Its axial inverses are $add_a~\pair{b,c} := c - b$ and $add_b~\pair{c,a} := c - a$.
+\exampleqed
+\end{example}
+
+We have chosen the axial inverse function types carefully: they are the only types for which $f_c$, $f_a$ and $f_b$ form a cyclic group.
+
+\begin{lemma}
+\label{lem:axial-inverse-cyclic-group}
+The following statements are equivalent.
+\begin{itemize}
+	\item $f_c$ has axial inverses $f_a$ and $f_b$.
+	\item $f_a$ has axial inverses $f_b$ and $f_c$.
+	\item $f_b$ has axial inverses $f_c$ and $f_a$.
+\end{itemize}
+Equivalently, every axis-invertible function generates a cyclic group of order 3 by inversion in the first axis.
+\end{lemma}
+
+This fact is analogous to how mutual inverses $f$ and $f^{-1}$ also form a cyclic group (of order 2, generated by inversion).
+Similar to using mutual inversion to compute preimages under both $log$ and $exp$, Lemma~\ref{lem:axial-inverse-cyclic-group} allows computing preimages under two-argument functions related by axial inversion.
+
+\begin{example}
+Define $sub_c : \Re \times \Re \to \Re$ by $sub_c~\pair{a,b} := a-b$.
+Because $sub_c = add_b$, $sub_a = add_c$ and $sub_b = add_a$.
+\exampleqed
+\end{example}
+
+Unlike inverses, axial inverses do not provide a direct way to compute exact preimages.
+Instead, they provide a way to compute a preimage's smallest rectangular bounding set.
+
+\begin{theorem}[preimage bounds from axial inverse images]
+\label{thm:axis-invertible-function-preimages}
+Let $A' \subseteq A$, $B' \subseteq B$, $C' \subseteq C$, and $f_c : A \times B \to C$ with axial inverses $f_a$ and $f_b$.
+If $f_c' = restrict~f_c~(A' \times B')$, then
+\begin{equation}
+	preimage~f_c'~C'\ \subseteq\ \lzfcsplit{
+		&(A' \i image~f_a~(B' \times C'))\ \times \\
+		&(B' \i image~f_b~(C' \times A'))}
+\end{equation}
+Further, the right-hand side is the smallest rectangular superset.
+\end{theorem}
+\begin{proof}
+The smallest rectangle containing $preimage~f_c'~C'$ is
+\begin{equation}
+	preimage~f_c'~C'\ \subseteq\ 
+		\lzfcsplit{
+			&(image~fst~(preimage~f_c'~C'))\ \times \\
+			&(image~snd~(preimage~f_c'~C'))}
+\end{equation}
+Starting with the first set in the product, expand definitions, distribute $fst$, replace $f_c~\pair{a,b} = c$ by $f_a~\pair{b,c} = a$, and simplify:
+\begin{displaybreaks}
+\begin{align*}
+	&image~fst~(preimage~f_c'~C')
+\nobreak\\
+	&\tab =\ image~fst~\setb{\pair{a,b} \in A' \times B'}{f_c~\pair{a,b} \in C'}
+\\
+	&\tab =\ \setb{a \in A'}{\Exists{b \in B'} f_c~\pair{a,b} \in C'}
+\\
+	&\tab =\ \setb{a \in A'}{\Exists{b \in B',c \in C'} f_c~\pair{a,b} = c}
+\\
+	&\tab =\ \setb{a \in A'}{\Exists{b \in B',c \in C'} f_a~\pair{b,c} = a}
+\\
+	&\tab =\ \setb{f_a~\pair{b,c}}{b \in B', c \in C', f_a~\pair{b,c} \in A'}
+\\
+	&\tab =\ A' \i \setb{f_a~\pair{b,c}}{b \in B', c \in C'}
+\nobreak\\
+	&\tab =\ A' \i image~f_a~(B' \times C')
+\end{align*}
+\end{displaybreaks}
+The second set in the product is similar.
+\end{proof}
+
+\begin{example}
+Let $add_c' := restrict~add_c~([0,1] \times [0,2])$.
+By Theorem~\ref{thm:axis-invertible-function-preimages},
+\begin{align*}
+	preimage~add_c'~[0,\tfrac{1}{2}]
+		&\subseteq \lzfcsplit{
+			&([0,1] \i image~add_a~([0,2] \times [0,\tfrac{1}{2}]))\ \times \\
+			&([0,2] \i image~add_b~([0,\tfrac{1}{2}] \times [0,1]))}
+\\
+		&= ([0,1] \i [-2,\tfrac{1}{2}]) \times ([0,2] \i [-1,\tfrac{1}{2}])
+\\
+		&= [0,\tfrac{1}{2}] \times [0,\tfrac{1}{2}]
+\end{align*}
+is the smallest rectangular subset of $[0,1] \times [0,2]$ that contains the preimage of $[0,\tfrac{1}{2}]$ under $add_c$.
+\exampleqed
+\end{example}
+
+At this point, we have an analogue of Lemma~\ref{lem:invertible-function-preimages}, in that we can compute (approximate) preimages by computing images under (axial) inverses.
+To compute images using interval endpoints, we need analogues of Lemma~\ref{lem:monotone-implies-invertible} (strictly monotone, surjective functions are invertible and continuous), Theorem~\ref{thm:images-of-intervals} (images of intervals by endpoints), and Lemma~\ref{lem:inverse-direction} (inverse direction).
+
+We first need a notion of properties that hold along an axis for every fixed value of the other argument.
+
+\begin{definition}[uniform axis property]
+$f_c : A \times B \to C$ has property $P$ \keyword{uniformly} in its first axis when $P~(flip~(curry~f_c)~b)$ for all $b \in B$, and uniformly in its second axis when $P~(curry~f_c~a)$ for all $a \in A$.
+If the axis is not specified, $P$ holds uniformly for both.
+\end{definition}
+
+Now Lemma~\ref{lem:monotone-implies-invertible}'s analogue is an easy corollary.
+
+\begin{lemma}
+\label{lem:uniformly-monotone-implies-invertible}
+Let $f_c : A \times B \to C$ for totally ordered $A$, $B$ and $C$.
+If $f_c$ is uniformly surjective and either uniformly strictly increasing or uniformly strictly decreasing in each axis, then $f_c$ is axis-invertible; further, it and its axial inverses are continuous.
+\end{lemma}
+
+From here on, assume axis monotonicity properties are uniform unless otherwise stated.
+
+\begin{example}
+$add_c$ is uniformly surjective and strictly increasing.
+$sub_c$ is uniformly surjective and strictly increasing/decreasing in its first/second axis.
+Therefore, both are axis-invertible.
+\exampleqed
+\end{example}
+
+Restriction usually makes a function not uniformly surjective.
+
+\begin{example}
+Let $add_c' : [0,1] \times [0,1] \to [0,2]$, defined by restricting $add_c$.
+It is strictly increasing, but not uniformly surjective: the range of $curry~add_c'~0$ is $[0,1]$, not $[0,2]$.
+\exampleqed
+\end{example}
+
+Fortunately, restriction sometimes does the opposite.
+
+\begin{example}
+Define $mul_c : \Re \times \Re \to \Re$ by $mul_c~\pair{a,b} := a \cdot b$.
+It is not uniformly surjective nor strictly monotone because $mul_c~\pair{0,b} = 0$ for all $b \in B$.
+But $mul_c^{++} : (0,+\infty) \times (0,+\infty) \to (0,+\infty)$, and $mul_c$ restricted to the other quadrants, are uniformly surjective and strictly increasing or decreasing in each axis.
+\exampleqed
+\end{example}
+
+Theorem~\ref{thm:images-of-intervals} justifies computing images of intervals with infinite endpoints by applying an extended function to the endpoints.
+Its two-argument analogue is more involved because extended, two-argument functions may not be defined at every point.
+
+\begin{example}
+$add_c$ cannot be extended to $\cl{add_c} : \cl{\Re} \times \cl{\Re} \to \cl{\Re}$ in the same way $log$ is extended to $\cl{log}$ because
+\begin{equation}
+	\lim_{\pair{a',b'} \to \pair{a,b}} add_c~\pair{a',b'}
+\end{equation}
+does not exist when $\pair{a,b}$ is $\pair{-\infty,+\infty}$ or $\pair{+\infty,-\infty}$.
+\exampleqed
+\end{example}
+
+The previous example suggests that extensions of increasing, two-argument functions are always well-defined except at off-diagonal corners.
+This is true, and similar statements hold for axes with other directions, and for more restricted domains.
+
+\begin{theorem}
+\label{thm:two-argument-extensions}
+Let $A,B,C \subseteq \Re$ and $f_c : A \times B \to C$ be uniformly surjective and strictly increasing or decreasing in each axis.
+Let $\cl{A}$, $\cl{B}$ and $\cl{C}$ be the closures of $A$, $B$ and $C$ in $\cl{\Re}$.
+The following extension is well-defined:
+\begin{equation}
+\begin{aligned}
+	&\cl{f_c} : (\cl{A} \times \cl{B}) \w N \to \cl{C} \\
+	&\cl{f_c}~\pair{a,b}\ :=\ \lim_{\pair{a',b'} \to \pair{a,b}} f_c~\pair{a',b'}
+\end{aligned}
+\end{equation}
+where $N := \set{\pair{min~\cl{A},max~\cl{B}},\pair{max~\cl{A},min~\cl{B}}}$ if $f_c$ is increasing or decreasing, and
+$N := \set{\pair{min~\cl{A},min~\cl{B}},\pair{max~\cl{A},max~\cl{B}}}$ if $f_c$ is increasing/decreasing or decreasing/increasing.
+\end{theorem}
+\begin{proof}
+Suppose $f_c$ is increasing, and let $g : \Nat \to A \times B$ be a sequence of $f_c$'s domain values.
+
+Any $g$ that converges to $\pair{max~\cl{A},max~\cl{B}}$ has a strictly increasing subsequence.
+By monotonicity, $map~f_c~g$ has a strictly increasing subsequence.
+It is bounded by $max~\cl{C}$, so $\cl{f_c}~\pair{max~\cl{A},max~\cl{B}} = max~\cl{C}$.
+A similar argument proves $\cl{f}~\pair{min~\cl{A},min~\cl{B}} = min~\cl{C}$.
+
+For any $g$ that converges to $\pair{max~\cl{A},b'}$ for some $b' \in B$, define
+\begin{equation}
+	g'\ :=\ map~(\fun{\pair{a,b}}\pair{f_a~\pair{b',f_c~\pair{a,b}}',b'})~g
+\end{equation}
+where $f_a$ is $f_c$'s first axial inverse, so that $map~f_c~g = map~f_c~g'$.
+Because $g'$ has a subsequence that is strictly increasing in the first of each pair, and because the second of each pair is the constant $b'$, by monotonicity, $map~f_c~g'$ has a strictly increasing subsequence.
+It is bounded by $max~\cl{C}$, so $\cl{f_c}~\pair{max~\cl{A},b'} = max~\cl{C}$.
+By similar arguments, $\cl{f}~\pair{min~\cl{A},b} = min~\cl{C}$ and so on.
+
+Arguments for $f$ decreasing, etc., are similar.
+\end{proof}
+
+Following the proof of Theorem~\ref{thm:two-argument-extensions}, extensions of two-argument functions can be defined by two corner cases, four border cases, and an interior case.
+
+\begin{example}
+Define $pow_c : (0,1) \times (0,+\infty) \to (0,1)$ by $pow_c~\pair{a,b} := exp~(b \cdot log~a)$, which is increasing/decreasing.
+Its extension to a subset of $\cl{\Re} \times \cl{\Re}$ is
+\begin{equation}
+\begin{aligned}
+	&\cl{pow_c} : ([0,1] \times [0,+\infty]) \w N \to [0,1] \\
+	&\cl{pow_c}~\pair{a,b}\ :=\
+		\lzfccase{\pair{a,b}}{
+			\pair{0,+\infty} & 0 \\
+			\pair{1,0} & 1 \\ 
+			\pair{0,b} & 0 \\
+			\pair{1,b} & 1 \\
+			\pair{a,0} & 1 \\
+			\pair{a,+\infty} & 0 \\
+			else & pow_c~\pair{a,b}
+		}
+\end{aligned}
+\end{equation}
+where $N := \set{\pair{0,0},\pair{1,+\infty}}$.
+\exampleqed
+\end{example}
+
+The analogue of Theorem~\ref{thm:images-of-intervals} is easiest to state if we have predicates that indicate a function's direction in each axis.
+Define $inc_1 : (A \times B \to C) \tto Bool$ so that $inc_1~f$ if and only if $f$ is strictly increasing in its first axis, and similarly $inc_2$ so that $inc_2~f$ if and only if $f$ is strictly increasing in its second axis.
+
+\begin{theorem}[images of rectangles by interval endpoints]
+\label{thm:images-of-rectangles}
+Let $A,B,C$ be open subsets of $\Re$, and $f_c : A \times B \to C$ be uniformly surjective and strictly increasing or decreasing in each axis, with extension $\cl{f_c}$ as defined in Theorem~\ref{thm:two-argument-extensions}.
+If $A' := \ivl{a_1,a_2,\alpha_1,\alpha_2} \subseteq A$ and $B' := \ivl{b_1,b_2,\beta_1,\beta_2} \subseteq B$, then the image $C'$ under $f_c$ is
+\begin{equation}
+\begin{aligned}
+	&image~f_c~(\ivl{a_1,a_2,\alpha_1,\alpha_2} \times \ivl{b_1,b_2,\beta_1,\beta_2})
+\\
+	&\tab =\ \lzfclet{
+		\pair{a_1,a_2,\alpha_1,\alpha_2} & \lzfccond{(inc_1~f_c) & \pair{a_1,a_2,\alpha_1,\alpha_2} \\ else & \pair{a_2,a_1,\alpha_2,\alpha_1}} \\
+		\pair{b_1,b_2,\beta_1,\beta_2} & \lzfccond{(inc_2~f_c) & \pair{b_1,b_2,\beta_1,\beta_2} \\ else & \pair{b_2,b_1,\beta_2,\beta_1}}
+	}{\ivl{\cl{f_c}~\pair{a_1,b_1},\cl{f_c}~\pair{a_2,b_2},\alpha_1~and~\beta_1,\alpha_2~and~\beta_2}}
+\end{aligned}
+\end{equation}
+\end{theorem}
+\begin{proof}
+Because $f_c$ is continuous and $A' \times B'$ is a connected set, $C'$ is a connected set, which in $\Re$ is an interval.
+Thus, we need to determine only its bounds, and whether it contains each endpoint.
+
+Suppose $f_c$ is increasing.
+By monotonicity, $C'$ is bounded by $\cl{f_c}~\pair{a_1,b_1}$ on the bottom and $\cl{f_c}~\pair{a_2,b_2}]$ on the top.
+It is therefore contained in $[\cl{f_c}~\pair{a_1,b_1},\cl{f_c}~\pair{a_2,b_2}]$.
+If $\alpha_1$ is $false$, $C'$ cannot contain $\cl{f_c}~\pair{a_1,b_1}$, and if $\beta_1$ is $false$, it cannot contain $\cl{f_c}~\pair{a_1,b_1}$. 
+Similarly, if either $\alpha_2$ or $\beta_2$ is $false$, it cannot contain $\cl{f_c}~\pair{a_2,b_2}$.
+Thus, $C' = \ivl{\cl{f_c}~\pair{a_1,b_1},\cl{f_c}~\pair{a_2,b_2},\alpha_1~and~\beta_1,\alpha_2~and~\beta_2}$.
+
+We still must prove $\pair{a_1,b_1}$ and $\pair{a_2,b_2}$ are in $\cl{f_c}$'s domain.
+First, recall $\cl{f_c} : (\cl{A} \times \cl{B}) \w N \to \cl{C}$, where $\cl{A}$, $\cl{B}$ and $\cl{C}$ are the closures of $A$, $B$ and $C$ in $\cl{\Re}$, and $N = \set{\pair{min~\cl{A},max~\cl{B}},\pair{max~\cl{A},min~\cl{B}}}$.
+
+Because $A' \subseteq A$ and $B' \subseteq A$, $a_1 \neq max~\cl{A}$, $a_2 \neq \min~\cl{A}$, $b_1 \neq max~\cl{B}$, and $b_2 \neq min~\cl{B}$, so
+\begin{equation}
+\begin{aligned}
+	\pair{a_1,b_1} &\neq \pair{max~\cl{A},b} & \text{for all}\ b \in \cl{B} \\
+	\pair{a_1,b_1} &\neq \pair{a,max~\cl{B}} & \text{for all}\ a \in \cl{A} \\
+	\pair{a_2,b_2} &\neq \pair{min~\cl{A},b} & \text{for all}\ b \in \cl{B} \\
+	\pair{a_2,b_2} &\neq \pair{a,min~\cl{B}} & \text{for all}\ a \in \cl{A} \\
+\end{aligned}
+\end{equation}
+Therefore, $\pair{a_1,b_1} \not\in N$ and $\pair{a_2,b_2} \not\in N$, as desired.
+
+The remaining cases for $f_c$ are similar.
+\end{proof}
+
+\begin{example}
+Because $inc_1~pow_c$ and $not~(inc_2~pow_c)$,
+\begin{align*}
+	&image~pow_c~((0,\tfrac{1}{2}] \times [2,+\infty))
+\\
+	&\ =\ \lzfclet{
+		\pair{a_1,a_2,\alpha_1,\alpha_2} & \pair{0,\tfrac{1}{2},false,true} \\
+		\pair{b_1,b_2,\beta_1,\beta_2} & \pair{+\infty,2,false,true}
+	}{\ivl{\cl{pow_c}~\pair{a_1,b_1},\cl{pow_c}~\pair{a_2,b_2},\alpha_1~and~\beta_1,\alpha_2~and~\beta_2}}
+\\
+	&\ =\ \ivl{\cl{pow_c}~\pair{0,+\infty},\cl{pow_c}~\pair{\tfrac{1}{2},2},false~and~false,true~and~true}
+\\
+	&\ =\ \ivl{0,\tfrac{1}{4},false,true}\ =\ (0,\tfrac{1}{4}]
+\end{align*}
+\exampleqed
+\end{example}
+
+To use Theorem~\ref{thm:images-of-rectangles} to compute approximate preimages under $f_c$ by computing images under its axial inverses, we must know whether each axis of $f_a$ and $f_b$ is increasing or decreasing.
+It helps to have an analogue of Lemma~\ref{lem:inverse-direction} (inverse direction).
+
+\begin{theorem}
+Let $f_c : A \times B \to C$ be uniformly surjective and strictly increasing or decreasing in each axis, with axial inverses $f_a$ and $f_b$.
+The following statements hold:
+\begin{enumerate}
+	\item $inc_2~f_a$ if and only if $inc_1~f_c$
+	\item $inc_1~f_a$ if and only if $(inc_1~f_c)~xor~(inc_2~f_c)$
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+For statement 1, fix $b \in B$ and apply Lemma~\ref{lem:inverse-direction}.
+
+For statement 2, let $c \in C$, $b_1,b_2 \in B$, $a_1 := f_a~\pair{b_1,c}$ and $a_2 := f_a~\pair{b_2,c}$.
+Let $c' := f_c~\pair{a_1,b_2}$; note $c = f_c~\pair{a_1,b_1} = f_c~\pair{a_2,b_2}$.
+If $inc_1~f_c$ and $inc_2~f_c$, then $a_1 > a_2 \iff c < c'$ and $b_1 < b_2 \iff c < c'$; therefore $b_1 < b_2 \iff a_1 > a_2$.
+%If $inc_1~f_c$ and not $inc_2~f_c$, then $a_1 < a_2 \iff c > c'$ and $b_1 < b_2 \iff c > c'$; therefore $b_1 < b_2 \iff a_1 < a_2$.
+The remaining cases are similar.
+\end{proof}
+
+By Lemma~\ref{lem:axial-inverse-cyclic-group}, $inc_1~f_b$ if and only if $inc_2~f_c$, and $inc_2~f_b$ if and only if $inc_1~f_a$.
+We can therefore determine the uniform directions of $f_a$'s and $f_b$'s axes solely from the uniform directions of $f_c$'s axes.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Discontinuous Primitives}
+
+\subsection{Primitive Implementation}
+\label{sec:primitive-implementation}
+
+Because floating-point functions are defined on subsets of $\cl{\Re}$, it would seem we could compute preimages under strictly monotone, real functions by applying their floating-point counterparts to interval endpoints.
+This is mostly true, but we must take care to round in the right directions and to account for floating-point negative zero and not-a-number results.
+
+\begin{equation}
+\begin{aligned}
+	&\cl{pos!recip} : [0,+\infty] \to [0,+\infty] \\
+	&\cl{pos!recip}~a\ =\
+		\lzfccond{
+			0 < a < +\infty & 1/a \\
+			a = 0 & +\infty \\
+			a = +\infty & 0
+		}
+\end{aligned}
+\end{equation}
+
+\section{Application: Floating-Point Error Analysis}
+
+\section{Recursive, Probabilistic Program Semantics}
+
+\section{Application: Sampling With Constraints}
+
+\section{Related Work}
+
+\section{Conclusions and Future Work}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{align*}
+	\mathit{p} &\ ::\equiv \ \mathit{x := e};\ ...\ ; \mathit{e}
+\\
+	\mathit{e} &\ ::\equiv \ \mathit{x~e}\ |\ let~\mathit{e~e}\ |\ env~\mathit{n}\ |\ \mathit{\pair{e,e}}\ |\ fst~\mathit{e}\ |\ snd~\mathit{e}\ |\ if~\mathit{e~e~e}\ |\ \mathit{v}
+\\
+	\mathit{v} &\ ::\equiv \ \text{[first-order constants]}
+\\[-6pt]
+\end{align*}
+\begin{align*}
+\begin{aligned}[t]
+	\meaningof{\mathit{x} := \mathit{e};\ ...\ ; \mathit{e_b}}\gen &\ :\equiv\
+		\mathit{x} := \meaningof{\mathit{e}}\gen;\ ...\ ; \meaningof{\mathit{e_b}}\gen
+\\[3pt]
+	\meaningof{\mathit{x}~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\pair{\mathit{e},\pair{}}}\gen~\arrowcomp\gen~\mathit{x}
+\\
+	\meaningof{\pair{\mathit{e}_1,\mathit{e}_2}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}_1}\gen~\arrowpair\gen~\meaningof{\mathit{e}_2}\gen
+\\
+	\meaningof{fst~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~fst
+\\
+	\meaningof{snd~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~snd
+\\
+	\meaningof{\mathit{v}}\gen &\ :\equiv\ \arrowarr\gen~(const~\mathit{v})
+\\[6pt]
+	id &\ := \ \fun{a} a
+\\
+	const~b &\ := \ \fun{a} b
+\\
+\end{aligned}
+&\tab\tab\ 
+\begin{aligned}[t]
+\\[3pt]
+	\meaningof{let~\mathit{e}~\mathit{e_b}}\gen &\ :\equiv\ 
+		(\meaningof{\mathit{e}}\gen~\arrowpair\gen~\arrowarr\gen~id)~
+			\arrowcomp\gen~
+		\meaningof{\mathit{e_b}}\gen
+\\
+	\meaningof{env~0}\gen &\ :\equiv\ \arrowarr\gen~fst
+\\
+	\meaningof{env~(\mathit{n}+1)}\gen &\ :\equiv\ \arrowarr\gen~snd~\arrowcomp\gen~\meaningof{env~\mathit{n}}\gen
+\\
+	\meaningof{if~\mathit{e_c}~\mathit{e_t}~\mathit{e_f}}\gen &\ :\equiv\
+		\arrowif\gen~
+			\meaningof{\mathit{e_c}}\gen~
+			\meaningof{lazy~\mathit{e_t}}\gen~
+			\meaningof{lazy~\mathit{e_f}}\gen
+\\
+	\meaningof{lazy~\mathit{e}}\gen &\ :\equiv\ \arrowlazy\gen~\fun{0}{\meaningof{\mathit{e}}\gen}
+\\
+\\
+	\text{subject to} &\ \meaningof{\mathit{p}}\gen : \pair{} \arrow\gen y \ \text{for some $y$}
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[ ]{Interpretation of a let-calculus with first-order definitions and De-Bruijn-indexed bindings as arrow $\mathrm{a}$ computations.
+}
+\label{fig:semantic-function}
+\end{figure*}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \botto Y \ ::= \ X \tto Y_\bot
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrbot : (X \tto Y) \tto (X \botto Y) \\
+		&\arrbot~f \ := \ f
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\compbot) : (X \botto Y) \tto (Y \botto Z) \tto (X \botto Z) \\
+		&(f_1~\compbot~f_2)~a \ := \ if~(f_1~a = \bot)~\bot~(f_2~(f_1~a))
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\pairbot) : (X \botto {Y_1}) \tto (X \botto {Y_2}) \tto (X \botto \pair{Y_1,Y_2}) \\
+		&(f_1~\pairbot~f_2)~a \ := \ if~(f_1~a = \bot~or~f_2~a = \bot)~\bot~{\pair{f_1~a,f_2~a}}
+	\end{aligned}
+\end{aligned}
+&\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\ifbot : \lzfcsplit{&(X \botto Bool) \tto (X \botto Y) \tto \\ &(X \botto Y) \tto (X \botto Y)} \\
+		&\lzfcsplit{&\ifbot~f_1~f_2~f_3~a \ := \ \\
+			&\tab\lzfccase{f_1~a}{true & f_2~a \\ false & f_3~a \\ \bot & \bot}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\lazybot : (1 \tto (X \botto Y)) \tto (X \botto Y) \\
+		&\lazybot~f~a \ := \ f~0~a
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[ ]{Bottom arrow definitions.}
+\label{fig:bottom-arrow-defs}
+\end{figure*}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{align*}
+&\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \prepto Y ::= \pair{Set~Y, Set~Y \tto Set~X}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&pre : (X \botto Y) \tto (X \prepto Y) \\
+		&\lzfcsplit{&pre~f~A \ := \ \\ &\tab\pair{image_\bot~f~A, \fun{B}{preimage_\bot~f~A~B}}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\emptyset\pre \ := \ \pair{\emptyset,\fun{B} \emptyset}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&ap\pre : (X \prepto Y) \tto Set~Y \tto Set~X \\
+		&ap\pre~\pair{Y',p}~B \ := \ p~(B \i Y') 
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&range\pre : (X \prepto Y) \tto Set~Y \\
+		&range\pre~\pair{Y',p} \ := \ Y'
+	\end{aligned}
+\end{aligned}
+&&\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\pair{\cdot,\cdot}\pre : (X \prepto Y_1) \tto (X \prepto Y_2) \tto (X \prepto Y_1 \times Y_2) \\
+		&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\pre \ := \ \\
+		&\tab\lzfclet{
+			Y' & Y_1' \times Y_2' \\
+			p & \fun{B}{\U\limits_{\pair{b_1,b_2} \in B}(p_1~\set{b_1}) \i (p_2~\set{b_2})} \\
+		}{\pair{Y',p}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\circ\pre) : (Y \prepto Z) \tto (X \prepto Y) \tto (X \prepto Z) \\
+		&\pair{Z',p_2} \circ\pre h_1 \ := \ \pair{Z', \fun{C}{ap\pre~h_1~(p_2~C)}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\uplus\pre) : (X \prepto Y) \tto (X \prepto Y) \tto (X \prepto Y) \\
+		&\lzfcsplit{
+			&h_1 \uplus\pre h_2 \ := \ 
+			\lzfclet{
+					Y' & (range\pre~h_1) \u (range\pre~h_2) \\
+					p & \fun{B}{(ap\pre~h_1~B) \u (ap\pre~h_2~B)}
+				}{\pair{Y',p}}
+		}
+	\end{aligned}
+\end{aligned}
+\\[-6pt]
+&\begin{aligned}[t]
+\hline
+\\[-8pt]
+	&\begin{aligned}[t]
+		&image_\bot : (X \botto Y) \tto Set~X \tto Set~Y \\
+		&image_\bot~f~A \ := \ (image~f~A) \w \set{\bot}
+	\end{aligned}
+\end{aligned}
+&&\begin{aligned}[t]
+\hline
+\\[-8pt]
+	&\begin{aligned}[t]
+		&preimage_\bot : (X \botto Y) \tto Set~X \tto Set~Y \tto Set~X \\
+		&preimage_\bot~f~A~B \ := \ \setb{a \in A}{f~a \in B}
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[ ]{Lazy preimage mappings and operations.}
+\label{fig:preimage-mapping-defs}
+\end{figure*}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \preto Y ::= Set~X \tto (X \prepto Y)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrpre : (X \tto Y) \tto (X \preto Y) \\
+		&\arrpre \ := \ \liftpre \circ \arrbot
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\comppre) : (X \preto Y) \tto (Y \preto Z) \tto (X \preto Z) \\
+		&(h_1~\comppre~h_2)~A \ := \ 
+			\lzfclet{
+				h_1' & h_1~A \\
+				h_2' & h_2~(range\pre~h_1')
+			}{h_2' \circ\pre h_1'}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\pairpre) : (X \preto Y) \tto (X \preto Z) \tto (X \preto Y \times Z) \\
+		&(h_1~\pairpre~h_2)~A \ := \ \pair{h_1~A,h_2~A}\pre
+	\end{aligned}
+\end{aligned}
+&\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\ifpre : \lzfcsplit{&(X \preto Bool) \tto (X \preto Y) \tto \\ &(X \preto Y) \tto (X \preto Y)} \\
+		&\lzfcsplit{&\ifpre~h_1~h_2~h_3~A \ := \ \\
+			&\tab\lzfclet{
+				h_1' & h_1~A \\
+				h_2' & h_2~(ap\pre~h_1'~\set{true}) \\
+				h_3' & h_3~(ap\pre~h_1'~\set{false})
+			}{h_2' \uplus\pre h_3'}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\lazypre : (1 \tto (X \preto Y)) \tto (X \preto Y) \\
+		&\lazypre~h~A \ := \ if~(A = \emptyset)~\emptyset\pre~(h~0~A)
+	\end{aligned} \\
+\\[-8pt]
+\hline
+\\[-4pt]
+	&\begin{aligned}[t]
+		&\liftpre \ := \ pre
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[ ]{Preimage arrow definitions.}
+\label{fig:preimage-arrow-defs}
+\end{figure*}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		x \arrow\genc y \ ::= \ AStore~s~(x \arrow\gen y) \ ::= \ J \tto (\pair{s,x} \arrow\gen y)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrowarr\genc : (x \tto y) \tto (x \arrow\genc y) \\
+		&\arrowarr\genc \ := \ \arrowtrans\genc \circ \arrowarr\gen
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\arrowcomp\genc) : (x \arrow\genc y) \tto (y \arrow\genc z) \tto (x \arrow\genc z) \\
+		&(k_1~\arrowcomp\genc~k_2)~j \ := \\
+			&\tab(\arrowarr\gen~fst~\arrowpair\gen~k_1~(left~j))~\arrowcomp\gen~k_2~(right~j)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\arrowpair\genc) : (x \arrow\genc y_1) \tto (x \arrow\genc y_2) \tto (x \arrow\genc \pair{y_1,y_2}) \\
+		&(k_1~\arrowpair\genc~k_2)~j \ := \ k_1~(left~j)~\arrowpair\gen~k_2~(right~j)
+	\end{aligned} \\
+\end{aligned}
+&\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\arrowif\genc : \lzfcsplit{&(x \arrow\genc Bool) \tto (x \arrow\genc y) \tto \\ &(x \arrow\genc y) \tto (x \arrow\genc y)} \\
+		&\lzfcsplit{&\arrowif\genc~k_1~k_2~k_3~j \ := \ \\
+			&\tab\lzfcsplit{\arrowif\gen~&(k_1~(left~j)) \\ &(k_2~(left~(right~j))) \\ &(k_3~(right~(right~j)))}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrowlazy\genc : (1 \tto (x \arrow\genc y)) \tto (x \arrow\genc y) \\
+		&\arrowlazy\genc~k~j \ := \ \arrowlazy\gen~\fun{0}{k~0~j}
+	\end{aligned} \\
+\\[-8pt]
+\hline
+\\[-8pt]
+	&\begin{aligned}[t]
+		&\arrowtrans\genc : (x \arrow\gen y) \tto (x \arrow\genc y) \\
+		&\arrowtrans\genc~f~j \ := \ \arrowarr\gen~snd~\arrowcomp\gen~f
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[ ]{$AStore$ (associative store) arrow transformer definitions.}
+\label{fig:astore-arrow-defs}
+\end{figure*}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		id\pre~A &\ := \ \pair{A,\fun{B}{B}} \\
+		fst\pre~A &\ := \ \pair{proj_1~A,unproj_1~A} \\
+		snd\pre~A &\ := \ \pair{proj_2~A,unproj_2~A} \\
+	\end{aligned} \\
+\\[-8pt]
+\hline
+\\[-8pt]
+	&\begin{aligned}[t]
+		&proj_1 := image~fst \\
+		&proj_2 := image~snd \\
+		&unproj_1~A~B \ := \ A \i (B \times proj_2~A) \\
+		&unproj_2~A~B \ := \ A \i (proj_1~A \times B)
+	\end{aligned}
+\end{aligned}
+&\tab\tab\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		const\pre~b~A &\ := \ \pair{\set{b},\fun{B}{if~(B = \emptyset)~\emptyset~A}} \\
+		\pi\pre~j~A &\ := \ \pair{proj~j~A, unproj~j~A}
+	\end{aligned} \\
+\\[-8pt]
+\hline
+\\[-8pt]
+	&\begin{aligned}[t]
+		&proj : J \tto Set~(J \to X) \tto Set~X \\
+		&proj~j~A \ := \ image~(\pi~j)~A
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&unproj : J \tto Set~(J \to X) \tto Set~X \tto Set~(J \to X) \\
+		&unproj~j~A~B \ := \ A \i \prod_{i \in J} if~(j = i)~B~(proj~j~A)
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[ ]{Preimage arrow lifts needed to interpret probabilistic programs.}
+\label{fig:extra-preimage-arrow-defs}
+\end{figure*}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\subfloat[Definitions for preimage mappings that compute rectangular covers.]{
+\begin{minipage}{0.98\textwidth}
+\begin{align*}
+\!\!\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \prepto' Y ::= \pair{Rect~Y, Rect~Y \tto Rect~X}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\emptyset\pre' \ := \ \pair{\emptyset,\fun{B} \emptyset}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&ap\pre' : (X \prepto' Y) \tto Rect~Y \tto Rect~X \\
+		&ap\pre'~\pair{Y',p}~B := p~(B \i Y') 
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\circ\pre') : (Y \prepto' Z) \tto (X \prepto' Y) \tto (X \prepto' Z) \\
+		&\pair{Z',p_2} \circ\pre' h_1 := \pair{Z', \fun{C}{ap\pre'~h_1~(p_2~C)}}
+	\end{aligned} \\
+\end{aligned}
+&\tab\ 
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\pair{\cdot,\cdot}\pre' : (X \prepto' Y_1) \tto (X \prepto' Y_2) \tto (X \prepto' Y_1 \times Y_2) \\
+		&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\pre' \ := \\
+		&\tab\pair{Y_1' \times Y_2',\fun{B}{p_1~(proj_1~B) \i p_2~(proj_2~B)}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\uplus\pre') : (X \prepto' Y) \tto (X \prepto' Y) \tto (X \prepto' Y) \\
+		&\pair{Y_1',p_1} \uplus\pre' \pair{Y_2',p_2} \ := \\
+		&\tab\pair{Y_1' \join Y_2',\fun{B}{ap\pre'~\pair{Y_1',p_1}~B \join ap\pre'~\pair{Y_2',p_2}~B}
+		}
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\vspace{3pt}
+\hrule
+\end{minipage}
+\label{fig:approximating-preimage-mapping-defs}
+}
+
+\subfloat[Approximating preimage arrow, defined using approximating preimage mappings.]{
+\begin{minipage}{0.98\textwidth}
+\begin{align*}
+\\[-6pt]
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \preto' Y ::= Rect~X \tto (X \prepto' Y)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\comppre') : (X \preto' Y) \tto (Y \preto' Z) \tto (X \preto' Z) \\
+		&(h_1~\comppre'~h_2)~A \ := \ 
+			\lzfclet{
+				h_1' & h_1~A \\
+				h_2' & h_2~(range\pre'~h_1')
+			}{h_2' \circ\pre' h_1'}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\pairpre') : (X \preto' Y_1) \tto (X \preto' Y_2) \tto (X \preto' \pair{Y_1,Y_2}) \\
+		&(h_1~\pairpre'~h_2)~A \ := \ \pair{h_1~A,h_2~A}\pre'
+	\end{aligned}
+\end{aligned}
+&\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\ifpre' : \lzfcsplit{&(X \preto' Bool) \tto (X \preto' Y) \tto \\ &(X \preto' Y) \tto (X \preto' Y)} \\
+		&\lzfcsplit{&\ifpre'~h_1~h_2~h_3~A \ := \ \\
+			&\tab\lzfclet{
+				h_1' & h_1~A \\
+				h_2' & h_2~(ap\pre'~h_1'~\set{true}) \\
+				h_3' & h_3~(ap\pre'~h_1'~\set{false})
+			}{h_2' \uplus\pre' h_3'}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\lazypre' : (1 \tto (X \preto' Y)) \tto (X \preto' Y) \\
+		&\lazypre'~h~A \ := \ if~(A = \emptyset)~\emptyset\pre'~(h~0~A)
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\vspace{3pt}
+\hrule
+\end{minipage}
+\label{fig:approximating-preimage-arrow-defs}
+}
+
+\subfloat[Preimage* arrow combinators for probabilistic choice and guaranteed termination.
+\figref{fig:astore-arrow-defs}~($AStore$ arrow transformer) defines $\arrowtrans\ppre'$, $(\compppre')$, $(\pairppre')$, $\ifppre'$ and $\lazyppre'$.]{
+\begin{minipage}{0.98\textwidth}
+\begin{align*}
+\\[-6pt]
+\!\!\!\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&X \ppreto' Y ::= AStore~(R \times T)~(X \preto' Y)
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&random\ppre' : X \ppreto' [0,1] \\
+		&\lzfcsplit{&random\ppre'~j \ := \ \\ &\tab fst\pre~\comppre'~fst\pre~\comppre'~\pi\pre~j}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&branch\ppre' : X \ppreto' Bool \\
+		&\lzfcsplit{&branch\ppre'~j \ := \ \\ &\tab fst\pre~\comppre'~snd\pre~\comppre'~\pi\pre~j}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		fst\ppre' &:= \arrowtrans\ppre'~fst\pre;\ \cdots
+	\end{aligned}
+\end{aligned}
+&
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&{\arrowconvif}\ppre' : (X \ppreto' Bool) \tto (X \ppreto' Y) \tto (X \ppreto' Y) \tto (X \ppreto' Y) \!\!\!\!\!\!\!\!\!\\
+		&\lzfcsplit{
+			&{\arrowconvif}\ppre'~k_1~k_2~k_3~j \ := \\
+			&\tab\lzfclet{
+				\pair{C_k,p_k} & k_1~(left~j)~A \\
+				\pair{C_b,p_b} & branch\ppre~j~A \\
+				C_2 & C_k \i C_b \i \set{true} \\
+				C_3 & C_k \i C_b \i \set{false} \\
+				A_2 & p_k~C_2 \i p_b~C_2 \\
+				A_3 & p_k~C_3 \i p_b~C_3 \\
+			}{if~\lzfcsplit{
+					&(C_b = \set{true,false}) \\
+					&\pair{\top,\fun{B}\lzfcsplit{A_2 \join A_3}} \\
+					&(k_2~(left~(right~j))~A_2 \uplus\pre' k_3~(right~(right~j))~A_3)\!\!\!\!\!\!\!\!\!}}
+		}
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\vspace{3pt}
+\hrule
+\end{minipage}
+\label{fig:approximating-preimage*-arrow-defs}
+}
+\caption[ ]{Implementable arrows that approximate preimage arrows.
+Specific lifts such as $fst\pre := \arrpre~fst$ are computable (see \figref{fig:extra-preimage-arrow-defs}), but $\arrpre'$ is not.
+}
+\label{fig:approximating-arrow-defs}
+\end{figure*}
+
+
+%\appendix
+%\section{Appendix Title}
+
+%This is the text of the appendix, if you need one.
+
+%\acks
+
+%Acknowledgments, if needed.
+
+
+\mathversion{normal}
+
+% We recommend abbrvnat bibliography style.
+
+\bibliographystyle{abbrvnat}
+
+% The bibliography should be embedded for final submission.
+
+\softraggedright
+\bibliography{local-cites}
+
+\end{document}
