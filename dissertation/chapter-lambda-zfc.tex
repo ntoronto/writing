@@ -1,0 +1,895 @@
+\mathversion{normal}
+
+\newcommand{\targetlang}{\lzfclang}
+\newcommand{\ftargetlang}{\ensuremath{\lambda_{\mathrm{ZFC}}^-}\xspace}
+
+\theoremstyle{definition}
+\newtheorem{axiom}{Axiom}
+
+\begin{comment}
+\begin{abstract}
+Applied mathematicians increasingly use computers to answer mathematical questions. We want to provide them domain-specific languages.
+The languages should have exact meanings and computational meanings.
+Some proof assistants can encode exact mathematics and extract programs, but formalizing the required theorems can take years.
+
+As an alternative, we develop \targetlang, a lambda calculus that contains infinite sets as values, in which to express exact mathematics and gradually change infinite calculations to computable ones. We define it as a conservative extension of set theory, and prove that most contemporary theorems apply directly to \targetlang terms.
+
+We demonstrate \targetlang's expressiveness by coding up the real numbers, arithmetic and limits. We demonstrate that it makes deriving computational meaning easier by defining a monad in it for expressing limits, and using standard topological theorems to derive a computable replacement.
+\end{abstract}
+\keywords Lambda Calculus, Set Theory, Semantics
+\end{comment}
+
+\begin{quote}
+\textit{No one shall expel us from the Paradise that Cantor has created.}
+
+\hfill David Hilbert
+\end{quote}
+
+\section{Introduction}
+
+Georg Cantor first proved some of the surprising consequences of assuming infinite sets exist.
+David Hilbert passionately defended Cantor's set theory as a mathematical foundation, coining the term ``Cantor's Paradise'' to describe the universe of transfinite sets in which most mathematics now takes place.
+
+The calculations done in Cantor's Paradise range from computable to unimaginably uncomputable. Still, its inhabitants increasingly use computers to answer questions. We want to make domain-specific languages (DSLs) for writing these questions, with implementations that compute exact and approximate answers.
+
+Such a DSL should have two meanings: an exact mathematical semantics, and an approximate computational one. A traditional, denotational approach is to give the exact as a transformation to first-order set theory, and because set theory is unlike any intended implementation language, the approximate as a transformation to a lambda calculus. However, deriving approximations while switching target languages is rife with opportunities to commit errors.
+
+A more certain way is to define the exact semantics in a proof assistant like HOL~\cite{leivant-1994-hol} or Coq~\cite{cit:book-coqart}, prove theorems, and extract programs. The type systems confer an advantage: if the right theorems are proved, the programs are correct.
+
+Unfortunately, reformulating and re-proving theorems in such an exacting way causes significant delays. For example, half of Joe Hurd's 2002 dissertation on probabilistic algorithms~\cite{cit:hurd-2002thesis} is devoted to formalizing early-1900s measure theory in HOL. Our work in Bayesian inference would require at least three times as much formalization, even given the work we could build on.
+
+Some middle ground is clearly needed: something between the traditional, error-prone way and the slow, absolutely certain way.
+
+Instead of using a typed, higher-order logic, suppose we defined, in first-order set theory, an untyped lambda calculus that contained infinite sets and operations on them. We could interpret DSL terms exactly as uncomputable programs in this lambda calculus. But instead of redoing a century of work to extract programs that compute approximations, we could directly reuse first-order theorems to derive them from the uncomputable programs.
+
+Conversely, set theory, which lacks lambdas and general recursion, is an awkward target language for a semantics that is intended to be implemented. Suppose we extended set theory with untyped lambdas (as objects, not quantifiers). We could still interpret DSL terms as operations on infinite objects. But instead of leaping from infinite sets and operations on them to implementations, we could replace those operations with computable approximations piece at a time.
+
+If we had a lambda calculus with infinite sets as values, we could approach computability from above in a principled way, gradually changing programs for Cantor's Paradise until they can be implemented in Church's Purgatory.
+
+We define that lambda calculus, \targetlang, and a call-by-value, big-step reduction semantics. To show that it is expressive enough, we code up the real numbers, arithmetic and limits, following standard analysis. To show that it simplifies language design, we define the uncomputable limit monad in \targetlang, and derive a computable, directly implementable replacement monad by applying standard topological theorems. When certain proof obligations are met, the output of programs that use the computable monad converge to the same values as the output of programs that use the uncomputable monad but are otherwise identical.
+
+\subsection{Language Tower and Terminology}
+
+\targetlang's metalanguage is \keyword{first-order set theory}: first-order logic with equality extended with ZFC, or the Zermelo Fraenkel axioms and Choice (equivalently well-ordering). We also assume the existence of an inaccessible cardinal. Section~\ref{sec:metalanguage} reviews the axioms, which \targetlang's primitives are derived from.
+
+To help ensure \targetlang's definition conservatively extends set theory, we encode its terms as sets. For example, $\pair{\tpowerset,\Re}$ is the encoding of ``the powerset of the reals'' as a pair, where $\pair{x,y} = \set{\set{x},\set{x,y}}$ for any sets $x$ and $y$.
+
+\targetlang's semantics reduces terms to terms; e.g. $\pair{\tpowerset,\Re}$ reduces to the actual powerset of $\Re$.
+Thus, \targetlang contains infinite terms.
+Infinitary languages are useful and definable: the infinitary lambda calculus~\cite{cit:kennaway-1996-inf-lc} is an example, and Aczel's broadly used work~\cite{cit:aczel-1977-inductive} on inductive sets treats infinite inference rules explicitly.
+
+For convenience, we define a language \ftargetlang of finite terms and a function $\enc{\cdot}$ from \ftargetlang to \targetlang. We can then write $\powerset~\Re$, meaning $\enc{\powerset~\Re} = \pair{\tpowerset,\Re}$.
+
+Semantic functions like $\enc{\cdot}$ and the interpretation of BNF grammars are defined in set theory's metalanguage, or the \emph{meta}-metalanguage.
+Distinguishing metalanguages helps avoid paradoxes of definition such as Berry's paradox, which are particularly easy to stumble onto when dealing with infinities.
+
+We write \ftargetlang terms in \textsf{sans serif} font, and the metalanguage and meta-metalanguage in $\mathit{math\ font}$. We write common keywords in \textbf{bold} and invented keywords in \textbf{\textit{bold italics}}. We abbreviate proofs for space.
+
+
+\section{Metalanguage: First-Order Set Theory}
+\label{sec:metalanguage}
+
+We assume readers are familiar with classical first-order logic with equality and its inference rules, but not set theory. Hrbacek and Jech~\cite{cit:hrbacek-1999-set-theory} is a fine introduction.
+
+Set theory extends classical first-order logic with equality, which distinguishes between truth-valued formulas $\phi$ and object-valued terms $x$. Set theory allows only sets as objects, and quantifiers like `$\forall$' may range only over sets.
+
+We define predicates and functions using `$\metadef$'; for example, $\pnand(\phi_1,\phi_2) \metadef \neg (\phi_1 \band \phi_2)$. They must be nonrecursive so they can be exhaustively applied. They are therefore \keyword{conservative extensions}: they do not prove more theorems.
+
+To develop set theory, we make \keyword{proper extensions}, which prove more theorems, by adding symbols and axioms to first-order logic. For example, we first add `$\emptyset$' and `$\in$', and the \keyword{empty set axiom} $\Forall{x}{x \notin \emptyset}$.
+
+We use `$\metastx$' to define syntax; e.g. $\Forall{x \in A}{P(x)} \metastx \Forall{x}{(x \in A \imp P(x))}$, where predicate application $P(x)$ represents a formula that may depend on $x$. We allow recursion in meta-metalanguage definitions if substitution terminates, so $\Forall{x_1\,x_2\,...\,x_n} \phi \metastx \Forall{x_1} \Forall{x_2\,...\,x_n} \phi$ can bind any number of names.
+
+We already have Axiom 0 (empty set). Now for the rest.
+\begin{axiom}[extensionality] Define $A \subseteq B \metadef \Forall{x \in A}{x \in B}$ and assume $A = B$ if they mutually are subsets; i.e.
+$\Forall{A\,B}{(A \subseteq B \band B \subseteq A \imp A = B)}$.
+\qed
+\end{axiom}
+The converse follows from substituting $A$ for $B$ or $B$ for $A$.
+
+\begin{axiom}[foundation]
+\label{axm:founcation}
+Define $A \disjoint B \metadef \Forall{x}{(x \in A \imp x \notin B)}$ (``$A$ and $B$ are disjoint'') and assume $\Forall{A}{(A = \emptyset) \bor \Exists{x \in A}{x \disjoint A}}$.
+\qed
+\end{axiom}
+Foundation implies that the following nondeterministic procedure always terminates: If input $A = \emptyset$, return $A$; otherwise restart with any $A' \in A$.
+
+Thus, sets are roots of trees in which every upward path is unbounded but finite. Foundation is analogous to ``all data constructors are strict.''
+\begin{axiom}[powerset]
+\label{axm:powerset}
+Add `$\powerset$' and assume $\Forall{A\,x}(x \in \powerset(A) \iff x \subseteq A)$.
+\qed
+\end{axiom}
+A \keyword{hereditarily finite} set is finite and has only hereditarily finite members.
+Each such set first appears in some $\powerset(\powerset(...\powerset(\emptyset)...))$.
+For example, after $\set{x,...}$ (literal set syntax) is defined, $\set{\emptyset} \in \powerset(\powerset(\emptyset))$. $\set{\Re}$ is not hereditarily finite.
+\begin{axiom}[union]
+\label{axm:union}
+Add `$\U$' (``big'' union) and assume $\Forall{A\,x}( x \in \U A \iff \Exists{y} x \in y \band y \in A)$.
+\qed
+\end{axiom}
+After $\set{x,...}$ is defined, $\U \set{\set{x,y},\set{y,z}} = \set{x,y,z}$. Also, `$\U$' can extract the object in a singleton set: if $A = \set{x}$, then $x = \U A$.
+\begin{axiom}[replacement schema]
+\label{axm:replacement}
+A binary predicate $R$ can act as a function if it relates each $x$ to exactly one $y$; i.e. $\Forall{x \in A}{\ExistsOne{y}{R(x,y)}}$, where `$\exists\char`\^$' means unique existence. We cannot quantify over predicates in first-order logic, but we can assume, for each such definable $R$, that $\Forall{y} (y \in \setb{y'}{x \in A \band R(x,y')} \iff \Exists{x \in A} R(x,y))$. Roughly, treating $R$ as a function, if $R$'s domain is a set, its image (range) is also a set.
+\qed
+\end{axiom}
+A \keyword{schema} represents countably many axioms. If $R(n,m) \iff m = n+1$, for example, then $\setb{m}{n \in \Nat \band R(n,m)}$ increments the natural numbers.
+
+Define  $\setb{F(x)}{x \in A} \metastx \setb{y}{x \in A \band y = F(x)}$, analogous to $\mathsf{map~F~A}$, for \keyword{functional replacement}. Now $\setb{n + 1}{n \in \Nat}$ increments the naturals.
+
+It seems replacement should be \emph{defined} functionally, but predicates allow powerful nonconstructivism.
+Suppose $Q(y)$ for exactly one $y$.
+The \keyword{description operator} $\The{y} Q(y) \metastx \U \setb{y}{x \in \powerset(\emptyset) \band Q(y)}$ finds ``the $y$ such that $Q(y)$.''
+
+From the six axioms so far, we can define $A \u B$ (binary union), $\set{x,...}$ (literal finite sets), $\pair{x,y,z,...}$ (ordered pairs and lists), $\setb{x \in A}{Q(x)}$ (bounded selection), $A \w B$ (relative complement), $\I A$ (``big'' intersection), $\U_{x \in A} F(x)$ (indexed union), $A \times B$ (cartesian product), and $A \to B$ (total function spaces).
+For details, we recommend Paulson's remarkably lucid development in HOL~\cite{cit:paulson-1993-settheory-i}.
+
+\subsection{The Gateway to Cantor's Paradise: Infinity}
+
+From the six axioms so far, we cannot construct a set that is closed under unboundedly many operations, such as the language of a recursive grammar.
+\begin{example}[interpreting a grammar]
+We want to interpret $z ::= \emptyset \ | \pair{\emptyset,z}$. It should mean the least fixpoint of a function $F_z$, which, given a subset of $z$'s language, returns a larger subset. To define $F_z$, replace `$|$' with `$\u$', the terminal $\emptyset$ with $\set{\emptyset}$, and the rule $\pair{\emptyset,z}$ with functional replacement:
+\begin{equation}
+	F_z(Z)\ \metadef\ \set{\emptyset} \u \setb{\pair{\emptyset,z}}{z \in Z}
+\label{eqn:f-of-z}
+\end{equation}
+We could define $Z(0) := \emptyset$, then $Z(1) := F_z(Z(0)) = \set{\emptyset,\pair{\emptyset,\emptyset}} $, then $Z(2) = F_z(Z(1)) = \set{\emptyset, \pair{\emptyset,\emptyset}, \pair{\emptyset,\emptyset,\emptyset}}$, and so on. The language should be the union of all the $Z(n)$, but we cannot construct it without a set of all $n$.
+\exampleqed
+\end{example}
+
+We follow Von Neumann, defining $0 \metadef \emptyset$ as the \keyword{first ordinal number} and $s(n) \metadef n \u \set{n}$ to generate \keyword{successor ordinals}. Then $1 \metadef s(0) = \set{0}$, $2 \metadef s(1) = \set{0,1}$, and $3 \metadef s(2) = \set{0,1,2}$, and so on. The set of such numbers is the language of $n ::= 0 \gor s(n)$, which should be the least fixpoint of $F_n(N) \metadef \set{0} \u \setb{s(n)}{n \in N}$, similar to \eqref{eqn:f-of-z}.
+Before we can prove this set exists, we must assume \emph{some} fixpoint exists.
+\begin{axiom}[infinity]
+$\Exists{I} I = F_n(I)$.
+\qed
+\end{axiom}
+$I$ is a bounding set, so it may contain more than just finite ordinals. But $F_n$ is monotone in $I$, so by the Knaster-Tarksi theorem (suitably restricted~\cite{cit:paulson-1995-settheory-ii}),
+\begin{equation}
+  \omega\ \metadef\ \I \setb{N \subseteq I}{N = F_n(N)}
+\end{equation}
+is the least fixpoint of $F_n$: the finite ordinals, a model of the natural numbers.
+
+\begin{example}[interpreting a grammar]
+We build the language of $z$ recursively:
+\begin{equation}
+\begin{aligned}
+	Z(0) &\ =\ \emptyset \\
+	Z(s(n)) &\ =\ F_z(Z(n)),\ n \in \omega \\
+	Z(\omega) &\ =\ \bigcup_{n \in \omega} Z(n)
+\end{aligned}
+\label{eqn:language-of-z}
+\end{equation}
+By induction, $Z(n)$ exists for every $n \in \omega$; therefore $Z(\omega)$ exists, so \eqref{eqn:language-of-z} is a conservative extension of set theory. It is not hard to prove (by induction) that $Z(\omega)$ is the set of all finite lists of $\emptyset$, and that it is the least fixpoint of $F_z$.
+\exampleqed
+\end{example}
+
+Similarly to building the language $Z(\omega)$ of $z$ in \eqref{eqn:language-of-z}, we can build the set $\V(\omega)$ of all hereditarily finite sets (see Axiom~\ref{axm:powerset}) by iterating $\powerset$ instead of $F_z$:
+\begin{equation}
+\begin{aligned}
+	\V(0) &\ =\ \emptyset \\
+	\V(s(n)) &\ =\ \powerset(\V(n)),\ n \in \omega \\
+	\V(\omega) &\ =\ \bigcup_{n \in \omega} \V(n)
+\end{aligned}
+\label{eqn:finite-sets}
+\end{equation}
+
+The set $\omega$ is not just a model of the natural numbers. It is also a number itself: the \keyword{first countable ordinal}. Indeed, $\omega$ is strikingly similar to every finite ordinal in two ways. First, it is defined as the set of its predecessors. Second, it has a successor $s(\omega) = \omega \u \set{\omega}$. (Imagine it as $\set{0,1,2,...,\omega}$.) Unlike finite, nonzero ordinals, $\omega$ has no \emph{immediate} predecessor---it is a \keyword{limit ordinal}.
+
+More limit ordinals allow iterating $\powerset$ further. It is not hard to build $\omega + \omega$, $\omega^2$ and $\omega^\omega$ as least fixpoints. The \keyword{Von Neumann hierarchy} generalizes \eqref{eqn:finite-sets}:
+\begin{equation}
+\begin{aligned}
+	\V(0) &\ =\ \emptyset \\
+	\V(s(\alpha)) &\ =\ \powerset(V(\alpha)),\ \text{ordinal } \alpha \\
+	\V(\beta) &\ =\ \bigcup_{\alpha \in \beta} \V(\alpha),\ \text{limit ordinal } \beta
+\end{aligned}
+\label{eqn:hierarchy}
+\end{equation}
+It is a theorem of ZFC that every set first appears in $\V(\alpha)$ for some ordinal $\alpha$.
+
+Equations (\ref{eqn:language-of-z},\ref{eqn:finite-sets},\ref{eqn:hierarchy}) demonstrate \keyword{transfinite recursion}, set theory's $\mathsf{unfold}$: defining a function $V$ on ordinals, with $V(\beta)$ in terms of $V(\alpha)$ for every $\alpha \in \beta$.
+
+\subsection{Every Set Can Be Sequenced: Well-Ordering}
+
+A \keyword{sequence} is a total function from an ordinal to a codomain; e.g. $f \in 3 \to A$ is a length-$3$ sequence of $A$'s elements. (An ordinal is comprised of its predecessors, so $3 = \set{0,1,2}$.) A \keyword{well-order} of $A$ is a bijective sequence of $A$'s elements.
+\begin{axiom}[well-ordering]
+Suppose $\Ord$ identifies ordinals and $B \bijto A$ is the bijective mappings from $B$ to $A$. Assume $\Forall{A}\Exists{\alpha\,f}\Ord(\alpha) \band f \in \alpha \bijto A$; i.e. every set can be well-ordered.
+\qed
+\end{axiom}
+Because $f$ is not unique, a well-ordering primitive could make \targetlang's semantics nondeterministic.
+Fortunately, the existence of a cardinality operator is equivalent to well-ordering~\cite{cit:tzouvaras-2005sl-card}, so we will give \targetlang a cardinality primitive.
+
+The \keyword{cardinality} of a set $A$ is the smallest ordinal that can be put in bijection with $A$. Formally, if $F$ contains $A$'s well-orderings, $|A| = \I \setb{\mathit{domain}(f)}{f \in F}$.
+
+
+\subsection{Infinity's Infinity: An Inaccessible Cardinal}
+
+The set $\V(\omega)$ of hereditarily finite sets is closed under powerset, union, replacement (with predicates restricted to $\V(\omega)$), and cardinality. It is also \keyword{transitive}: if $A \in \V(\omega)$, then $x \in \V(\omega)$ for all $x \in A$. These closure properties make it a \keyword{Grothendieck universe}: a set that acts like a set of all sets.
+
+\targetlang's values should contain $\omega$ and be closed under its primitives. But a Grothendieck universe containing $\omega$ cannot be proved from the typical axioms. If it exists, it must be equal to $\V(\kappa)$ for some \keyword{inaccessible cardinal} $\kappa$.
+\begin{axiom}[inaccessible cardinal]
+Suppose $\mathit{GU}(V)$ if and only if $V$ is a Grothendieck universe. Add `$\kappa$' and assume $\Ord(\kappa) \band (\kappa > \omega) \band \mathit{GU}(\V(\kappa))$.
+\qed
+\end{axiom}
+We call the sets in $\V(\kappa)$ \keyword{hereditarily accessible}.
+
+Inaccessible cardinals are not usually assumed but are widely believed consistent. Set theorists regard them as no more dangerous than $\omega$. Interpreting category theory with small and large categories, second-order set theory, or CIC in first-order set theory requires at least one inaccessible cardinal \cite{cit:uzquiano-1999-models-zf2,cit:barras-2010-sets-coq,cit:werner-1997-sets-types}.
+
+Constructing a set $A \not\in \V(\kappa)$ requires assuming $\kappa$ or an equivalent, so $\V(\kappa)$ easily contains most mathematics. In fact, most can be modeled well within $\V(2^\omega)$; e.g. the model of $\Re$ we define in Sect.~\ref{sec:reals} is in $\V(\omega + 11)$. Besides, if \targetlang needed to contain large cardinals, we could always assume even larger ones.
+
+\begin{comment}
+rank(A x B) = max(rank(A),rank(B)) + 2
+rank(A -> B) = max(rank(A),rank(B)) + 3
+rank(quotient A) = rank(A) + 1
+
+rank(Z) = omega + 2 + 1
+rank(Q) = rank(Z) + 2 + 1
+rank(R) = rank(Q) + 3 + 1
+\end{comment}
+
+\section{\targetlang's Grammar}
+
+We define \targetlang's terms in three steps. First, we define \ftargetlang, a language of finite terms with primitives that correspond with the ZFC axioms. Second, we encode these terms as sets. Third, guided by the first two steps, we define \targetlang by defining its terms, most of which are infinite, as sets in $\V(\kappa)$.
+
+\begin{figure*}[tb]\centering
+\begin{varwidth}[t]{\textwidth}
+\begin{equation*}
+\begin{aligned}
+	e \ &::=\ n \gor v \gor e\ e \gor \lif{e}{e}{e} \gor e \in e
+	  \gor \lunion{e} \gor \ltake{e} \gor \lpowerset{e} \gor \limage{e}{e} \gor \lorder{e} \\
+	v \ &::=\ \lfalse \gor \ltrue \gor \lfun{e} \gor \lemptyset \gor \lnat \\
+	n \ &::=\ 0 \gor 1 \gor 2 \gor \cdots
+\end{aligned}
+\end{equation*}
+\end{varwidth}
+\bottomhrule
+\caption[Definition of \ftargetlang]{The definition of \ftargetlang, which represents countably many \targetlang terms.}
+\label{fig:finite-grammar}
+\end{figure*}
+
+Figure~\ref{fig:finite-grammar} shows \ftargetlang's grammar. Expressions $e$ are typical: variables, values, application, if, and domain-specific primitives for membership, union, extraction ($\mathsf{take}$), powerset, functional replacement ($\mathsf{image}$), and cardinality. Values $v$ are also typical: booleans and lambdas, and the domain-specific constants $\lemptyset$ and $\lnat$.
+
+In set theory, $\U\ \set{A} = A$ holds for all $A$, so $\U$ can extract the element from a singleton. In \targetlang, the encoding of $\U\ \set{\mathit{A}}$ reduces to $A$ only if $A$ is an encoded set. Therefore, the primitives must include $\mathsf{take}$, which extracts $A$ from $\set{A}$. In particular, extracting a lambda from an ordered pair requires $\mathsf{take}$.
+
+We use De Bruijn indexes with $0$ referring to the innermost binding. Because we will define \targetlang terms as well-founded sets, by Axiom~\ref{axm:founcation}, countably many indexes is sufficient for \targetlang as well as \ftargetlang.
+
+\begin{figure*}[tb]\centering
+\begin{equation*}
+\text{Distinct }\tvar,\tapp,\tif,\tin,\tunion,\ttake,\tpowerset,\timage,\torder,\tset,\tatom,\tfun,\tfalse,\ttrue \vspace{-\baselineskip}
+\end{equation*}
+\begin{varwidth}[t]{\textwidth}
+\begin{equation*}
+\begin{aligned}
+	\enc{n} &\ \metadef\ \pair{\tvar,n} \\
+	\enc{{e_f}\ {e_x}} &\ \metadef\ \pair{\tapp,\enc{e_f},\enc{e_x}} \\
+	\enc{e_x \in e_A} &\ \metadef\ \pair{\tin,\enc{e_x},\enc{e_A}} \\
+	&\;\cdots
+\end{aligned}
+\end{equation*}
+\end{varwidth}
+\hspace{0.09in}
+%
+\begin{varwidth}[t]{\textwidth}
+\begin{equation*}
+\begin{aligned}
+&\begin{aligned}
+	\enc{\lemptyset} &\ \metadef\ \encset(\emptyset) &
+\enc{\lnat} &\ \metadef\ \encset(\omega) \\
+	\enc{\lfalse} &\ \metadef\ \afalse &
+\afalse &\ \metadef\ \pair{\tatom,\tfalse} \\
+	\enc{\ltrue} &\ \metadef\ \atrue &
+\atrue &\ \metadef\ \pair{\tatom,\ttrue}
+\end{aligned} \\
+	&\ \ \,\encset(A) \ =\ \pair{\tset, \setb{\encset(x)}{x \in A}}
+\end{aligned}
+\end{equation*}
+\end{varwidth}
+\bottomhrule
+\caption[Semantic function $\enc{\cdot}$]{The semantic function $\enc{\cdot}$ from \ftargetlang terms to \targetlang terms.}
+\label{fig:encoding}
+\end{figure*}
+
+Figure~\ref{fig:encoding} shows part of the meta-metalanguage function $\enc\cdot$ that encodes \ftargetlang terms as \targetlang terms. It distinguishes sorts of terms in the standard way, by pairing them with tags; e.g. if $\tset$ is the ``set'' tag, then $\pair{\tset,\emptyset}$ encodes $\emptyset$.
+
+To recursively tag sets, we add the axiom $\encset(A) = \pair{\tset, \setb{\encset(x)}{x \in A}}$. The \keyword{well-founded recursion theorem} proves that for all $A$, $\encset(A)$ exists, so this axiom is a conservative extension. The actual proof is tedious, but in short, $\encset$ is structurally recursive. Now $\encset(\emptyset) = \pair{\tset,\emptyset}$ and $\encset(\omega)$ encodes $\lnat$.
+
+\subsection{An Infinite Set Rule For Finite BNF Grammars}
+
+%\newcommand{\setkleene}[2]{\ensuremath{\set{{#1},...{#2}}}}
+\newcommand{\setkleene}[2]{\ensuremath{\set{{#1}^{*{#2}}}}}
+%\newcommand{\setkleene}[2]{\ensuremath{{#1}^{*{#2}}}}
+
+There is no sensible reduction relation for \ftargetlang. (For example, $\powerset~\lemptyset$ cannot correctly reduce to a value because no value in \ftargetlang corresponds to $\set{\emptyset}$.) The easiest way to ensure a reduction relation exists for \targetlang is to include encodings of all the sets in $\V(\kappa)$ as values.
+
+To define \targetlang's terms, we first extend BNF with a set rule: \setkleene{y}{\alpha}, where $\alpha$ is a cardinal. Roughly, it means sets comprised of no more than $\alpha$ terms from the language of $y$.
+Formally, it means $\powerset_<(Y,\alpha) \metadef \setb{x \in \powerset(Y)}{|x| < \alpha}$, where $Y$ is a subset of $y$'s language generated while building a least fixpoint.
+
+\begin{example}[finite sets]
+The grammar $h ::= \setkleene{h}{\omega}$ should represent all hereditarily finite sets, or $\V(\omega)$. Intuitively, the single rule for $h$ should be equivalent to countably many rules $h ::= \set{} \gor \set{h} \gor \set{h,h} \gor \set{h,h,h} \gor \cdots$.
+
+Its language is the least fixpoint of $F_h(H) \metadef \powerset_<(H,\omega)$. Further on, we will prove that $F_h$'s least fixpoint is $\V(\omega)$ using a general theorem.
+\exampleqed
+\end{example}
+
+\begin{example}[accessible sets]
+The language of $a ::= \setkleene{a}{\kappa}$ is the least fixpoint of $F_a(A) \metadef \powerset_<(A,\kappa)$, which should be $\V(\kappa)$.
+\exampleqed
+\end{example}
+
+The following theorem schemas will make it easy to find least fixpoints.
+
+\begin{theorem}
+\label{thm:fixpoint-is-least-fixpoint}
+Let $F$ be a unary function. Define $V$ by transfinite recursion:
+\begin{equation}
+\begin{aligned}
+	V(0) &\ =\ \emptyset \\
+	V(s(\alpha)) &\ =\ F(V(\alpha)) \\
+	V(\beta) &\ =\ \bigcup_{\alpha \in \beta} V(\alpha),\ \text{limit ordinal } \beta
+\end{aligned}
+\end{equation}
+Let $\gamma$ be an ordinal. If $F$ is monotone on $V(\gamma)$, $V$ is monotone on $\gamma$, and $V(\gamma)$ is a fixpoint of $F$, then $V(\gamma)$ is also the \textbf{least} fixpoint of $F$.
+\end{theorem}
+\begin{proof}
+By induction: successor case by monotonicity; limit by property of $\U$.
+\end{proof}
+
+All the $F$s we define are monotone. In particular, the interpretations of $\setkleene{y}{\alpha}$ rules are monotone because $\powerset$ is monotone. Further, all the $F$s we define give rise to a monotone $V$. Grammar terminals ``seed'' every iteration with singleton sets, and $\setkleene{y}{\alpha}$ rules seed every iteration with $\emptyset$.
+
+From here on, we write $F^\alpha$ instead of $V(\alpha)$ to mean $\alpha$ iterations of $F$.
+
+\begin{theorem}
+\label{thm:grammar-fixpoint}
+Suppose a grammar with $\setkleene{y}{\alpha}$ rules and iterating function $F$. Then $F$'s least fixpoint is $F^\gamma$, where $\gamma$ is a regular cardinal not less than any $\alpha$.
+\end{theorem}
+\begin{proof}
+Fixpoint by Aczel~\cite[Theorem 1.3.4]{cit:aczel-1977-inductive}; least fixpoint by Theorem~\ref{thm:fixpoint-is-least-fixpoint}.
+\end{proof}
+
+\begin{example}[finite sets]
+Because $\omega$ is regular, by Theorem~\ref{thm:grammar-fixpoint},  $F_h$'s least fixpoint is $F_h^\omega$.
+Further, $F_h(H) = \powerset(H)$ for all hereditarily finite $H$, and $\V(\omega)$ is closed under $\powerset$, so $F_h^\omega = \V(\omega)$, the set of all hereditarily finite sets.
+\exampleqed
+\end{example}
+
+\begin{example}[accessible sets]
+By a similar argument, $F_a$'s least fixpoint is $F_a^\kappa = \V(\kappa)$, the set of all hereditarily accessible sets.
+\exampleqed
+\end{example}
+
+\begin{example}[encoded accessible sets]
+The language of $v ::= \pair{\tset,\setkleene{v}{\kappa}}$ is comprised of the \emph{encodings} of all the hereditarily accessible sets.
+\exampleqed
+\end{example}
+
+\subsection{The Grammar of Infinite, Encoded Terms}
+
+There are three main differences between \targetlang's grammar in Fig.~\ref{fig:grammar} and \ftargetlang's grammar in Fig.~\ref{fig:finite-grammar}. First, \targetlang's grammar defines a language of terms that are already encoded as sets. Second, instead of the symbols $\lemptyset$ and $\lnat$, it includes, as values, encoded sets of values. Most of these value terms are infinite, such as the encoding of $\lnat$. Third, it includes encoded sets of \emph{expressions}.
+
+\begin{figure*}[tb]\centering
+\begin{varwidth}[t]{\textwidth}
+\begin{equation*}
+\begin{aligned}
+	e &\ ::=\ n \gor v \gor \pair{\tapp,e,e} \gor \pair{\tif,e,e,e} \gor \pair{\tin,e,e} \gor
+		\pair{\tunion,e} \gor \pair{\ttake,e} \gor \pair{\tpowerset,e} \gor \\
+		&\ \ \ \ \ \ \ \pair{\timage,e,e} \gor \pair{\torder,e} \gor \pair{\tset,\setkleene{e}{\kappa}} \\
+	v &\ ::=\ \afalse \gor \atrue \gor \pair{\tfun,e} \gor \pair{\tset,\setkleene{v}{\kappa}} \\
+	n &\ ::=\ \pair{\tvar,0} \gor \pair{\tvar,1} \gor \cdots
+\end{aligned}
+\end{equation*}
+\end{varwidth}
+\bottomhrule
+\caption[\targetlang's grammar]{\targetlang's grammar. Here, $\setkleene{e}{\kappa}$ means sets comprised of no more than $\kappa$ terms from the language of $e$.}
+\label{fig:grammar}
+\end{figure*}
+
+The language of $n$ is $N \metadef \setb{\pair{\tvar,i}}{i \in \omega}$. The rules for $e$ and $v$ are mutually recursive. Interpreted, but leaving out some of $e$'s rules, they are
+\begin{equation}
+\begin{aligned}
+  F_e(E,V) &\metadef N \u V \u \setb{\pair{\tapp,e_f,e_x}}{\pair{e_f,e_x} \in E \times E} \u\, \cdots\, \u \setb{\pair{\tset,e}}{e \in \powerset_<(E,\kappa)} \\
+  F_v(E,V) &\metadef \set{\afalse,\atrue} \u \setb{\pair{\tfun,e}}{e \in E} \u
+    \setb{\pair{\tset,v}}{v \in \powerset_<(V,\kappa)}
+\end{aligned}
+\end{equation}
+To use Theorem~\ref{thm:grammar-fixpoint}, we need to iterate a single function. Note that the language pair $\pair{E,V} = \pair{\set{e,...},\set{v,...}}$ is isomorphic to the single set of tagged terms $\mathit{EV} = \set{\pair{0,e},...,\pair{1,v},...}$. Binary \keyword{disjoint union}, denoted $E \sqcup V$, creates such sets. We define $F_\mathit{ev}$ by $F_\mathit{ev}(E \sqcup V) = F_e(E,V) \sqcup F_v(E,V)$. By Theorem~\ref{thm:grammar-fixpoint}, its least fixpoint is $F_\mathit{ev}^\kappa$, so we define $E$ and $V$ by $E \sqcup V = F_\mathit{ev}^\kappa$.
+
+To make well-founded substitution easy, we will use capturing substitution, which does not capture when used on closed terms. Let $\mathit{Cl}(e)$ indicate whether a term is closed---this is structurally recursive. Then $E' \metadef \setb{e \in E}{\mathit{Cl}(e)}$ and $V' \metadef \setb{v \in V}{\mathit{Cl}(v)}$ contain only closed terms. Lastly, we define $\targetlang \metadef E'$.
+
+
+\section{\targetlang's Big-Step Reduction Semantics}
+
+\newcommand{\encpowerset}{\widehat{\powerset}}
+\newcommand{\encunion}{\widehat{\textstyle\U}}
+\newcommand{\encimage}{\widehat{I}}
+\newcommand{\enccard}{\widehat{C}}
+\newcommand{\subst}{\myfun{subst}}
+
+We distinguish sets from other expressions using $\Eset$ and $\Vset$, which merely check tags. We also lift set constructors to operate on encoded sets. For example, for cardinality, $\enccard(v_A) \metadef \encset(|\snd(v_A)|)$ extracts the tagged set from $v_A$, applies $|\cdot|$, and recursively tags the resulting cardinal number. The rest are
+\begin{equation}
+\begin{aligned}
+	\encpowerset(v_A) &\ \metadef\ \pair{\tset,\setb{\pair{\tset,v_x}}{v_x \in \powerset(\snd(v_A))}} \\
+	\encunion(v_A) &\ \metadef\ \pair{\tset,\textstyle\U \setb{\snd(v_x)}{v_x \in \snd(v_A)}} \\
+	\encimage(v_f,v_A) &\ \metadef\ \pair{\tset,\setb{\pair{\tapp,v_f,v_x}}{v_x \in \snd(v_A)}}
+\end{aligned}
+\end{equation}
+All but $\encimage$ return values. Sets returned by $\encimage$ are intended to be reduced further.
+
+We use $e[n \w v]$ for De Bruijn substitution. Because $e$ and $v$ are closed, it is easy to define it using simple structural recursion on terms; it is thus conservative.
+\begin{comment}
+Substitution is structurally recursive:
+\begin{equation}
+\begin{aligned}
+	\pair{\tvar,m}[n \w e]&\ =\ 
+		\begin{cases}
+			e & \text{if } m = n \\
+			\pair{\tvar,m} & \text{if } m \neq n
+		\end{cases} \\
+	\pair{\tfun,e_y}[n \w e]&\ =\ \pair{\tfun,e_y[s(n) \w e]} \\
+	\pair{\tapp,e_f,e_x}[n \w e]&\ =\ \pair{\tapp,e_f[n \w e],e_x[n \w e]}
+\end{aligned}
+\end{equation}
+Like the $\tapp$ case, the remaining cases simply distribute over subterms.
+\end{comment}
+
+\newcommand{\tpair}{\pair}
+
+\begin{figure*}[tb]\centering
+\subfloat[Standard call-by-value reduction rules]{
+\label{fig:reduction:standard}
+\begin{varwidth}[t]{\textwidth}
+\begin{equation*}
+\begin{aligned}
+	\frac{}{v \dto v}
+	\ \text{(val)}
+	\jand
+	\frac{
+		e_f \dto \pair{\tfun,e_y} \jand
+		e_x \dto v_x \jand
+		e_y[0 \w v_x] \dto v_y
+	}
+	{\tpair{\tapp,e_f,e_x} \dto v_y}
+	\ \text{(ap)}
+	\jand
+	\frac{
+		e_c \dto \atrue \jand
+		e_t \dto v_t
+	}
+	{\tpair{\tif,e_c,e_t,e_f} \dto v_t}
+	\ \frac{
+		e_c \dto \afalse \jand
+		e_f \dto v_f
+	}
+	{\tpair{\tif,e_c,e_t,e_f} \dto v_f}
+	\ \text{(if)}
+\end{aligned}
+\end{equation*}
+\hrule
+\end{varwidth}
+}
+
+\subfloat[\targetlang-specific rules]{
+\label{fig:reduction:set}
+\begin{varwidth}[t]{\textwidth}
+\begin{equation*}
+\begin{aligned}
+  &\frac{
+    e_A \dto v_A \jand
+    \Vset(v_A) \jand
+    e_x \dto v_x \jand
+    v_x \in \snd(v_A)
+  }
+  {\pair{\tin,e_x,e_A} \dto \atrue}
+  \jand\jand\jand
+  \frac{
+    e_A \dto v_A \jand
+    \Vset(v_A) \jand
+    e_x \dto v_x \jand
+    v_x \notin \snd(v_A)
+  }
+  {\pair{\tin,e_x,e_A} \dto \afalse}
+  \ \text{(in)}
+\\[10pt]
+  &\begin{aligned}
+	&\frac{
+		e_A \dto v_A \jand
+		\Vset(v_A) \jand
+		\Forall{v_x \in \snd(v_A)}{\Vset(v_x)}
+	}
+	{\pair{\tunion,e_A} \dto \encunion(v_A)}
+	\ \text{(union)} & \jand\jand &
+	\frac{
+		e_A \dto v_A \jand
+		\Vset(v_A)
+	}
+	{\pair{\tpowerset,e_A} \dto \encpowerset(v_A)}
+	\ \text{(pow)}
+\\[10pt]
+	&\frac{
+		e_A \dto v_A \jand
+		\Vset(v_A) \jand
+		e_f \dto \pair{\tfun,e_y} \jand
+		\encimage(\pair{\tfun,e_y},v_A) \dto v_y
+	}
+	{\tpair{\timage,e_f,e_A} \dto v_y}
+	\ \text{(image)} &&
+	\frac{
+		e_A \dto v_A \jand
+		\Vset(v_A)
+	}
+	{\pair{\torder,e_A} \dto \enccard(v_A)}
+	\ \text{(card)}
+\\[10pt]
+	&\frac{
+		\Eset(e_A) \jand
+		\Forall{e_x \in \snd(e_A)}{\Exists{v_x}{e_x \dto v_x}}
+	}
+	{e_A \dto \pair{\tset,\setb{v_x}{e_x \in \snd(e_A) \band e_x \dto v_x}}}
+	\ \text{(set)} &&
+	\frac{
+		e_A \dto \pair{\tset,\set{v_x}}
+	}
+	{\pair{\ttake,e_A} \dto v_x}
+	\ \text{(take)}
+  \end{aligned}
+\end{aligned}
+\end{equation*}
+\hrule
+\end{varwidth}
+}
+\caption[\targetlang's semantics]{Reduction rules defining \targetlang's big-step, call-by-value semantics.}
+\label{fig:reduction}
+\end{figure*}
+
+%\subsection{The Reduction Relation `$\dto$'}
+
+Figure~\ref{fig:reduction} shows the reduction rules that define the reduction relation `$\dto$'. Figure~\ref{fig:reduction:standard} has standard call-by-value rules: values reduce to themselves, and applications reduce by substitution.
+Figure~\ref{fig:reduction:set} has the \targetlang-specific rules. Most simply use $\Vset$ to check tags before applying a lifted operator.
+The (image) rule replaces each value $v_x$ in the set $v_A$ with an application, generating a set expression, and the (set) rule reduces all the terms inside a set expression.
+
+\newcommand{\Univ}{\mathcal{U}}
+
+To define `$\dto$' as a least fixpoint, we adapt Aczel's treatment~\cite{cit:aczel-1977-inductive}. We first define a bounding set for `$\dto$' using closed terms, or $\Univ \metadef E' \times V'$, so that $\dto \subseteq \Univ$.
+
+The rules in Fig.~\ref{fig:reduction} can be used to define a predicate $D(R,\pair{e,v})$. This predicate indicates whether some reduction rule, after replacing every `$\dto$' in its premise with the approximation $R$, derives the conclusion $e \dto v$.\footnote{$D$ is definable in first-order logic, but its definition does not aid understanding much.}
+Using $D$, we define a function that derives new conclusions from the known conclusions in $R$:
+\begin{equation}
+	F_{\dto}(R)\ \metadef\ \setb{c \in \Univ}{D(R,c)}
+\end{equation}
+For example, $F_{\dto}(\emptyset) = \setb{\pair{v,v}}{v \in V}$, by the (val) rule. $F_{\dto}(F_{\dto}(\emptyset))$ includes all pairs of non-value expressions and the values they reduce to in one derivation, as well as $\setb{\pair{v,v}}{v \in V}$. Generally, (val) ensures that iterating $F_{\dto}$ is monotone.
+
+For $F_{\dto}$ itself to be non-monotone, for some $R \subseteq R' \subseteq \Univ$, there would have to be a conclusion $c \in F_{\dto}(R)$ that is not in $F_{\dto}(R')$. In other words, having more known conclusions could falsify a premise. None of the rules in Fig.~\ref{fig:reduction} can do so.
+
+Because $F_{\dto}$ is monotone and iterating it is monotone, we can define $\dto := F_{\dto}^\gamma$ for some ordinal $\gamma$. If \targetlang had only finite terms, $\gamma = \omega$ iterations would reach a fixpoint. But a simple countable term shows why `$\dto$' cannot be $F_{\dto}^\omega$.
+
+\begin{example}[countably infinite term]
+If $s$ is the successor function in \targetlang, the term
+$t \metadef \pair{\tset,\set{0,\pair{\tapp,s,0},\pair{\tapp,s,\pair{\tapp,s,0}},...}}$
+should reduce to $\encset(\omega)$. The (set) rule's premises require each of $t$'s subterms to reduce---using at least $F_{\dto}^\omega$ because each subterm requires a finite, unbounded number of (ap) derivations. Though $F_{\dto}^{s(\omega)}$ reduces $t$, for larger terms, we must iterate $F_{\dto}$ much further.
+\exampleqed
+\end{example}
+
+\begin{theorem}
+\label{thm:R-fixpoint}
+$\dto := F_{\dto}^\kappa$ is the least fixpoint of $F_{\dto}$.
+\end{theorem}
+\begin{proof}
+Fixpoint by Aczel~\cite[Theorem 1.3.4]{cit:aczel-1977-inductive}; least fixpoint by Theorem~\ref{thm:fixpoint-is-least-fixpoint}.
+\end{proof}
+
+Lastly, ZFC theorems that do not depend on $\kappa$ can be applied to \targetlang terms.
+
+\begin{theorem}
+\label{thm:lambda-zfc-is-a-model}
+\targetlang's set values and $\pair{\tin,\cdot,\cdot}$ are a model of ZFC-$\kappa$.
+\end{theorem}
+\begin{proof}
+$\V(\kappa)$, a model of ZFC-$\kappa$, is isomorphic to $v ::= \pair{\tset,\setkleene{v}{\kappa}}$.
+\end{proof}
+
+
+\section{Syntactic Sugar and a Small Set Library}
+
+From here on, we write only \ftargetlang terms, assume $\enc{\cdot}$ is applied, and no longer distinguish \ftargetlang from \targetlang.
+
+We use names instead of De Bruijn indexes and assume names are converted. We get alpha equivalence for free; for example, $\mathsf{\fun{x} x} = \pair{\tfun,\pair{\tvar,0}} = \mathsf{\fun{y} y}$.
+
+\mathversion{sans}
+
+\targetlang does not contain terms with free variables. To get around this technical limitation, we assume free variables are metalanguage names for closed terms.
+
+We allow the primitives $(\in)$, $\U$, $take$, $\powerset$, $image$ and $card$ to be used as if they were functions. Enclosing infix operators in parenthesis refers to them as functions, as in $(\in)$. We partially apply infix functions using Haskell-like sectioning rules, so $(x \in)$ means $\fun{A} x \in A$ and $(\in A)$ means $\fun{x} x \in A$.
+
+We define first-order objects using ``$\objdef$'', as in $0 \objdef \lemptyset$, and syntax with ``$\objstx$'', as in
+$\fun{\mathit{x}_1\,\mathit{x}_2\,...\,\mathit{x_n}} \mathit{e} \objstx \fun{\mathit{x}_1} \fun{\mathit{x}_2\,...\,\mathit{x_n}} \mathit{e}$ to automatically curry.
+Function definitions expand to lambdas (using fixpoint combinators for recursion); for example, $x = y \ \objdef\ x \in \set{y}$ and $(=) \objdef \fun{x\,y} x \in \set{y}$ equivalently define $(=)$ in terms of $(\in)$.
+We destructure pairs implicitly in binding patterns, as in $\fun{\pair{x,y}} f~x~y$.
+
+%We extend \targetlang with a $set?$ primitive that identifies sets. This makes \targetlang more expressive (in Felleisen's sense [cite]), but the extension is conservative.
+
+To do anything useful, we need a small set library. The definitions are similar to the metalanguage definitions we omitted in Section~\ref{sec:metalanguage}, and we similarly elide most of the \targetlang definitions. However, some deserve special mention.
+
+Because \targetlang has only \emph{functional} replacement, we cannot define unbounded $\forall$ and $\exists$. But we can define bounded quantifiers in terms of bounded selection, or
+\begin{equation}
+	select~f~A\ \objdef\ \U~(image~(\fun{x} if~(f~x)~\set{x}~\lemptyset)~A)
+\end{equation}
+We also define a bounded description operator:
+\begin{equation}
+	\The{\mathit{x} \in \mathit{e_A}} \mathit{e_f}\ \objstx\ take~(select~(\fun{\mathit{x}} \mathit{e_f})~\mathit{e_A})
+\end{equation}
+Note $\The{\mathit{x} \in \mathit{e_A}} \mathit{e_f}$ reduces only if $\mathit{e_f} \dto true$ for exactly one $\mathit{x} \in \mathit{e_A}$.
+
+Thus, converting a predicate to an object requires both unique existence and a bounding set. For example, if
+\begin{equation}
+	\pair{\mathit{e_x},\mathit{e_y}}\ \objstx\ \set{\set{\mathit{e_x}, \set{\mathit{e_x},\mathit{e_y}}}}
+\end{equation}
+defines ordered pairs, then
+\begin{equation}
+	fst~p\ \objdef\ \The{x \in (\U~p)} \Exists{y \in (\U~p)} p = \pair{x,y}
+\end{equation}
+takes the first element.
+
+The \mykeyword{set monad} simulates nondeterministic choice. We define it by
+\begin{equation}
+\begin{aligned}
+	return_{set}~a &\ \objdef\ \set{a} \\
+	bind_{set}~A~f &\ \objdef\ \U~(image~f~A)
+\end{aligned}
+\end{equation}
+Using \tlzfc{bind~m~f = join~(lift~f~m)}, evidently \tlzfc{lift_{set} \objdef image} and \tlzfc{join_{set} \objdef \U}. The proofs of the monad laws follow the proofs for the list monad. We also define
+\tlzfc{\Choose{\mathit{x} \in \mathit{e_A}} \mathit{e_f} \objstx bind_{set}~(\fun{\mathit{x}} \mathit{e_f})~\mathit{e_A}}, read ``choose $\mathit{x}$ in $\mathit{e_A}$, then $\mathit{e_f}$.'' For example, binary cartesian product is
+\tlzfc{A \times B \objdef \Choose{x \in A} \Choose{y \in B} return_{set}~\pair{x,y}}.
+
+Every \tlzfc{f \in A \to B} is shaped \tlzfc{f = \set{\pair{x_1,y_1},\pair{x_2,y_2},\dots}} and is total on \tlzfc{A}. To distinguish these hash tables from lambdas, we call them \keyword{mappings}. They can be applied by
+\tlzfc{ap~f~x \objdef \The{y \in (range~f)} \pair{x,y} \in f}, but we write just \tlzfc{f~x}.
+We define \tlzfc{\mathit{e_f}\lvert_\mathit{e_A} \objstx image~(\fun{x} \pair{x,\mathit{e_f}~x})~\mathit{e_A}}
+to convert a lambda or to restrict a mapping to $e_A$. We usually use \tlzfc{\fun{\mathit{x} \in \mathit{e_A}} \mathit{e_y} \objstx (\fun{\mathit{x}} \mathit{e_y})\lvert_\mathit{e_A}} to define mappings.
+
+A sequence of \tlzfc{A} is a mapping \tlzfc{xs \in \alpha \to A} for some ordinal \tlzfc{\alpha}. For example, \tlzfc{ns \objdef \fun{n \in \lnat} n} is a countable sequence in \tlzfc{\lnat \to \lnat} of increasing finite ordinals. We assume useful sequence functions like \tlzfc{map}, \tlzfc{map2} and \tlzfc{drop} are defined.
+
+
+\section{Example: The Reals From the Rationals}
+\label{sec:reals}
+
+Here, we demonstrate that \targetlang is computationally powerful enough to construct the real numbers. For a clear, well-motivated, rigorous treatment in first-order set theory without lambdas, we recommend Abbott's excellent introductory text~\cite{cit:abbott-analysis}.
+
+Assume we have a model \tlzfc{\Rat,+_\Rat,-_\Rat,\times_\Rat,\div_\Rat} of the rationals and rational arithmetic.%
+\footnote{Though the \targetlang development of \tlzfc{\Rat} is short and elegant, it does not fit in this paper.}
+To get the reals, we close the rationals under countable limits.
+
+We represent limits of rationals with sequences in \tlzfc{\lnat \to \Rat}. To select only the converging ones, we must define what convergence means. We start with convergence to zero and equivalence. Given \tlzfc{\Rat^+}, `\tlzfc{<_\Rat}' and \tlzfc{|\cdot|_\Rat}, define
+\begin{equation}
+\begin{aligned}
+conv!zero?_R~xs&\ \objdef\ 
+  \Forall{\varepsilon \in \Rat^+}
+    \Exists{N \in \lnat}
+      \Forall{n \in \lnat} (N \in n \imp |xs~n|_\Rat <_\Rat \varepsilon) \\
+xs =_R ys&\ \objdef\ conv!zero?_R~(map2~(\minusq)~xs~ys)
+\end{aligned}
+\label{eqn:rational-conv-zero}
+\end{equation}
+So a sequence \tlzfc{xs \in \lnat \to \Rat} converges to zero if, for any positive $\varepsilon$, there is some index \tlzfc{N} after which all \tlzfc{xs} are smaller than $\varepsilon$. Two sequences are equivalent (\tlzfc{=_R}) if their pointwise difference converges to zero.
+
+We should be able to drop finitely many elements from a converging sequence without changing its limit. Therefore, a sequence of rationals converges to \emph{something} when it is equivalent to all of its suffixes. We thus define an equivalent to the Cauchy convergence test, and use it to select the converging sequences:
+\begin{equation}
+\begin{aligned}
+  conv?_R~xs&\ \objdef\  \Forall{n \in \lnat} xs =_R (drop~n~xs) \\
+  R&\ \objdef\ select~conv?_R~(\lnat \to \Rat)
+\end{aligned}
+\end{equation}
+But \tlzfc{R} (equipped with the equivalence relation \tlzfc{=_R}) is not the real numbers as they are normally defined: converging sequences in \tlzfc{R} may be equivalent but not equal. To decide real equality using \targetlang's `$=$', we partition \tlzfc{R} into disjoint sets of equivalent sequences---we make a \keyword{quotient space}. Thus,
+\begin{equation}
+\begin{aligned}
+  quotient~A~(=_A)&\ \objdef\ image~(\fun{x} select~(=_A x)~A)~A \\
+  \Re&\ \objdef\ quotient~R~(=_R)
+\end{aligned}
+\end{equation}
+defines the reals with extensional equality.
+
+To define real arithmetic, we must lift rational arithmetic to sequences and then to sets of sequences. The \tlzfc{map2} function lifts, say, \tlzfc{+_\Rat} to sequences, as in \tlzfc{(+_R) := map2~(+_\Rat)}. To lift \tlzfc{+_R} to sets of sequences, note that sets of sequences are models of nondeterministic sequences, suggesting the set monad. We define
+\tlzfc{lift2_{set}~f~A~B \objdef \Choose{a \in A} \Choose{b \in B} return_{set}~(f~a~b)}
+to lift two-argument functions to the set monad. Now \tlzfc{(+) := lift2_{set}~(+_R)}, and similarly for the other operators.
+
+Using \tlzfc{lift2_{set}} is atypical, so we prove that \tlzfc{A + B \in \Re} when \tlzfc{A \in \Re} and \tlzfc{B \in \Re}, and similarly for the other operators. It follows from the fact that the rational operators lifted to sequences are surjective morphisms, and this theorem:
+
+\begin{theorem}
+\label{thm:set-monad-okay}
+\newcommand{\X}{\mathbb{X}}
+Suppose $=_X$ is an equivalence relation on \tlzfc{X}, and define its quotient \tlzfc{\X \objdef quotient~X~(=_X)}. If \tlzfc{op} is surjective on \tlzfc{X} and a binary morphism for \tlzfc{=_X}, then \tlzfc{(lift2_{set}~op~A~B) \in \X} for all \tlzfc{A \in \X} and \tlzfc{B \in \X}.
+\end{theorem}
+\begin{proof}
+Reduce to an equality. Case `$\subseteq$' by morphism; case `$\supseteq$' by surjection.
+\end{proof}
+
+Now for real limits. If \tlzfc{\Re^+}, `\tlzfc{<}', and \tlzfc{|\cdot|} are defined, we can define \tlzfc{conv!zero?_\Re}, which is like \eqref{eqn:rational-conv-zero} but operates on real sequences \tlzfc{xs \in \lnat \to \Re}. We then define \tlzfc{limit_\Re~xs\ \objdef\ \The{y \in \Re} conv!zero?_\Re~(map~(-~y)~xs)} to calculate their limits.
+
+From here, it is not difficult to treat \tlzfc{\Rat} and \tlzfc{\Re} uniformly by redefining \tlzfc{\Rat \subset \Re}.
+
+
+\section{Example: Computable Real Limits}
+
+\newcommand{\seqtype}[1]{\lnat \to {#1}}
+
+Exact real computation has been around since Turing's seminal paper~\cite{cit:turing}. The novelty here is how we do it. We define the \mykeyword{limit monad} in \targetlang for expressing calculations involving limits, with \tlzfc{bind_{lim}} defined in terms of a general \tlzfc{limit}. We then derive a \tlzfc{limit}-free, computable replacement \tlzfc{bind_{lim}'}. Replacing \tlzfc{bind_{lim}} with \tlzfc{bind_{lim}'} in a \targetlang term incurs proof obligations. If they can be met, the computable \targetlang term has the same limit as the original, uncomputable term.
+
+In other words, entirely in \targetlang, we define uncomputable things, and gradually turn them into computable, directly implementable approximations.
+
+The proof obligations are related to topological theorems~\cite{cit:munkres-topology} that we will import as lemmas. By Theorem~\ref{thm:lambda-zfc-is-a-model}, we are allowed to use them directly.
+
+At this point, it is helpful to have a simple, informal type system, which we can easily add to the untyped \targetlang. \tlzfc{A \tto B} is a lambda or mapping type. \tlzfc{A \to B} is the set of total mappings from \tlzfc{A} to \tlzfc{B}. A set is a membership proposition.
+
+
+\subsection{The Limit Monad}
+
+\newcommand{\metricuniv}{\mathbb{U}}
+
+We first need a universe \tlzfc{\metricuniv} of values that is closed under sequencing; i.e. if \tlzfc{A \subset \metricuniv} then so is \tlzfc{\lnat \to A}. Define \tlzfc{\metricuniv} as the language of \tlzfc{u ::= \Re \gor \omega \to u}. A complete product metric \tlzfc{\delta : \metricuniv \tto \metricuniv \tto \Re} exists; therefore, a function \tlzfc{limit : (\lnat \to \metricuniv) \tto \metricuniv} similar to \tlzfc{limit_\Re} exists that calculates limits. These are all \targetlang-definable.
+
+The limit monad's computations are of type \tlzfc{\lnat \to \metricuniv}. The type does not imply convergence, which must be proved separately. Its \tlzfc{run} function is \tlzfc{limit}.
+
+\begin{example}[infinite series]
+Define \tlzfc{partial!sums : (\seqtype{\Re}) \tto (\seqtype{\Re})} first by
+\tlzfc{partial!sums'~xs \objdef \fun{n} if~(n = 0)~(xs~0)~((xs~n) + (partial!sums'~xs~(n - 1)))}.
+(The sequence is recursively defined, so we cannot use \tlzfc{\fun{n \in \lnat} \mathit{e}} to immediately create it.)
+Then restrict its output: \tlzfc{partial!sums~xs \objdef (partial!sums'~xs)\lvert_\lnat}.
+\begin{comment}
+\begin{equation}
+\lzfc{
+  partial!sums~xs\ \objdef\ 
+  \ilzfclet{
+    ys~n & if~(n = 0)~(xs~0)~((xs~n) + (ys~(n - 1)))
+  }{ys\lvert_\lnat}
+}
+\end{equation}
+\end{comment}
+
+Now
+\tlzfc{\sum_{\mathit{n} \in \lnat} \mathit{e} \objstx limit~(partial!sums~\fun{\mathit{n \in \lnat}}\mathit{e})}, or the limit of partial sums.
+Even if \tlzfc{xs} converges, \tlzfc{partial!sums~xs} may not; e.g. if \tlzfc{xs = \fun{n \in \lnat} \frac{1}{n+1}}.
+\exampleqed
+\end{example}
+
+The limit monad's \tlzfc{return_{lim} : \metricuniv \tto (\seqtype{\metricuniv})} creates constant sequences, and its
+\tlzfc{bind_{lim} : (\seqtype{\metricuniv}) \tto (\metricuniv \tto (\seqtype{\metricuniv})) \tto (\seqtype{\metricuniv})} simply takes a limit:
+\begin{equation}
+\begin{aligned}
+  return_{lim}~x &\ \objdef\ \fun{n \in \lnat}{x} \\
+  bind_{lim}~xs~f &\ \objdef\ f~(limit~xs)
+\end{aligned}
+\end{equation}
+The left identity and associativity monad laws hold using `$=$' for equivalence. However, right identity holds only in the limit, so we define equivalence by \tlzfc{xs =_{lim} ys \ \objdef\ limit~xs = limit~ys}.
+
+\begin{example}[lifting]
+Define \tlzfc{lift_{lim}~f~xs \objdef bind_{lim}~xs~\fun{x} return_{lim}~(f~x)}, as is typical. Substituting \tlzfc{bind_{lim}} and reducing reveals that \tlzfc{f~(limit~xs) = limit~(lift_{lim}~f~xs)}. That is, using \tlzfc{lift_{lim}} pulls \tlzfc{limit} out of \tlzfc{f}'s argument.
+\exampleqed
+\end{example}
+
+\begin{example}[exponential]
+The Taylor series expansion of the exponential function is \tlzfc{exp!seq : \Re \tto (\seqtype{\Re})}, defined by
+\tlzfc{exp!seq~x \objdef partial!sums~\fun{n \in \lnat}{\frac{x^n}{n!}}}.
+It always converges, so \tlzfc{limit~(exp!seq~x) = \sum_{n \in \lnat} \frac{x^n}{n!} = exp~x} for \tlzfc{x \in \Re}.
+To exponentiate converging sequences, define \tlzfc{exp_{lim}~xs \objdef bind_{lim}~xs~exp!seq}.
+\exampleqed
+\end{example}
+
+\subsection{The Computable Limit Monad}
+
+We derive the computable limit monad in two steps. In the first, longest step, we replace the limit monad's defining functions with those that do not use \tlzfc{limit}. But computations will still have type \tlzfc{\lnat \to \metricuniv}, whose inhabitants are not directly implementable, so in the second step, we give them a lambda type.
+
+We define \tlzfc{return_{lim}' := return_{lim}}. A drop-in, \tlzfc{limit}-free replacement for \tlzfc{bind_{lim}} does not exist, but there is one that incurs three proof obligations. Without imposing rigid constraints on using \tlzfc{bind_{lim}}, we cannot meet them automatically. But we can separate them by factoring \tlzfc{bind_{lim}} into \tlzfc{lift_{lim}} and \tlzfc{join_{lim}}.
+
+\paragraph{Limit-Free Lift.}
+Substituting to get \tlzfc{lift_{lim}~f~xs = return_{lim}~(f~(limit~xs))} exposes the use of \tlzfc{limit}. Removing it requires continuity and definedness.
+
+\begin{lemma}[continuity in metric spaces]
+\label{lem:continuity}
+Let \tlzfc{f : A \tto B} with \tlzfc{A} a metric space. Then \tlzfc{f} is continuous at \tlzfc{x \in A} if and only if for all \tlzfc{xs \in \seqtype{A}} for which \tlzfc{limit~xs = x} and \tlzfc{f} is defined on all elements of \tlzfc{xs},
+\tlzfc{f~(limit~xs) = limit~(map~f~xs)}.
+\end{lemma}
+
+So if \tlzfc{f : \metricuniv \tto \metricuniv} is continuous at \tlzfc{limit~xs}, and \tlzfc{f} is defined on all \tlzfc{xs}, then
+\begin{equation}
+\begin{aligned}
+  limit~(lift_{lim}~f~xs)
+    &\ =\  limit~(return_{lim}~(f~(limit~xs))) \\
+    &\ =\  limit~(return_{lim}~(limit~(map~f~xs))) \\
+    &\ =\  limit~(map~f~xs)
+\end{aligned}
+\end{equation}
+Thus, \tlzfc{lift_{lim}~f~xs =_{lim} map~f~xs}, so \tlzfc{lift_{lim}'~f~xs \objdef map~f~xs}. Using \tlzfc{lift_{lim}~f~xs} instead of \tlzfc{lift_{lim}'~f~xs} requires \tlzfc{f} to be continuous at \tlzfc{limit~xs} and defined on all \tlzfc{xs}.
+
+\paragraph{Limit-Free Join.}
+Using \tlzfc{join~m = bind~m~\fun{x} x} results in \tlzfc{join_{lim} = limit}.
+Removing \tlzfc{limit} might seem hopeless---until we distribute it pointwise over \tlzfc{xss}.
+
+\begin{lemma}[limits of sequences]
+Let \tlzfc{f \in \seqtype{\seqtype{A}}}, where \tlzfc{\seqtype{A}} has a product topology. Then \tlzfc{limit~f = \fun{n \in \lnat} limit~(flip~f~n)}, where \tlzfc{flip~f~x~y := f~y~x}.
+\end{lemma}
+
+A countable product metric defines a product topology, so \tlzfc{join_{lim}~xss \objdef} \tlzfc{\fun{n \in \lnat} limit~(flip~xss~n)}. Now we can remove \tlzfc{limit} by restricting \tlzfc{join_{lim}}'s input.
+
+\begin{definition}[uniform convergence]
+\label{def:uniform-convergence}
+A sequence \tlzfc{f \in \seqtype{\seqtype{\metricuniv}}} converges \keyword{uniformly} if
+\tlzfc{\Forall{\varepsilon \in \Re^+} \Exists{N \in \lnat} \Forall{n,m > N} (\delta~(f~n~m)~(limit~(f~n))) < \varepsilon}.
+\end{definition}
+
+\begin{lemma}[collapsing limits]
+If \tlzfc{f \in \seqtype{\seqtype{\metricuniv}}} converges uniformly, and \tlzfc{r,s : \lnat \tto \lnat} increase, then \tlzfc{limit~\fun{n \in \lnat} limit~(f~n) = limit~\fun{n \in \lnat} f~(r~n)~(s~n)}.
+\end{lemma}
+
+So if \tlzfc{flip~xss} converges uniformly, then
+\begin{equation}
+\begin{aligned}
+limit~(join_{lim}~xss)
+ &\ =\  limit~\fun{n \in \lnat} limit~(flip~xss~n) \\
+ &\ =\  limit~\fun{n \in \lnat} flip~xss~(r~n)~(s~n)
+\end{aligned}
+\end{equation}
+We define \tlzfc{join_{lim}': (\seqtype{\seqtype{\metricuniv}}) \tto (\seqtype{\metricuniv})} by \tlzfc{join_{lim}'~xss \objdef \fun{n \in \lnat} xss~n~n}. Replacing \tlzfc{join_{lim}~xss} with \tlzfc{join_{lim}'~xss} requires that \tlzfc{flip~xss} converge uniformly.
+
+\paragraph{Limit-Free Bind.}
+Define \tlzfc{bind_{lim}'~xs~f \objdef join_{lim}'~(lift_{lim}'~f~xs)}. It inherits obligations to prove that \tlzfc{f} is continuous at \tlzfc{limit~xs} and defined on all \tlzfc{xs}, and to prove that \tlzfc{flip~(map~f~xs)} converges uniformly.
+
+\begin{example}[exponential cont.]
+Define \tlzfc{exp_{lim}'} by replacing \tlzfc{bind_{lim}} by \tlzfc{bind_{lim}'} in \tlzfc{exp_{lim}}, so \tlzfc{exp_{lim}'~xs \objdef bind_{lim}'~xs~exp!seq}. We now meet the proof obligations.
+
+\begin{lemma}
+Let \tlzfc{f : A \tto (\seqtype{B})}. If \tlzfc{\seqtype{B}} has a product topology, then \tlzfc{f} is continuous if and only if \tlzfc{(flip~f)~n} is continuous for every \tlzfc{n \in \lnat}.
+\end{lemma}
+
+We have a product topology, so for the first obligation, pointwise continuity is enough. Let \tlzfc{g \objdef flip~exp!seq}. Every \tlzfc{g~n} is a finite polynomial, and thus continuous.
+The second obligation, that \tlzfc{exp!seq} is defined on all \tlzfc{xs}, is obvious.
+The third, that \tlzfc{flip~(map~exp!seq~xs)} converges uniformly, can be proved using the Weierstrass M test \cite[Theorem 6.4.5]{cit:abbott-analysis}.
+\exampleqed
+\end{example}
+
+\begin{example}[\tlzfc{\pi}]
+The definition of \tlzfc{arctan_{lim}} is like \tlzfc{exp_{lim}}'s. Defining \tlzfc{arctan_{lim}'}, including proving correctness, is like defining \tlzfc{exp_{lim}'}. To compute \tlzfc{\pi}, we use
+\begin{equation}
+\lzfcsplit{
+	\pi_{lim}\ \objdef\ \ &((return_{lim}~16) \times_{lim} (arctan_{lim}~(return_{lim}~\tfrac{1}{5})))\ -_{lim} \\
+		&((return_{lim}~4) \times_{lim} (arctan_{lim}~(return_{lim}~\tfrac{1}{239})))
+}
+\label{eqn:pi}
+\end{equation}
+where \tlzfc{(\cdot)_{lim}} are lifted arithmetic operators. Because \eqref{eqn:pi} does not directly use \tlzfc{bind_{lim}}, defining the limit-free \tlzfc{\pi_{lim}'} imposes no proof obligations.
+\exampleqed
+\end{example}
+
+In general, using functions defined in terms of \tlzfc{bind_{lim}'} requires little more work than using functions on finite values. The implicit limits are pulled outward and collapse on their own, hidden within monadic computations.
+
+\paragraph{Computable Sequences.}
+
+Lambdas are the simplest model of \tlzfc{\lnat \to \metricuniv}. After manipulating some terms, we define the final, computable limit monad by \tlzfc{return_{lim}'~x \objdef \fun{n} x} and \tlzfc{bind_{lim}'~xs~f\ \objdef\ \fun{n} f~(xs~n)~n}. Computations have type \tlzfc{\lnat \tto \metricuniv'}, where \tlzfc{\metricuniv'} contains countable sequences of rationals.
+
+\paragraph{Implementation.}
+We have transliterated \tlzfc{return_{lim}'}, \tlzfc{bind_{lim}'}, \tlzfc{exp_{lim}'}, \tlzfc{arctan_{lim}'} and \tlzfc{\pi_{lim}'} into Racket~\cite{cit:racket-lang}, using its built-in models of \tlzfc{\lnat} and \tlzfc{\Rat}. Even without optimizations, \tlzfc{\pi_{lim}'~141} yields a rational approximation in a few milliseconds that is correct to 200 digits. More importantly, \tlzfc{exp_{lim}'}, \tlzfc{arctan_{lim}'} and \tlzfc{\pi_{lim}'} are almost identical to their counterparts in the uncomputable limit monad, and meet their proof obligations. The code is clean, short, correct and reasonably fast, and resides in a directory named \texttt{flops2012} at \url{https://github.com/ntoronto/plt-stuff/}.
+
+
+\section{Related Work}
+
+O'Connor's completion monad~\cite{cit:oconnor-2008-real-numbers} is quite similar to the limit monad. Both operate on general metric spaces and compute to arbitrary precision. O'Connor starts with computable approximations and completes them using a monad. Implementing it in Coq took five months. It is certainly correct.
+
+We start with a monad for exact values and define a computable replacement. It was two weeks from conception to implementation. Between directly using well-known theorems, and deriving the computable monad from the uncomputable monad without switching languages, we are as certain as we can be without mechanically verifying it. We have found our middle ground.
+
+Higher-order logics such as HOL~\cite{leivant-1994-hol}, CIC~\cite{cit:book-coqart}, MT~\cite{cit:berline-1997-mt} (Map Theory) and EFL*~\cite{cit:myhill-1989-efl} continue Church's programme to found mathematics on the lambda calculus. Like \targetlang, interpreting them in set theory seems to require a slightly stronger theory than plain ZFC. HOL and CIC ensure consistency using types, and use the Curry-Howard correspondence to extract programs.
+
+MT and EFL* are more like \targetlang in that they are untyped. MT ensures consistency partly by making nontermination a truth value, and EFL* partly by tagging propositions.
+Both support classical reasoning.
+%internally, while \targetlang does so externally. MT, EFL*, and \targetlang all have computable sublanguages, though MT's and \targetlang's are arguably easier to target.
+MT and EFL* are interpreted in set theory using a straightforward extension of Scott-style denotational semantics to $\kappa$-sized domains, while \targetlang is interpreted in set theory using a straightforward extension of operational semantics to $\kappa$-sized relations.
+
+The key difference between \targetlang and these higher-order logics is that \targetlang is not a logic. It is a programming language with infinite terms, which by design includes a transitive model of set theory (Theorem~\ref{thm:lambda-zfc-is-a-model}). Therefore, ZFC theorems can be applied to its set-valued terms with only trivial interpretation, whereas the interpretation it takes to apply ZFC theorems to lambda terms that represent sets in MT or EFL* can be highly nontrivial. Applying a ZFC theorem in HOL or CIC requires re-proving it to the satisfaction of a type checker.
+
+The infinitary lambda calculus~\cite{cit:kennaway-1996-inf-lc} has ``infinitely deep'' terms. Although it exists for investigating laziness, cyclic data, and undefinedness in finitary languages, it is possible to encode uncomputable mathematics in it. In \targetlang, such up-front encodings are unnecessary.
+
+Hypercomputation~\cite{cit:ord-2006-hypercomp} describes many Turing machine extensions, including completion of transfinite computations. Much of the research is for discovering the properties of computation in physically plausible extensions. While \targetlang might offer a civilized way to program such machines, we do not think of our work as hypercomputation, but as approaching computability from above.
+
+
+\section{Conclusions and Future Work}
+
+We defined \targetlang, which can express essentially anything constructible in contemporary mathematics, in a way that makes it compatible with existing first-order theorems. We demonstrated that it makes deriving computational meaning easier by defining the limit monad in it, deriving a computable replacement, and computing real numbers to arbitrary accuracy with acceptable speed.
+
+Our main future work is using \targetlang to define languages for Bayesian inference, then deriving implementations that compute converging probabilities. We have already done this successfully for countable Bayesian models \cite{cit:toronto-2010ifl-bayes}. Having built our previous work's foundation, we can now proceed with it.
+
+Overall, we no longer have to hold back when a set-theoretic construction could be defined elegantly with untyped lambdas or recursion, or generalized precisely with higher-order functions. If we can derive a computable replacement, we might help someone in Cantor's Paradise compute the apparently uncomputable.
+

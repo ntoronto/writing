@@ -1,0 +1,344 @@
+\documentclass[phd,electronic,twosidetoc,letterpaper,chaptercenter,parttop,lof]{byumsphd}
+% Author: Chris Monson
+%
+% This document is in the public domain
+%
+% Options for this class include the following (* indicates default):
+%
+%   phd (*) -- produce a dissertation
+%   ms -- produce a thesis
+%
+%   electronic -- default official university option, overrides the following:
+%                 - equalmargins
+%
+%   hardcopy -- overrides the following:
+%                 - no equalmargins
+%                 - twoside
+%
+%   letterpaper -- ignored, but helpful for the Makefile that I use
+%
+%   10pt -- 10 point font size
+%   11pt -- 11 point font size
+%   12pt (*) -- 12 point font size
+%
+%   lof -- produce a list of figures in the preamble (off)
+%   lot -- produce a list of tables in the preamble (off)
+%   lol -- produce a list of listings in the preamble (off)
+%
+%   layout -- show layout lines on the pages, helps with overfull boxes (off)
+%   grid -- show a half-inch grid on every page, helps with printing (off)
+%   separator -- print an extra instruction page between preamble and body (off)
+%
+%   twoside (*) -- two-sided output (margins alternate for odd and even pages,
+%     blank pages inserted to ensure that chapters begin on the right side of a
+%     bound copy, etc.)
+%   oneside -- one-sided output (margins are the same on all pages)
+%   equalmargins -- make all margins equal - ugly for binding, but compliant
+%
+%   twosidetoc - start two-sided margins at the TOC instead of the body.  This
+%     is sometimes (oddly) required, but be aware that it will make the page
+%     numbering seem screwy, e.g., the first four full sheets of paper will
+%     have number i-iv (not shown, though), and the next sheets will each have
+%     two numbers, one for each side.  I suspect that most people don't look at
+%     the roman numerals anyway, but it is a weird requirement.
+%
+%   openright (*) -- force new chapters to start on an odd page
+%   openany -- don't use this, it's ugly
+%
+%   prettyheadings -- make the section/chapter headings look nice
+%   compliantheadings (*) -- make them look ugly, but compliant with standards
+%
+%   chaptercenter -- center the chapter headings horizontally
+%   chapterleft (*) -- place chapter headings on the left
+%
+%   partmiddle -- Part headers are centered vertically, no other text on page
+%   parttop (*) -- Part headers at top of page, other text expected
+%
+%   duplexprinter -- Ensures that the two-sided portion starts on the right
+%     side when printing.  This is not for use in submission, since the best
+%     thing to do there is to print everything out one-sided, then take it down
+%     to the copy store to have them do the rest.  It does help to save trees
+%     when you are printing out copies just to look at them and fiddle with
+%     things.
+%
+%
+% EXAMPLES:
+%
+% The rest is up to you.  To fiddle with margins, use the \settextwidth and
+% \setbindingoffset macros, described below.  I suggest that you
+% \settextwidth{6.0in} for better-looking output (otherwise you'll get 3/4-inch
+% margins after binding, which is sort of weird).  This will depend on the
+% opinions of the various dean/coordinator folks, though, so be sure to ask
+% them before embarking on a major formatting task.
+
+% The following command fixes my particular printer, which starts 0.03 inches
+% too low, shifting the whole page down by that amount.  This shifts the
+% document content up so that it comes out right when printed.
+%
+% Discovering this sort of behavior is best done by specifying the ``grid''
+% option in the class parameters above.  It prints a 1/2 inch grid on every
+% page.  You can then use a ruler to determine exactly what the printer is
+% doing.
+%
+% Uncomment to shift content up (accounting for printer problems)
+%\setlength{\voffset}{-.03in}
+
+% Here we set things up for invisible hyperlinks in the document.  This makes
+% the electronic version clickable without changing the way that the document
+% prints.  It's useful, but optional.
+%
+% NOTE: "driverfallback=ps2pdf" chooses ps2pdf in the case of LaTeX and pdftex
+% in the case of pdflatex. If you use my LaTeX makefile (at
+% http://latex-makefile.googlecode.com/) then pdftex is the default There are
+% many other benefits to using the makefile, too.  This option is not always
+% available, so use with care.
+
+% Produce nicely formatted paragraphs. There is nothing additional to do.  In
+% case you get some problems, surround your text with
+% \begin{sloppy} ... \end{sloppy}. If that does not work, try
+% \microtypesetup{protrusion=false} ... \microtypesetup{protrusion=true}
+\usepackage{microtype}
+
+% These packages allow the bibliography to be sorted alphabetically and allow references to more than one paper to be sorted and compressed (i.e. instead of [5,2,4,6] you get [2,4-6])
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hypernat}
+
+\input{local-macros.tex}
+
+% To fiddle with the margin settings use the below.  DO NOT change stuff
+% directly (like setting \textwidth) - it will break subtle things and you'll
+% be tearing your hair out.
+%
+% For example, if you want 1.5in equal margins, or 2in and 1in margins when
+% printing, add the following below:
+%
+%\setbindingoffset{1.0in}
+%\settextwidth{5.5in}
+%
+% When equalmargins is specified in the class options, the margins will be
+% equal at 1.5in each: (8.5 - 5.5) / 2.  When equalmargins is not specified,
+% the inner margin will be 2.0 and the outer margin will be 1.0: inner = (8.5 -
+% 5.5 - 1.0) / 2 + 1.0 (the 1.0 is the binding offset).
+%
+% The idea is this: you determine how much space the text is going to take up,
+% whether for an electronic document (equalmargins) or not.  You don't want the
+% layout shifting around between printed and electronic documents.
+%
+% So, you specify the text width.  Then, if there is a binding offset (when
+% binding your thesis, the binding takes up space - usually 0.5 inches), that
+% reduces the visual space on the final printed copy.  So, the *effective*
+% margins are calculated by reducing the page size by the binding offset, then
+% computing the remaining space and dividing by two.  Adding back in the
+% binding offset gives the inner margin.  The outer margin is just what's left.
+%
+% All of this is done using the geometry package, which should be manipulated
+% directly at your peril.  It's best just to use the above macros to manipulate
+% your margins.
+%
+% That said, using the geometry macro to set top and bottom margins, or
+% anything else vertical, is perfectly safe and encouraged, e.g.,
+%
+%\geometry{top=2.0in,bottom=2.0in}
+%
+% Just don't fiddle with horizontal margins this way.  You have been warned.
+
+% Because I use these things in more than one place, I created new commands for
+% them.  I did not use \providecommand because I absolutely want LaTeX to error
+% out if these already exist.
+\newcommand{\Title}{Trustworthy, Useful Languages for Probabilistic Modeling and Inference}
+\newcommand{\Author}{Neil Toronto}
+\newcommand{\GraduationMonth}{January}
+\newcommand{\GraduationYear}{2014}
+
+% Set up the internal PDF information so that it becomes part of the document
+% metadata.  The pdfinfo command will display this.
+\hypersetup{%
+    pdftitle=\Title,%
+    pdfauthor=\Author,%
+    pdfsubject={PhD Dissertation, BYU CS Department: %
+                Degree Granted \GraduationMonth~\GraduationYear, Document Created \today},%
+    pdfkeywords={BYU, thesis, dissertation, LaTeX},%
+}
+
+% Rewrite the itemize, description, and enumerate environments to have more
+% reasonable spacing:
+\newcommand{\ItemSep}{\itemsep 0pt}
+\let\oldenum=\enumerate
+\renewcommand{\enumerate}{\oldenum \ItemSep}
+\let\olditem=\itemize
+\renewcommand{\itemize}{\olditem \ItemSep}
+\let\olddesc=\description
+\renewcommand{\description}{\olddesc \ItemSep}
+
+% Important settings for the byumsphd class.
+\title{\Title}
+\author{\Author}
+
+\committeechair{Jay McCarthy}
+\committeemembera{Kevin Seppi}
+\committeememberb{Chris Grant}
+\committeememberc{Eric Mercer}
+\committeememberd{Dan Olsen}
+
+\monthgraduated{\GraduationMonth}
+\yeargraduated{\GraduationYear}
+\yearcopyrighted{\GraduationYear}
+
+\documentabstract{%
+XXX: rewrite (was lifted from proposal)
+
+The ideals of exact modeling, and of putting off approximations as long as possible, make Bayesian practice both successful and difficult. To address the difficulties, Bayesians have created languages for modeling and automatic inference. However, there are none that have a well-defined semantics, meaning that there is no way to distinguish between a bug and a feature, and there is no standard by which to prove optimizations correct.
+
+Functional programming researchers have created probabilistic languages with well-defined semantics. Bayesians cannot use them in their day-to-day work, however, because they lack critical features; for example, all but one lack probabilistic conditioning.
+
+I propose that it is possible to use measure-theoretic probability and functional programming theory to create languages with well-defined semantics, that are also useful to practicing Bayesians.
+}
+
+\documentkeywords{%
+	Probability, Domain-Specific Languages, Semantics
+}
+
+\acknowledgments{%
+    XXX: write
+}
+
+\department{Computer Science}
+\graduatecoordinator{Quinn Snell}
+\collegedean{Thomas W. Sederberg}
+\collegedeantitle{Associate Dean}
+
+% Customize the name of the Table of Contents section.
+\renewcommand\contentsname{Table of Contents}
+
+% Remove all widows an orphans.  This is not normally recommended, but in a
+% paper dissertation there is no reasonable way around it; you can't exactly
+% rewrite already-published content to fix the problem.
+\clubpenalty 10000
+\widowpenalty 10000
+
+% Allow pages to have extra blank space at the bottom in order to accommodate
+% removal of widows and orphans.
+\raggedbottom
+
+\begin{document}
+
+% Produce the preamble
+\microtypesetup{protrusion=false}
+\maketitle
+\microtypesetup{protrusion=true}
+
+\vspace*{\fill}
+\begin{quote}
+\textit{``I think you're begging the question,'' said Haydock, ``and I can see looming ahead one of those terrible exercises in probability where six men have white hats and six men have black hats and you have to work it out by mathematics how likely it is that the hats will get mixed up and in what proportion. If you start thinking about things like that, you would go round the bend. Let me assure you of that!''}
+
+\hfill Agatha Christie, \textit{The Mirror Crack'd}
+\end{quote}
+\vspace*{\fill}
+
+\chapter{Thesis Statement}
+
+\begin{quote}
+Functional programming theory and measure-theoretic probability provide a solid foundation for trustworthy, useful languages for constructive probabilistic modeling and inference.
+\end{quote}
+
+\section{Motivation}
+
+\section{Statement Terms}
+
+\paragraph{Funcional Programming Theory.} Blah blah blah.
+
+Blah.
+
+\paragraph{Measure-Theoretic Probability.} Blah blah blah.
+
+Blah.
+
+\paragraph{Trustworthy.} Blah blah blah.
+
+Blah.
+
+\paragraph{Useful.} Blah blah blah.
+
+Blah.
+
+\paragraph{Constructive Probabilitic Modeling.} Blah blah blah.
+
+Blah.
+
+\paragraph{Probabilistic Inference.} Blah blah blah.
+
+Blah.
+
+\section{Proof and Supporting Evidence}
+
+\paragraph{Semantics.} Blah blah blah.
+
+Blah.
+
+\paragraph{Properties.} Blah blah blah.
+
+Blah.
+
+\paragraph{Test Cases.} Blah blah blah.
+
+Blah.
+
+\chapter{Background}
+
+XXX: Candidates for exposition:
+\begin{itemize}
+	\item Basic probability
+	\item Bayesian inference
+	\item Measure theory
+	\item $\lambda$-calculus
+	\item Operational semantics
+	\item Monads, idioms, and arrows
+\end{itemize}
+This is a lot of background information.
+How do I choose?
+How do I decide how much to include?
+
+\chapter{The Semantics of Countable Models}
+
+This chapter is derived from work published at the 22\textsuperscript{nd} \emph{Symposium on Implementation and Application of Functional Languages (IFL), 2010}.
+
+\vspace{\baselineskip}
+\hrule
+\vspace{\baselineskip}
+\input{chapter-countable.tex}
+
+
+\chapter{Interlude: Infinite Programs}
+
+\chapter{Preimage Computation: Running Probabilistic Programs Backwards}
+
+This chapter appears in condensed form in the proceedings of the 23\textsuperscript{rd} \emph{European Symposium on Programming (ESOP), 2014}.
+
+\vspace{\baselineskip}
+\hrule
+\vspace{\baselineskip}
+\input{chapter-preimage-1.tex}
+
+\chapter{Implementation of Preimage Computation}
+
+\input{chapter-preimage-2.tex}
+
+\chapter{Computing in Cantor's Paradise With \lzfclang}
+\label{ch:lambda-zfc}
+
+This chapter is derived from work published at the 11\textsuperscript{th} \emph{International Symposium on Functional and Logic Programming (FLOPS), 2012}.
+
+\vspace{\baselineskip}
+\hrule
+\vspace{\baselineskip}
+\input{chapter-lambda-zfc.tex}
+
+%\appendix
+%\chapter{Proofs}
+
+\bibliographystyle{plainnat}
+\bibliography{local-cites}
+
+\end{document}
+
+% vim: lbr
