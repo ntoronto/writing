@@ -1,7 +1,8 @@
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{xspace}
-%\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{slatex}
 \usepackage{subfig}
 \usepackage{upgreek}
 \usepackage{varwidth}
@@ -10,11 +11,53 @@
 \usepackage{amsmath, amssymb}
 \usepackage{stmaryrd}
 \usepackage{amscd}
+\usepackage{color}
+\usepackage{hyperref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SPACE HACKS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Uncomment the following two lines to get a good idea how much vertical space is being wasted
+%\raggedbottom
+%\usepackage{showframe}
+
+\makeatletter
+
+\renewcommand\small{%
+   \@setfontsize\small\@ixpt{11}%
+   \abovedisplayskip 0\p@
+   \belowdisplayskip 0\p@
+   \abovedisplayshortskip 0\p@
+   \belowdisplayshortskip 0\p@
+   \belowdisplayskip \abovedisplayskip
+}
+
+\setlength\floatsep       {3pt \@minus 1\p@}
+\setlength\textfloatsep   {12pt \@minus 4\p@}
+\setlength\intextsep      {3pt \@minus 1\p@}
+\setlength\dblfloatsep    {3pt \@minus 1\p@}
+\setlength\dbltextfloatsep{3pt \@minus 1\p@}
+
+\makeatother
+
+\usepackage{enumitem}
+\setlist{noitemsep,topsep=2pt}
+\setitemize{noitemsep,topsep=2pt}
+\setenumerate{noitemsep,topsep=2pt}
+
+%\widowpenalty=14
+%\clubpenalty=14
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% END SPACE HACKS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 
 % puts a little space between the \hrule and captions
-\belowcaptionskip 0.25\baselineskip
+%\belowcaptionskip 0.25\baselineskip
+\newcommand{\bottomhrule}{\vspace{3pt}\hrule\vspace{3pt}}
 
 % keywords
 \newcommand{\keyword}[1]{\textbf{#1}}
@@ -298,3 +341,49 @@
 \newcommand{\lzfccase}[3][\ \longrightarrow\ ]{\lzfc{case\ \ {#2}\\\ \ \lzfc[l@{\ {#1}\ }l]{#3}}}
 
 \newcommand{\dash}{\text{-}}
+
+%
+% Racket syntax (must be last - or at least \defschememathescape must be - see last line)
+%
+
+% DrRacket's default colors
+\definecolor{identifiercolor}{rgb}{0.15,0.15,0.5}
+\definecolor{keywordcolor}{rgb}{0.0,0.0,0.0}
+\definecolor{constantcolor}{rgb}{0.16,0.5,0.15}
+\definecolor{parenthesiscolor}{rgb}{0.52,0.24,0.14}
+
+\def\keywordfont#1{\textcolor{keywordcolor}{#1}}
+\def\variablefont#1{\textcolor{identifiercolor}{#1}}
+\def\constantfont#1{\textcolor{constantcolor}{#1}}
+\def\datafont#1{\textcolor{parenthesiscolor}{#1}}
+
+\makeatletter
+\def\mycodehook{\tt\color{parenthesiscolor}\@setfontsize\small{8.5pt}{9.5pt minus0.5pt}}
+\makeatother
+\let\schemecodehook\mycodehook
+\setlength{\leftcodeskip}{\parindent}
+
+\setlength{\leftcodeskip}{0pt}
+\setlength{\rightcodeskip}{0pt plus 1fil}
+\setlength{\abovecodeskip}{0.5\abovedisplayskip}
+\setlength{\belowcodeskip}{0.5\belowdisplayskip}
+
+\unsetspecialsymbol{.}
+\unsetspecialsymbol{...}
+\unsetspecialsymbol{-}
+\unsetspecialsymbol{1-}
+\unsetspecialsymbol{-1+}
+
+\setspecialsymbol{<blank-line>}{\va{}}
+\setspecialsymbol{lambda}{\va{$\mathtt{\lambda}$}}
+\setspecialsymbol{λ}{\va{$\mathtt{\lambda}$}}
+\setspecialsymbol{~}{\va{$\mathtt{\sim}$}}
+\setspecialsymbol{_}{\va{$\underbar{ }$}}
+\setspecialsymbol{Omega}{\va{$\mathtt{\Omega}$}}
+\setspecialsymbol{omega}{\va{$\mathtt{\omega}$}}
+\setspecialsymbol{Ω}{\va{$\mathtt{\Omega}$}}
+\setspecialsymbol{ω}{\va{$\mathtt{\omega}$}}
+
+\setkeyword{define/drbayes struct/drbayes}
+
+\defschememathescape{$}
