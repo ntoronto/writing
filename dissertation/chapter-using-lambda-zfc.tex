@@ -1,0 +1,200 @@
+\mathversion{sans}
+
+\begin{comment}
+To this end, we are concurrently developing \targetlang: an untyped, call-by-value lambda calculus extended with sets as values, and primitive set operators that correspond with the Zermelo-Fraenkel axioms and Choice. Mixing lambdas and sets has been done in automated theorem proving \cite{cit:paulson-1993-settheory-i,cit:paulson-1995-settheory-ii,cit:gordon-1996-holst}; it is possible to define exact real arithmetic, and easy to express infinite set operations and infinite sums.  For this paper, we assume those operations are already defined.  We freely use syntactic sugar like infix, summation, set comprehensions, and pattern-matching definitions. In short, we intend \targetlang to be contemporary mathematics with well-defined lambdas, or a practical lambda calculus with infinite sets.
+
+For example, $image$ is a \texttt{map}-like primitive set operator corresponding to the replacement axiom schema. If $f$ is a lambda and $A$ is a set, $\appp \image f A\ =\ \setb{\app f x}{x \in A}$ applies $f$ to every element of $A$ and returns the set of results.
+
+Besides lambdas, \targetlang has an another class of applicable values: set-theoretic functions, or \keyword{mappings}. A mapping is just a set of pairs $\seq{x,y}$ where each $x$ is unique. If $g$ is a mapping and $x$ is in its domain, $\app g x$ returns the $y$ for which $\seq{x,y} \in g$. Restricting a lambda $f$ to a domain $A$ returns a mapping:
+\begin{equation}
+	{f}\restrict{A}
+		\ =\ \setb{\seq{x,\app f x}}{x \in A}
+		\ =\ \appp \image {(\fun x {\seq{x,\app f x}})} A
+\label{eqn:restrict}
+\end{equation}
+Mappings can also be restricted using \eqref{eqn:restrict}. We often write mappings as $\fun{x \in A} e$ instead of ${(\fun x e)}\restrict{A}$. We think of $\seq{A, f}$ as a \textit{lazy} mapping.
+
+Though \targetlang has no formal type system, we find it helpful to reason about types informally. When we do, $A \tto B$ is a lambda or mapping type, $A \to B$ is the set of total mappings from $A$ to $B$, and a set is a membership proposition.
+\end{comment}
+
+The previous chapter defined \lzfclang, an untyped, call-by-value, operational lambda-calculus.
+It is designed for deriving implementable programs from programs that carry out infinite computations.
+We will mostly use it as a target language for denotational semantics.
+
+There are two reasonably accurate, short characterizations of \lzfclang.
+First, it can be regarded as contemporary mathematics (Zermelo-Fraenkel set theory with the axiom of Choice, or ZFC) with well-defined lambdas.
+Second, it can be regarded as a pure functional programming language with infinite sets.
+The previous chapter defines \lzfclang in a way that makes these characterizations absolutely precise.
+
+Fortunately, understanding and writing \lzfclang code, and knowing how to prove \lzfclang code correct, requires much less detail.
+We review the salient details here.
+
+\section{Computations and Values}
+
+In \lzfclang, essentially every set is a value, as well as every lambda and every set of lambdas.
+For example, these are all \lzfclang values:
+\begin{equation}
+\begin{aligned}
+	&\set{1,2,3} \\
+	&\set{(\fun{x} x), (\fun{x} x+1), (\fun{x}\set{x,x+1})} \\
+	&\Nat,\ \Rat,\ \Re,\ \Re^\Nat
+\end{aligned}
+\end{equation}
+All primitive operations on values, including operations on infinite sets, are assumed to complete instantly if they terminate.
+
+Nonterminating \lzfclang programs are similar to nonterminating programs in any other call-by-value lambda-calculus.
+For example, a function that does not terminate on any input because of runaway recursion (i.e. an infinite loop) is
+\begin{equation}
+	count!from~n\ :=\ count!from~(n+1)
+\end{equation}
+We could say that $count!from~0$ does not terminate because it attempts ``infinitely deep'' computation.
+This limitation is necessary; for example, it prevents \lzfclang from having a program that solves its own halting problem.
+
+Terminating, infinite computations are ``infinitely wide,'' as in either of these equivalent expressions:
+\begin{equation}
+	image~(\fun{n} n+1)~\Nat \hspace{0.5in} \setb{n+1}{n \in \Nat}
+\end{equation}
+Both yield the set of all positive natural numbers.
+It is usually fine to think of terminating, infinite computations as being run in parallel.
+
+As in ZFC, in \lzfclang, all algebraic data structures are encoded as sets; e.g. the pair $\pair{x,y}$ can be encoded as $\set{\set{x},\set{x,y}}$.
+Only the \emph{existence} of encodings into sets is important, as it means data structures inherit a defining characteristic of sets: strictness.
+More precisely, in every data structure, every path between the root and a leaf must have finite length.
+Less precisely, as with computations, values may be ``infinitely wide'' (such as $\Re$) but not ``infinitely tall'' (such as infinite trees and lists).
+
+\section{Auxiliary Type Systems}
+
+Though \lzfclang is untyped, it often helps to define an auxiliary type system.
+When we use a type system, we use a manually checked, polymorphic one characterized by these rules:
+\begin{itemize}
+	\item A free type variable is universally quantified; if uppercase, it denotes a set.
+	\item A set denotes a member of that set.
+	\item $x \tto y$ denotes a partial function.
+	\item $\pair{x,y}$ denotes a pair of values with types $x$ and $y$.
+	\item $Set~x$ denotes a set with members of type $x$.
+\end{itemize}
+Because the type $Set~X$ denotes the same values as the set $\powerset~X$ (i.e. subsets of the set $X$) we regard them as equivalent.
+Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
+
+Examples of types are those of the \lzfclang primitives membership $(\in) : x \tto Set~x \tto Bool$, powerset $\powerset : Set~x \tto Set~(Set~x)$, big union $\U : Set~(Set~x) \tto Set~x$, and the \texttt{map}-like $image : (x \tto y) \tto Set~x \tto Set~y$.
+
+\section{Using ZFC Values and Theorems}
+
+Almost everything definable in ZFC can be defined by a finite \lzfclang program.
+The previous chapter, for example, defined the real numbers, arithmetic, and limits.
+The only values that cannot are those that \emph{must} be defined \keyword{nonconstructively}: by proving existence and uniqueness, without giving a bound (no matter how loose) on the length or cardinality of the value.
+Mathematicians avoid such nonconstructive definitions, and most would consider that definition of ``nonconstructive'' too liberal.\footnote{Constructivists would object to allowing the law of excluded middle, which is derivable from \lzfclang's $if$, and most everyone else would object to allowing choice functions.}
+
+Almost all known ZFC theorems apply to \lzfclang's set values without alteration.\footnote{The only exceptions are theorems that rely critically on the existence of an inaccessible cardinal.}
+Proofs about \lzfclang's set values apply directly to ZFC sets.\footnote{Assuming the existence of an inaccessible cardinal, which is a modest assumption, as ZFC+$\kappa$ is a smaller theory than Coq's~\cite{cit:barras-2010-sets-coq}.}
+
+We often import well-known ZFC theorems as lemmas; for example:
+
+\begin{lemma}[set equality is extensional]
+For all $A : Set~x$ and $B : Set~x$, $A = B$ if and only if $A \subseteq B$ and $B \subseteq A$.
+\end{lemma}
+Or, $A = B$ if and only if they contain the same members.
+
+\section{Internal Equality and External Equivalence}
+
+Any \lzfclang term $\mathit{e}$ used as a truth statement means ``$\mathit{e}$ reduces to $true$'' or ``$\mathit{e}$ evalutes to $true$.''
+Therefore, the terms $(\fun{a}{a})~1$ and $1$ are (externally) unequal, but $(\fun{a}{a})~1 = 1$.
+
+Because of the way \lzfclang's lambda terms are defined, lambda equality is alpha equivalence, or equivalence up to renaming identifiers.
+For example, $(\fun{a}{a}) = (\fun{b}{b})$, but not $(\fun{a}{2}) = (\fun{a}{1+1})$.
+
+If $\mathit{e}_1 = \mathit{e}_2$, then $\mathit{e}_1$ and $\mathit{e}_2$ both terminate, and substituting one for the other in an expression does not change its value.
+Substitution is also safe if both $\mathit{e}_1$ and $\mathit{e}_2$ do not terminate, leading to a coarser notion of equivalence.
+
+\begin{definition}[observational equivalence]
+For terms $\mathit{e_1}$ and $\mathit{e_2}$, $\mathit{e_1} \equiv \mathit{e_2}$ when $\mathit{e_1} = \mathit{e_2}$, or both $\mathit{e_1}$ and $\mathit{e_2}$ do not terminate.
+\end{definition}
+
+It might seem helpful to define basic equivalence even more coarsely, so that we can say $\fun{a} 2$ is equivalent to $\fun{a}{1+1}$.
+However, we want internal equality and basic external equivalence to be similar, and we want to be able to extend ``$\equiv$'' with type-specific rules.
+
+\section{Additional Functions and Syntactic Forms}
+
+\begin{figure*}[!tb]\centering
+%\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&domain : (X \pto Y) \tto Set~X \\
+		&domain \ := \ image~fst
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&range : (X \pto Y) \tto Set~Y \\
+		&range \ := \ image~snd
+	\end{aligned}
+\end{aligned}
+&\tab\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&preimage : (X \pto Y) \tto Set~Y \tto Set~X \\
+		&preimage~g~B \ :=\ \setb{a \in domain~g}{g~a \in B}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&restrict : (X \pto Y) \tto Set~X \tto (X \pto Y) \\
+		&restrict~g~A \ := \ \fun{a \in (A \i domain~g)}{g~a}
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[Common mapping operations]{\lzfclang code for common operations on partial mappings.}
+\label{fig:mapping-defs}
+\end{figure*}
+
+We use heavily sugared syntax, with automatic currying (including primitive applications, so $image~fst$ means $\fun{A} image~fst~A$), binding forms such as indexed unions $\U_{\mathit{x} \in \mathit{e_A}}\mathit{e}$, destructuring binds as in $swap~\pair{a,b} := \pair{b,a}$, and comprehensions like $\setb{a \in A}{a \in B}$.
+We assume logical operators, bounded quantifiers, and typical set operations are defined.
+To refer to binary operators as values, we enclose them in parentheses, as in $(\in)$ and $(\subseteq)$.
+
+A less typical set operation we use is disjoint union:
+\begin{equation}
+\begin{aligned}
+	&(\uplus) : Set~x \tto Set~x \tto Set~x \\
+	&A \uplus B \ := \ if~(A \i B = \emptyset)~(A \u B)~(take~\emptyset)
+\end{aligned}
+\end{equation}
+The primitive $take : Set~x \tto x$ returns the element in a singleton set, and does not terminate when applied to a non-singleton set.
+Thus, $A \uplus B$ terminates only when $A$ and $B$ are disjoint.
+
+In mathematics, logic, and computer science, there are two general classes of functions:
+\begin{itemize}
+	\item \keyword{Extensional}: those whose equality, like that of sets, is determined only by their external properties, and not by how they are defined or constructed.
+	\item \keyword{Intensional}: those whose equality is determined only by their internal properties.
+\end{itemize}
+
+In \lzfclang, lambda equality is decided by comparing body expressions, so lambdas are intensional.
+
+In ZFC and \lzfclang, function extensionality is achieved by encoding functions as sets of input-output pairs.
+For example, the increment function for the natural numbers is $\set{\pair{0,1},\pair{1,2},\pair{2,3},...}$.
+(It is fine to think of such encodings as infinite hash tables.)
+We call these encodings \keyword{mappings}.
+We use \keyword{function} to mean either a lambda or a mapping, and use adjacency (e.g. $(f~x)$) to apply either kind.
+
+Syntax for constructing unnamed mappings is defined by
+\begin{align}
+	&\fun{\mathit{x_a} \in \mathit{e_A}}{\mathit{e_b}} \ :=\ mapping~(\fun{\mathit{x_a}}\mathit{e_b})~\mathit{e_A} \\
+\nonumber\\[-0.5\baselineskip]
+	&\begin{aligned}
+		&mapping : (X \tto Y) \tto Set~X \tto (X \pto Y) \\
+		&mapping~f~A \ := \ image~(\fun{a}{\pair{a,f~a}})~A
+	\end{aligned}
+\end{align}
+For symmetry with partial functions $x \tto y$, $mapping$ returns a member of the set $X \pto Y$ of all \emph{partial} mappings from $X$ to $Y$.
+\figref{fig:mapping-defs} defines other common mapping operations: $domain$, $range$, $preimage$ and $restrict$.
+
+The set $J \to X$ contains all the \emph{total} mappings from $J$ to $X$; equivalently, all the vectors of $X$ indexed by $J$ (which may be infinite).
+The function
+\begin{equation}
+\begin{aligned}
+	&\pi : J \tto (J \to X) \tto X \\
+	&\pi~j~f \ := \ f~j
+\end{aligned}
+\end{equation}
+produces projections. This is particularly useful when $f$ is unnamed.
+
+\mathversion{normal}

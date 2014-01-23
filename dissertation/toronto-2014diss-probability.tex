@@ -210,12 +210,6 @@ I propose that it is possible to use measure-theoretic probability and functiona
 % Customize the name of the Table of Contents section.
 \renewcommand\contentsname{Table of Contents}
 
-% Remove all widows an orphans.  This is not normally recommended, but in a
-% paper dissertation there is no reasonable way around it; you can't exactly
-% rewrite already-published content to fix the problem.
-\clubpenalty 10000
-\widowpenalty 10000
-
 % Allow pages to have extra blank space at the bottom in order to accommodate
 % removal of widows and orphans.
 \raggedbottom
@@ -237,68 +231,33 @@ I propose that it is possible to use measure-theoretic probability and functiona
 
 \chapter{Thesis Statement}
 
-\begin{quote}
-Functional programming theory and measure-theoretic probability provide a solid foundation for trustworthy, useful languages for constructive probabilistic modeling and inference.
-\end{quote}
+\input{chapter-thesis-statement.tex}
 
-\section{Motivation}
-
-\section{Statement Terms}
-
-\paragraph{Funcional Programming Theory.} Blah blah blah.
-
-Blah.
-
-\paragraph{Measure-Theoretic Probability.} Blah blah blah.
-
-Blah.
-
-\paragraph{Trustworthy.} Blah blah blah.
-
-Blah.
-
-\paragraph{Useful.} Blah blah blah.
-
-Blah.
-
-\paragraph{Constructive Probabilitic Modeling.} Blah blah blah.
-
-Blah.
-
-\paragraph{Probabilistic Inference.} Blah blah blah.
-
-Blah.
-
-\section{Proof and Supporting Evidence}
-
-\paragraph{Semantics.} Blah blah blah.
-
-Blah.
-
-\paragraph{Properties.} Blah blah blah.
-
-Blah.
-
-\paragraph{Test Cases.} Blah blah blah.
-
-Blah.
 
 \chapter{Background}
 
-XXX: Candidates for exposition:
-\begin{itemize}
-	\item Basic probability
-	\item Bayesian inference
-	\item Measure theory
-	\item $\lambda$-calculus
-	\item Operational semantics
-	\item Monads, idioms, and arrows
-\end{itemize}
-This is a lot of background information.
-How do I choose?
-How do I decide how much to include?
+\input{chapter-background.tex}
 
-\chapter{The Semantics of Countable Models}
+
+\chapter{Computing in Cantor's Paradise}
+\label{ch:lambda-zfc}
+
+This chapter is derived from work published at the 11\textsuperscript{th} \emph{International Symposium on Functional and Logic Programming (FLOPS), 2012}.
+
+\vspace{\baselineskip}
+\hrule
+\vspace{\baselineskip}
+
+\input{chapter-lambda-zfc.tex}
+
+
+\chapter{Using \lzfclang}
+\label{ch:using-lambda-zfc}
+
+\input{chapter-using-lambda-zfc.tex}
+
+
+\chapter{Semantics of Countable Models}
 
 This chapter is derived from work published at the 22\textsuperscript{nd} \emph{Symposium on Implementation and Application of Functional Languages (IFL), 2010}.
 
@@ -310,6 +269,9 @@ This chapter is derived from work published at the 22\textsuperscript{nd} \emph{
 
 \chapter{Interlude: Infinite Programs}
 
+\input{chapter-interlude.tex}
+
+
 \chapter{Preimage Computation: Running Probabilistic Programs Backwards}
 
 This chapter appears in condensed form in the proceedings of the 23\textsuperscript{rd} \emph{European Symposium on Programming (ESOP), 2014}.
@@ -319,19 +281,25 @@ This chapter appears in condensed form in the proceedings of the 23\textsuperscr
 \vspace{\baselineskip}
 \input{chapter-preimage-1.tex}
 
+
 \chapter{Implementation of Preimage Computation}
 
 \input{chapter-preimage-2.tex}
 
-\chapter{Computing in Cantor's Paradise With \lzfclang}
-\label{ch:lambda-zfc}
 
-This chapter is derived from work published at the 11\textsuperscript{th} \emph{International Symposium on Functional and Logic Programming (FLOPS), 2012}.
+\chapter{Measurability}
+\label{ch:measurability}
 
-\vspace{\baselineskip}
-\hrule
-\vspace{\baselineskip}
-\input{chapter-lambda-zfc.tex}
+\input{chapter-measurability.tex}
+
+
+\chapter{Sampling Algorithm Proofs}
+\label{ch:sampling-algorithm-proofs}
+
+\input{chapter-sampling-proofs.tex}
+
+
+\chapter{Related Work}
 
 %\appendix
 %\chapter{Proofs}

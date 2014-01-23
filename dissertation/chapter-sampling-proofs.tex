@@ -1,0 +1,342 @@
+\mathversion{sans}
+
+XXX: You're still here?
+
+\section{Basic Definitions}
+
+XXX: unlike preceeding chapter, basic definitions not meant to be self-contained, but to 1) define things typically regarded as ``just syntax'' or ``just formalism'' as $\lambda$-calculus functions so we can manipulate them more mechanically; 2) give interested readers terminology to look up; 3) give precise definitions for ambiguous terms (especially ``uniformly $\sigma$-finite'')
+
+\begin{definition}[almost-everywhere equality]
+\label{def:almost-everywhere-equality}
+A measurable predicate $p?$ holds \keyword{almost everywhere} with respect to measure $m$ when it holds on the \emph{complement} of a measure-zero set:
+\begin{equation}
+\begin{aligned}
+	&ae? : (Set~X \pto [0,+\infty]) \tto (X \pto Bool) \tto Bool \\
+	&ae?~m~p?\ :=\ m~(preimage~p?~\set{false}) = 0
+\end{aligned}
+\end{equation}
+Similarly, two total mappings are equal almost everywhere (with respect to a measure $m$) when they are equal on all but a measure-zero set:
+\begin{equation}
+\begin{aligned}
+	&ae!equal? : (Set~X \pto [0,+\infty]) \tto (X \to Y) \tto (X \to Y) \tto Bool \\
+	&ae!equal?~m~g_1~g_2\ :=\ ae?~m~\fun{a \in domain~g_1} g_1~a = g_2~a
+\end{aligned}
+\end{equation}
+\end{definition}
+
+From here on, we write ``$g_1 = g_2$ ($m$-a.e.)'' instead of $ae!equal?~m~g_1~g_2$.
+
+[XXX: define $\sigma$-finite]
+
+Lebesgue\footnote{Pronounced ``lehBEG,'' and named after French mathematician Henri Lebesgue.} integration:
+\begin{equation}
+\begin{aligned}
+	&int : (X \to \Re) \tto (Set~X \pto [0,+\infty]) \tto (Set~X \pto [-\infty,+\infty]) \\
+	&int~f~m~A\ =\ \int_A~f~\mathit{d}m
+\end{aligned}
+\label{eqn:int-type}
+\end{equation}
+XXX: $\lzfclang$-definable, but its definition does not give extra clarity
+
+XXX: Lebesgue integration is awesome as a lambda because indefinite integration, which yields a \emph{measure}, can be done simply by partial application; will demonstrate this shortly in the statement of Lemma~\ref{lem:real-almost-everywhere-equality}
+
+% Klenke, Def. 4.13 & Rem. 4.14
+\begin{lemma}[indefinite integration yields measures]
+If $f : X \to [0,+\infty)$ is measurable and $m : Set~X \pto [0,+\infty]$ is a measure, then $int~f~m$ is a measure.
+[XXX: preservation of measure properties like $\sigma$-finite?]
+\end{lemma}
+
+For real-valued functions, Lebesgue integration gives another, sometimes more convenient way to characterize almost-everywhere equality: two functions are equal almost everywhere if and only if their indefinite integrals are equal.
+\begin{lemma}[real function a.e. equality]
+\label{lem:real-almost-everywhere-equality}
+If $m : Set~X \pto [0,+\infty]$ is a $\sigma$-finite measure and $f_1,f_2 : X \to \Re$ are measurable, then $f_1 = f_2$ ($m$-a.e) if and only if $int~f_1~m = int~f_2~m$.
+\end{lemma}
+
+In differential calculus (hereafter simply ``calculus''), indefinite integration has an inverse: differentiation.
+In measure theory, indefinite Lebesgue integration also has an inverse, which is also called differentiation.
+In calculus, differentiation is defined only for differentiable functions.
+In measure theory, the analogous property is called absolute continuity.
+
+\begin{definition}[absolute continuity]
+\label{def:absolute-continuity}
+Given measures $m_1,m_2 : Set~X \pto [0,+\infty]$, $m_1$ is \keyword{absolutely continuous} with respect to $m_2$ if $m_1 \ll m_2$, where
+\begin{equation}
+\begin{aligned}
+	&(\ll) : (Set~X \pto [0,+\infty]) \tto (Set~X \pto [0,+\infty]) \tto Bool \\
+	&m_1 \ll m_2\ :=\ \Forall{A \in domain~m_2} m_2~A = 0 \implies m_1~A = 0
+\end{aligned}
+\end{equation}
+\end{definition}
+
+By Definition~\ref{def:absolute-continuity}, ``$m_1 \ll m_2$'' means that $m_1$ has at least as many measure-zero sets as $m_2$, and is therefore, in a sense, smaller.
+
+Because we are doing probability, we need to deal only with nonnegative derivatives, for which operations have simpler closure conditions.
+The types of nonnegative integration and differentiation are
+\begin{equation}
+\begin{aligned}
+	int^+ &: (X \to [0,+\infty)) \tto (Set~X \pto [0,+\infty]) \tto (Set~X \pto [0,+\infty]) \\
+	diff^+ &: (Set~X \pto [0,+\infty]) \tto (Set~X \pto [0,+\infty]) \tto (X \to [0,+\infty))
+\end{aligned}
+\label{eqn:int-diff-types}
+\end{equation}
+The function $diff^+$ returns a \keyword{Radon-Nikod\'ym derivative}.
+Such derivatives are named after the following theorem, which gives circumstances under which $diff^+~m_1~m_2$ exists, and states that $int^+$ is the left inverse of $diff^+$ (with second arguments held constant).
+
+\begin{lemma}[Radon-Nikod\'ym theorem]
+\label{lem:radon-nikodym}
+If $m_1,m_2 : Set~X \pto [0,+\infty]$ are $\sigma$-finite measures and $m_1 \ll m_2$, then $diff^+~m_1~m_2$ exists and $m_1 = int^+~(diff^+~m_1~m_2)~m_2$.
+\end{lemma}
+
+The function $diff^+~m_1~m_2 : X \to [0,+\infty)$ is often called the \keyword{density} of $m_1$ with respect to $m_2$.
+(``With respect to $m_2$'' is usually not stated when $m_2$ is Lebesgue measure---i.e. length, area, or volume---as with the densities of most common probability distributions.)
+By Lemma~\ref{lem:real-almost-everywhere-equality} (almost-everywhere equality of real functions), $diff^+~m_1~m_2$ is unique up to equality $m_2$-a.e.
+
+By analogy to calculus, we should expect $diff^+$ to be the left inverse of $int^+$ (with second arguments held constant).
+It is, up to equality $m_2$-a.e.
+\begin{lemma}
+\label{lem:diff-left-inverse-int}
+If $f_1 : X \to [0,+\infty)$ is measurable and $m_2 : Set~X \pto [0,+\infty]$ is a $\sigma$-finite measure, then $int^+~f_1~m_2 \ll m_2$ and $f_1 = diff^+~(int^+~f_1~m_2)~m_2$ ($m_2$-a.e.).
+\end{lemma}
+\begin{comment}
+\begin{proof}
+\begin{align*}
+	&int~(f_1 - diff^+~(int^+~f_1~m_2)~m_2)~m_2
+\\
+	&\tab=\ int~f_1~m_2 - int~(diff^+~(int^+~f_1~m_2)~m_2)~m_2
+\\
+	&\tab=\ int^+~f_1~m_2 - int^+~(diff^+~(int^+~f_1~m_2)~m_2)~m_2
+\\
+	&\tab=\ int^+~f_1~m_2 - int^+~f_1~m_2
+\end{align*}
+\end{proof}
+\end{comment}
+
+The previous two theorems are analogous to the two parts of the fundamental theorem of calculus.
+The next two theorems are analogous to others in calculus: that Radon-Nikod\'ym differentiation is linear in its first argument.
+
+\begin{lemma}
+\label{lem:diff-distributes-over-addition}
+Let $m_1,m_2,m : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_1 \ll m$ and $m_2 \ll m$.
+Then $m_1 + m_2 \ll m$ and $diff^+~(m_1 + m_2)~m\ =\ diff^+~m_1~m + diff^+~m_2~m$ ($m$-a.e.).
+\end{lemma}
+
+\begin{lemma}
+\label{lem:diff-distributes-over-scaling}
+Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$.
+For all $\alpha \ge 0$ and $\beta > 0$, $\alpha \cdot m_1 \ll \beta \cdot m_2$ and $diff^+~(\alpha \cdot m_1)~(\beta \cdot m_2)\ =\ \dfrac{\alpha}{\beta} \cdot diff^+~m_1~m_2$ ($m$-a.e.).
+\end{lemma}
+
+As in differentiation in calculus, there is a chain rule for $diff^+$:
+\begin{lemma}
+\label{lem:diff-chain-rule}
+Let $m_1,m_2,m_3 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$ and $m_2 \ll m_3$.
+Then $m_1 \ll m_3$ and $diff^+~m_1~m_3\ =\ diff^+~m_1~m_2 \cdot diff^+~m_2~m_3$ ($m_3$-a.e.).
+\end{lemma}
+
+Now we finally get to rules for which there is no analogy in calculus.
+First, a rule for reciprocals [XXX: probably don't need this---double-check]:
+\begin{lemma}
+\label{lem:diff-reciprocal-rule}
+Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_2 \ll m_1$ and $m_1 \ll m_2$.
+Then $diff^+~m_1~m_2\ =\ 1~{/}~diff^+~m_2~m_1$ ($m_1$-a.e. or $m_2$-a.e.).
+\end{lemma}
+
+Second, a way to integrate out densities, or to use differentiation to change the base measure in Lebesgue integration:
+\begin{lemma}[change of measure]
+\label{lem:diff-change-measure}
+Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$, and $g : X \to \Re$ be measurable.
+Then $int~g~m_1\ =\ int~(g \cdot diff^+~m_1~m_2)~m_2$.
+\end{lemma}
+
+XXX: intro the following; something about composing two processes to yield another, where the second depends on the outcome of the first
+
+\begin{definition}[transition kernel]
+\label{def:transition-kernel}
+A function $k : X \to Set~Y \pto [0,+\infty]$ is a \keyword{transition kernel} when both of the following hold.
+\begin{itemize}
+	\item For all $a \in X$, $k~a$ is a measure.
+	\item For all $B \in \Sigma~Y$, $\fun{a \in X} k~a~B$ is measurable.
+\end{itemize}
+For any measure property $P$, we say $k$ has property $P$ when for all $a \in X$, $P~(k~a)$. [XXX: won't need this last statement if I go with uniformly $\sigma$-finite]
+\end{definition}
+
+\begin{definition}[uniformly $\sigma$-finite]
+A transition kernel $k : X \to Set~Y \pto [0,+infty]$ is \keyword{uniformly $\sigma$-finite} when there exists an at-most-countable partition $s : \Nat \to Set~Y$ such that $k~a~(s~n) < +\infty$ for all $a \in X$ and $n \in \Nat$.
+\end{definition}
+
+\begin{lemma}[finite transition kernel products]
+\label{lem:finite-transition-kernel-products}
+Let $m : Set~X \to [0,+\infty]$ be a $\sigma$-finite measure and $k : X \to Set~Y \pto [0,+\infty]$ be a uniformly $\sigma$-finite transition kernel.
+There exists a unique $\sigma$-finite measure $m \times k : Set~\pair{X,Y} \pto [0,+\infty]$ defined by extending $(m \times k)~(A \times B) = int^+~(\fun{a \in X} k~a~B)~m~A$ to a product measure.
+\end{lemma}
+
+\begin{lemma}[Fubini's for transition kernels]
+\label{lem:fubini-for-transition-kernels}
+Let $m : Set~X \to [0,+\infty]$ be a $\sigma$-finite measure and $k : X \to Set~Y \pto [0,+\infty]$ be a uniformly $\sigma$-finite transition kernel. If $f : X \times Y \to [-\infty,+\infty]$ is measurable, and nonnegative or $(m \times k)$-integrable, then
+\begin{equation}
+\begin{aligned}
+	&int~f~(m \times k)~(X \times Y)
+\\
+	&\tab =\ 
+	int~(\fun{a \in X} int~(\fun{b \in Y} f~\pair{a,b})~(k~a)~Y)~m~X
+\end{aligned}
+\end{equation}
+\end{lemma}
+
+
+\section{Sampling Proofs}
+\label{sec:sampling-proofs}
+
+\begin{theorem}[partitioned importance sampling correctness]
+%\label{thm:partitioned-importance-sampling-correctness}
+Let $X$, $P$, $N$, $s$, $p$, and $Q$ as in Definition~\ref{def:partitioned-importance-sampling} (partitioned importance sampling) such that $subcond~P~(s~n) \ll Q~n$ for all $n \in N$. Define $P_N : Set~N \to [0,1]$ by extending $p$ to a measure.
+
+If $g : X \to \Re$ is a $P$-integrable mapping, and
+\begin{equation}
+\begin{aligned}
+	&g' : N \times X \to \Re \\
+	&g'~\pair{n,a}\ :=\ g~a \cdot \dfrac{1}{p~n} \cdot diff^+~(subcond~P~(s~n))~(Q~n)~a
+\end{aligned}
+\end{equation}
+then $int~g'~(P_N \times Q)~(N \times X)\ =\ int~g~P~X$.
+\end{theorem}
+\begin{proof}
+Expand $g'$ in the left-hand side of the equality, apply Lemma~\ref{lem:fubini-for-transition-kernels} (Fubini's for transition kernels), rearrange inside terms, and apply Lemma~\ref{lem:diff-change-measure} (change of measure) to cancel $Q~n$:
+\begin{displaybreaks}
+\begin{align*}
+	&int~g'~(P_N \times Q)~(N \times X)
+\\*
+	&\tab =\ int~(\fun{\pair{n,a} \in N \times X} g~a \cdot \dfrac{1}{p~n} \cdot diff^+~(subcond~P~(s~n))~(Q~n)~a)~(P_N \times Q)~(N \times X)
+\\
+	&\tab =\ int~(\fun{n \in N} int~(\fun{a \in X} g~a \cdot \dfrac{1}{p~n} \cdot diff^+~(subcond~P~(s~n))~(Q~n)~a)~(Q~n)~X)~P_N~N
+\\
+	&\tab =\ int~(\fun{n \in N} int~(g \cdot \dfrac{1}{p~n} \cdot diff^+~(subcond~P~(s~n))~(Q~n))~(Q~n)~X)~P_N~N
+\\
+	&\tab =\ int~(\fun{n \in N} int~(g \cdot \dfrac{1}{p~n})~(subcond~P~(s~n))~X)~P_N~N
+\intertext{Because $N$ is at most countable, turn integration into summation; then use $\sigma$-additivity of measures:}
+	&\tab =\ \sum_{n \in N} p~n \cdot int~(g \cdot \dfrac{1}{p~n})~(subcond~P~(s~n))~X
+\\
+	&\tab =\ \sum_{n \in N} int~g~(subcond~P~(s~n))~X
+\\
+	&\tab =\ \sum_{n \in N} int~g~P~(s~n)
+\\
+	&\tab =\ int~g~P~(\U_{n \in N}~(s~n))
+\\*
+	&\tab =\ int~g~P~X
+\\[-2.25\baselineskip]
+\end{align*}
+\end{displaybreaks}
+\end{proof}
+
+
+\begin{theorem}
+Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures such that $m_1 \ll m_2$, and $k : X \to Set~Y \pto [0,+\infty]$ be a uniformly $\sigma$-finite transition kernel.
+Then $m_1 \times k \ll m_2 \times k$ and $diff^+~(m_1 \times k)~(m_2 \times k)\ =\ (\fun{\pair{a,b} \in X \times Y} diff^+~m_1~m_2~a)$ ($m_2 \times k$-a.e.).
+\end{theorem}
+\begin{proof}
+XXX: prove absolute continuity
+
+By Lemma~\ref{lem:real-almost-everywhere-equality}, they are equal $m_2 \times k$-a.e. if and only if their indefinite integrals w.r.t. $m_2 \times k$ are equal.
+
+Let $A$ and $B$ be measurable subsets of $X$ and $Y$ respectively.
+Starting from the left-hand side, apply Lemma~\ref{lem:diff-change-measure} (change of measure):
+\begin{equation}
+\begin{aligned}
+	&int~(diff^+~(m_1 \times k)~(m_2 \times k))~(m_2 \times k)~(A \times B)
+\\
+	&\tab=\ int~(\fun{\pair{a,b} \in X \times Y} 1)~(m_1 \times k)~(A \times B)
+\\
+	&\tab=\ (m_1 \times k)~(A \times B)
+\end{aligned}
+\end{equation}
+From the right-hand side, apply Lemma~\ref{lem:fubini-for-transition-kernels} (Fubini's for transition kernels), rearrange terms, apply Lemma~\ref{lem:diff-change-measure} (change of measure), and Lemma~\ref{lem:finite-transition-kernel-products} (finite transition kernel products):
+\begin{equation}
+\begin{aligned}
+	&int~(\fun{\pair{a,b} \in X \times Y} diff^+~m_1~m_2~a)~(m_2 \times k)~(A \times B)
+\\
+	&\tab=\ int~(\fun{a \in X} int~(\fun{b \in Y} diff^+~m_1~m_2~a)~(k~a)~B)~m_2~A
+\\
+	&\tab=\ int~(diff^+~m_1~m_2 \cdot \fun{a \in X} int~(\fun{b \in Y} 1)~(k~a)~B)~m_2~A
+\\
+	&\tab=\ int~(\fun{a \in X} k~a~B)~m_1~A
+\\
+	&\tab=\ (m_1 \times k)~(A \times B)
+\end{aligned}
+\end{equation}
+By uniqueness of $\sigma$-finite product measures, the integrals are equal.
+\end{proof}
+
+It is not hard to extend the preceeding theorem to arbitrary sublists of finite lists, or to arbitrary finite substructures of any algebraic data type, by finite induction.
+But we need a version of it for arbitrary finite substructures of infinite binary trees, which we have defined non-inductively as mappings $R := J \to [0,1]$ from tree indexes to reals.
+
+The main idea is to define a transformation from any $r \in R$ to a pair $\pair{r_{fin},r_{inf}}$, where $r_{fin}$ is a finite substructure and $r_{inf}$ is the rest of it, and apply Theorem~[XXX: preceeding].
+The proof is easier to do abstractly: without specifying the structure of $r$, without requiring the substructure to be finite, and without requiring the transformation to be a projection.
+
+\begin{theorem}
+Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures such that $m_1 \ll m_2$, and $k : X \to Set~Y \pto [0,+\infty]$ be a uniformly $\sigma$-finite transition kernel.
+Let $f : \Omega \to X \times Y$ be measurable and invertible, and let $\mu_1,\mu_2 : Set~\Omega \pto [0,1]$ so that
+\begin{equation}
+\begin{aligned}
+	&\mu_1~\Omega'\ =\ (m_1 \times k)~(image~f~\Omega') \\
+	&\mu_2~\Omega'\ =\ (m_2 \times k)~(image~f~\Omega')
+\end{aligned}
+\end{equation}
+Then $diff^+~\mu_1~\mu_2\ =\ \fun{\omega \in \Omega} diff^+~m_1~m_2~(fst~(f~\omega))$ ($\mu_2$-a.e.).
+\end{theorem}
+\begin{proof}
+Suppose $\Omega' \subseteq \Omega$ is measurable and let $C := image~f~\Omega'$.
+Let $f^{-1}$ be the inverse of $f$.
+[XXX: justify steps]
+\begin{displaybreaks}
+\begin{align*}
+	&int~(diff^+~\mu_1~\mu_2)~\mu_2~\Omega'
+\\*
+	&\tab=\ int~(1_{\Omega'} \cdot diff^+~\mu_1~\mu_2)~\mu_2~\Omega
+\\
+	&\tab=\ int~1_{\Omega'}~\mu_1~\Omega
+\\
+	&\tab=\ int~(1_{\Omega'} \circ\map f^{-1})~(m_1 \times k)~(X \times Y)
+\\
+	&\tab=\ int~1_C~(m_1 \times k)~(X \times Y)
+\\
+	&\tab=\ int~(1_C \cdot diff^+~(m_1 \times k)~(m_2 \times k))~(m_2 \times k)~(X \times Y)
+\\
+	&\tab=\ int~(1_C \cdot \fun{\pair{a,b} \in X \times Y} diff^+~m_1~m_2~a)~(m_2 \times k)~(X \times Y)
+\\
+	&\tab=\ int~((1_C \cdot \fun{\pair{a,b} \in X \times Y} diff^+~m_1~m_2~a) \circ\map f)~\mu_2~\Omega
+\\
+	&\tab=\ int~(1_{\Omega'} \cdot (\fun{\pair{a,b} \in X \times Y} diff^+~m_1~m_2~a) \circ\map f)~\mu_2~\Omega
+\\
+	&\tab=\ int~((\fun{\pair{a,b} \in X \times Y} diff^+~m_1~m_2~a) \circ\map f)~\mu_2~\Omega'
+\\
+	&\tab=\ int~(\fun{\omega \in \Omega} diff^+~m_1~m_2~(fst~(f~\omega)))~\mu_2~\Omega'
+\end{align*}
+\end{displaybreaks}
+Apply Lemma~\ref{lem:real-almost-everywhere-equality} (real function a.e. equality).
+\end{proof}
+
+Thus, two measures $\mu_1$ and $\mu_2$ on infinite structures that can be decomposed into products $m_1 \times k$ and $m_2 \times k$ such that $diff^+~m_1~m_2$ exists have a Radon-Nikod\'ym derivative that can be completely characterized in terms of $diff^+~m_1~m_2$.
+
+Application to infinite binary trees merely requires defining the transformation $f$, which is clearly invertible.
+
+\begin{corollary}
+Let $J' \subseteq J$, let $m_1,m_2 : Set~(J' \to [0,1]) \pto [0,1]$ be $\sigma$-finite measures such that $m_1 \ll m_2$, and let $k : (J' \to [0,1]) \to (Set~(J \w J' \to [0,1]) \pto [0,1])$ be a uniformly $\sigma$-finite transition kernel.
+Let
+\begin{equation}
+\begin{aligned}
+	&f : R \to (J' \to [0,1]) \times (J \w J' \to [0,1]) \\
+	&f~r\ :=\ \pair{restrict~r~J',restrict~r~(J \w J')}
+\end{aligned}
+\end{equation}
+and let $\mu_1,\mu_2 : Set~R \pto [0,1]$ so that
+\begin{equation}
+\begin{aligned}
+	&\mu_1~R'\ =\ (m_1 \times k)~(image~f~R') \\
+	&\mu_2~R'\ =\ (m_2 \times k)~(image~f~R')
+\end{aligned}
+\end{equation}
+Then $diff^+~\mu_1~\mu_2\ =\ \fun{r \in R} diff^+~m_1~m_2~(restrict~r~J')$ ($\mu_2$-a.e.).
+\end{corollary}
+
+
+\mathversion{normal}

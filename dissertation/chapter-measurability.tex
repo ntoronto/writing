@@ -1,0 +1,399 @@
+\mathversion{sans}
+
+Proving measurability is critical in proving correctness, in that it establishes that the outputs of all programs have sensible distributions.
+While critical, it is somewhat distracting to the main narrative.
+Instead of ignoring measurability, however, as is so often done, we have moved it near the end, where readers that are somehow \emph{still starving for even more mathematics} can devour it and---possibly---finally be satiated.
+
+\section{Basic Definitions}
+
+We assume readers are familiar with topology or measure theory.
+For readers familiar with topology but not measure theory, we review the necessary fundamentals by analogy to topology.
+
+The analogue of a topology of open sets is a $\sigma$-algebra of measurable sets.
+
+\begin{definition}[$\sigma$-algebra, measurable set]
+A collection of sets $\A \subseteq \powerset~X$ is called a \keyword{$\sigma$-algebra} on $X$ if it contains $X$ and is closed under complements and countable unions.
+The sets in $\A$ are called \keyword{measurable sets}.
+\end{definition}
+
+$X \w X = \emptyset$, so $\emptyset \in \A$.
+Additionally, it follows from De Morgan's law that $\A$ is closed under countable intersections.
+
+The analogue of continuity is measurability.
+
+\begin{definition}[measurable mapping]
+Let $\A$ and $\B$ be $\sigma$-algebras on $X$ and $Y$.
+A mapping $g : X \pto Y$ is $\A!\B$-\keyword{measurable} if for all $B \in \B$, $preimage~g~B \in \A$.
+\end{definition}
+
+When the domain and codomain $\sigma$-algebras $\A$ and $\B$ are clear from context, we will simply say $g$ is \keyword{measurable}.
+
+Measurability is usually a weaker condition than continuity.
+For example, with respect to the $\sigma$-algebra generated from $\Re$'s standard topology (i.e. using the standard topology as a sort of ``base''), measurable $\Re \pto \Re$ functions may have countably many discontinuities.
+Likewise, real comparison functions such as $(=)$, $(<)$, $(>)$ and their negations are measurable, but not continuous.
+
+Product $\sigma$-algebras are defined analogously to product topologies.
+
+\begin{definition}[finite product $\sigma$-algebra]
+\label{def:finite-product-sigma-algebra}
+Let $\A_1$ and $\A_2$ be $\sigma$-algebras on $X_1$ and $X_2$, and define $X := X_1 \times X_2$.
+The \keyword{product $\sigma$-algebra} $\A_1 \otimes \A_2$ is the smallest (i.e. coarsest) $\sigma$-algebra for which $mapping~fst~X$ and $mapping~snd~X$ are measurable.%
+\end{definition}
+
+\begin{definition}[arbitrary product $\sigma$-algebra]
+\label{def:arbitrary-product-sigma-algebra}
+Let $\A$ be a $\sigma$-algebra on $X$.
+The \keyword{product $\sigma$-algebra} $\A^{\otimes J}$ is the smallest $\sigma$-algebra for which, for all $j \in J$, $mapping~(\pi~j)~(J \to X)$ is measurable.%
+\end{definition}
+
+\section{Measurable Pure Computations}
+
+It is easier to prove measurability of pure computations than to prove measurability of partial, probabilistic ones.
+Further, we can use the results to prove that the interpretations of all partial, probabilistic expressions are measurable.
+
+We must first define what it means for a \emph{computation} to be measurable.
+
+\begin{definition}[measurable mapping arrow computation]
+\label{def:measurable-mapping-arrow-computation}
+Let $\A$ and $\B$ be $\sigma$-algebras on $X$ and $Y$.
+A computation $g : X \mapto Y$ is $\A!\B$-\keyword{measurable} if $g~A^*$ is an $\A!\B$-measurable mapping, where $A^*$ is $g$'s maximal domain.%
+\end{definition}
+
+\begin{theorem}[maximal domain measurability]
+Let $g : X \mapto Y$ be an $\A!\B$-measurable mapping arrow computation.
+Its maximal domain $A^*$ is in $\A$.
+\end{theorem}
+\begin{proof}
+Because $g~A^*$ is measurable, $preimage~(g~A^*)~Y = A^*$ is in $\A$.
+\end{proof}
+
+Mapping arrow computations can be applied to sets other than their maximal domains.
+We need to ensure doing so yields a measurable mapping, at least for measurable subsets of $A^*$.
+Fortunately, that is true without any extra conditions.
+
+\begin{lemma}
+\label{lem:restricted-mappings-are-measurable}
+Let $g : X \pto Y$ be an $\A!\B$-measurable mapping.
+For any $A \in \A$, $restrict~g~A$ is $\A!\B$-measurable.%
+\end{lemma}
+
+\begin{theorem}
+\label{thm:restricted-computations-are-measurable}
+Let $g : X \mapto Y$ be an $\A!\B$-measurable mapping arrow computation with maximal domain $A^*$.
+For all $A \subseteq A^*$ with $A \in \A$, $g~A$ is $\A!\B$-measurable.
+\end{theorem}
+\begin{proof}
+By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction) and Lemma~\ref{lem:restricted-mappings-are-measurable}.
+\end{proof}
+
+We do not need to prove all interpretations using $\meaningof{\cdot}\gen$ are measurable.
+However, we do need to prove mapping arrow combinators preserve measurability.
+
+\paragraph{Composition}
+Proving compositions are measurable takes the most work.
+The main complication is that, under measurable mappings, while \emph{preimages} of measurable sets are measurable, \emph{images} of measurable sets may not be.
+We need the following four extra theorems to get around this.
+
+\begin{lemma}[images of preimages]
+\label{lem:images-of-preimages}
+If $g : X \pto Y$ and $B \subseteq Y$, $image~g~(preimage~g~B) \subseteq B$.%
+\end{lemma}
+
+\begin{lemma}[expanded post-composition]
+\label{lem:composition-expansion}
+Let $g_1 : X \pto Y$ and $g_2 : Y \pto Z$ such that $range~g_1 \subseteq domain~g_2$, and let $g_2' : Y \pto Z$ such that $g_2 \subseteq g_2'$.
+Then $g_2 \circ\map g_1 = g_2' \circ\map g_1$.%
+\end{lemma}
+
+\begin{theorem}[mapping arrow monotonicity]
+\label{thm:mapping-arrow-monotonicity}
+Let $g : X \mapto Y$.
+For any $A' \subseteq A \subseteq A^*$, $g~A' \subseteq g~A$.%
+\end{theorem}
+\begin{proof}
+By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction).
+\end{proof}
+
+\begin{theorem}[maximal domain subsets]
+\label{thm:maximal-domain-subsets}
+Let $g : X \mapto Y$. For any $A \subseteq A^*$, $domain~(g~A) = A$.%
+\end{theorem}
+\begin{proof}
+Follows from Theorem~\ref{thm:domain-closure-operators}.
+\end{proof}
+
+Now we can prove measurability.
+
+\begin{lemma}[$(\circ\map)$ measurability]
+\label{lem:compositions-are-measurable}
+If $g_1 : X \pto Y$ is $\A!\B$-measurable and $g_2 : Y \pto Z$ is $\B!\C$-measurable, then $g_2 \circ\map g_1$ is $\A!\C$-measurable.%
+\end{lemma}
+
+\begin{theorem}[$(\compmap)$ measurability]
+If $g_1 : X \mapto Y$ is $\A!\B$-measurable and $g_2 : Y \mapto Z$ is $\B!\C$-measurable, then $g_1~\compmap~g_2$ is $\A!\C$-measurable.
+\end{theorem}
+\begin{proof}
+Let $A^* \in \A$ and $B^* \in \B$ be respectively $g_1$'s and $g_2$'s maximal domains.
+The maximal domain of $g_1~\compmap~g_2$ is $A^{**} := preimage~(g_1~A^*)~B^*$, which is in $\A$.
+By definition,
+\begin{equation}
+	(g_1~\compmap~g_2)~A^{**} \ = \ 
+		\lzfclet{
+			g_1' & g_1~A^{**} \\
+			g_2' & g_2~(range~g_1')
+		}{g_2' \circ\map g_1'}
+\end{equation}
+By Theorem~\ref{thm:restricted-computations-are-measurable}, $g_1'$ is an $\A!\B$-measurable mapping.
+Unfortunately, $g_2'$ may not be $\B!\C$-measurable when $range~g_1' \not\in \B$.
+
+Let $g_2'' := g_2~B^*$, which is a $\B!\C$-measurable mapping.
+By Lemma~\ref{lem:compositions-are-measurable}, $g_2'' \circ\map g_1'$ is $\A!\C$-measurable.
+We need only show that $g_2' \circ\map g_1' = g_2'' \circ\map g_1'$, which by Lemma~\ref{lem:composition-expansion} is true if $range~g_1' \subseteq domain~g_2'$ and $g_2' \subseteq g_2''$.
+
+By Theorem~\ref{thm:maximal-domain-subsets}, $A^{**} \subseteq A^*$ implies $domain~g_1' = A^{**}$.
+By Theorem~\ref{thm:mapping-arrow-monotonicity} and Lemma~\ref{lem:images-of-preimages},
+\begin{align*}
+\numberthis
+	range~g_1'
+		%&\ =\ image~g_1'~A^{**} \\
+		&\ =\ image~(g_1~A^{**})~(preimage~(g_1~A^*)~B^*) \\
+		&\ =\ image~(g_1~A^*)~(preimage~(g_1~A^*)~B^*) \\
+		&\ \subseteq\ B^*
+\end{align*}
+$range~g_1' \subseteq B^*$ implies (by Theorem~\ref{thm:maximal-domain-subsets}) that $domain~g_2' = range~g_1'$, and (by Theorem~\ref{thm:mapping-arrow-monotonicity}) that $g_2' \subseteq g_2''$.
+\end{proof}
+
+\paragraph{Pairing}
+Proving pairing preserves measurability is straightforward given a corresponding theorem about mappings.
+
+\begin{lemma}[$\pair{\cdot,\cdot}\map$ measurability]
+\label{lem:pairings-are-measurable}
+If $g_1 : X \pto Y_1$ is $\A!\B_1$-measurable and $g_2 : X \pto Y_2$ is $\A!\B_2$-measurable, then $\pair{g_1,g_2}\map$ is $\A!(\B_1 \otimes \B_2)$-measurable.%
+\end{lemma}
+
+\begin{theorem}[$(\pairmap)$ measurability]
+If $g_1 : X \mapto Y_1$ is $\A!\B_1$-measurable and $g_2 : X \mapto Y_2$ is $\A!\B_2$-measurable, then $g_1~\pairmap~g_2$ is $\A!(\B_1 \otimes \B_2)$-measurable.
+\end{theorem}
+\begin{proof}
+Let $A_1^*$ and $A_2^*$ be respectively $g_1$'s and $g_2$'s maximal domains.
+The maximal domain of $g_1~\pairmap~g_2$ is $A^{**} := A_1^* \i A_2^*$, which is in $\A$.
+By definition, $(g_1~\pairmap~g_2)~A^{**} = \pair{g_1~A^{**},g_2~A^{**}}\map$, which by Lemma~\ref{lem:pairings-are-measurable} is $\A!(\B_1 \otimes \B_2)$-measurable.
+\end{proof}
+
+\paragraph{Conditional}
+Conditionals can be proved measurable given a theorem that ensures the measurability of \emph{finite} unions of disjoint, measurable mappings.
+We will need the corresponding theorem for \emph{countable} unions further on, however.
+
+\begin{lemma}[union of measurable mappings]
+\label{lem:union-of-measurable-mappings}
+The union of a countable set of $\A!\B$-measurable mappings with disjoint domains is $\A!\B$-measurable.%
+\end{lemma}
+
+\begin{theorem}[$\ifmap$ measurability]
+If $g_1 : X \mapto Bool$, and $g_2 : X \mapto Y$ and $g_3 : X \mapto Y$ are respectively $\A!(\powerset~Bool)$-measurable and $\A!\B$-measurable, then $\ifmap~g_1~g_2~g_3$ is $\A!\B$-measurable.
+\end{theorem}
+\begin{proof}
+Let $\A_1^*$, $\A_2^*$ and $\A_3^*$ be $g_1$'s, $g_2$'s and $g_3$'s maximal domains.
+The maximal domain of $\ifmap~g_1~g_2~g_3$ is $A^{**}$, defined by
+\begin{equation}
+\begin{aligned}
+	A_2^{**} &\ :=\ A_2^* \i preimage~(g_1~\A_1^*)~\set{true} \\
+	A_3^{**} &\ :=\ A_3^* \i preimage~(g_1~\A_1^*)~\set{false} \\
+	A^{**} &\ :=\ A_2^{**} \uplus A_3^{**}
+\end{aligned}
+\end{equation}
+Because $preimage~(g_1~\A_1^*)~B \in \A$ for any $B \subseteq Bool$, $A^{**} \in \A$.
+By definition,
+\begin{equation}
+	\ifmap~g_1~g_2~g_3~A^{**} \ = \ 
+		\lzfclet{
+			g_1' & g_1~A^{**} \\
+			g_2' & g_2~(preimage~g_1'~\set{true}) \\
+			g_3' & g_3~(preimage~g_1'~\set{false})
+		}{g_2' \uplus\map g_3'}
+\end{equation}
+By hypothesis, $g_1'$, $g_2'$ and $g_3'$ are measurable mappings.
+By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction), $g_2'$ and $g_3'$ have disjoint domains.
+Apply Lemma~\ref{lem:union-of-measurable-mappings}.
+\end{proof}
+
+\paragraph{Laziness}
+We must first prove measurability of an often-ignored corner case.
+
+\begin{theorem}[measurability of $\emptyset$]
+\label{thm:empty-mapping-measurable}
+For any $\sigma$-algebras $\A$ and $\B$, the empty mapping $\emptyset$ is $\A!\B$-measurable.%
+\end{theorem}
+\begin{proof}
+For any $B \in \B$, $preimage~\emptyset~B = \emptyset$, and $\emptyset \in \A$.
+\end{proof}
+
+\begin{theorem}[measurability under $\lazymap$]
+Let $g : 1 \tto (X \mapto Y)$. If $g~0$ is $\A!\B$-measurable, then $\lazymap~g$ is $\A!\B$-measurable.
+\end{theorem}
+\begin{proof}
+The maximal domain $A^{**}$ of $\lazymap~g$ is that of $g~0$.
+By definition,
+\begin{equation}
+	\lazymap~g~A^{**} \ = \ if~(A^{**} = \emptyset)~\emptyset~(g~0~A^{**})
+\end{equation}
+If $A^{**} = \emptyset$, then $\lazymap~g~A^{**} = \emptyset$; apply Theorem~\ref{thm:empty-mapping-measurable}.
+If $A^{**} \neq \emptyset$, then $\lazymap~g = g~0$, which is $\A!\B$-measurable.
+\end{proof}
+
+\section{Measurable Probabilistic Computations}
+
+As with pure computations, we must first define what it means for an effectful computation to be measurable.
+
+\begin{definition}[measurable mapping* arrow computation]
+Let $\A$ and $\B$ be $\sigma$-algebras on $(R \times T) \times X$ and $Y$.
+A computation $g : X \pmapto Y$ is $\A!\B$-\keyword{measurable} if $g~j_0$ is an $\A!\B$-measurable mapping arrow computation.
+\end{definition}
+
+\begin{theorem}
+If $g : X \pmapto Y$ is $\A!\B$-measurable, then for all $j \in J$, $g~j$ is an $\A!\B$-measurable mapping arrow computation.
+\end{theorem}
+\begin{proof}
+By induction on $J$: if $g~j$ is measurable, so are $g~(left~j)$ and $g~(right~j)$.
+\end{proof}
+
+To make general measurability statements about computations, whether they have flat or product types, it helps to have a notion of a standard $\sigma$-algebra.
+
+\begin{definition}[standard $\sigma$-algebra]
+\label{def:standard-sigma-algebra}
+For a set $X$ used as a type, $\Sigma~X$ denotes its \mykeyword{standard $\sigma$-algebra}, which must be defined under the following constraints:
+\begin{align}
+	\Sigma~\pair{X_1,X_2} & = \Sigma~X_1 \otimes \Sigma~X_2
+	\label{eqn:standard-finite-product-rule}
+\\
+	\Sigma~(J \to X) & = (\Sigma~X)^{\otimes J}
+	\label{eqn:standard-arbitrary-product-rule}
+%\\
+%	X' \in \Sigma~X \ \implies \ \Sigma~X' & = \setb{X' \i A}{A \in \Sigma~X}
+%	\label{eqn:standard-subset-rule}
+\end{align}
+\end{definition}
+
+From here on, when no $\sigma$-algebras are given, ``measurable'' means ``measurable with respect to standard $\sigma$-algebras.''
+
+The following definitions allow distinguishing the results of conditional expressions and any two branch traces:
+\begin{align}
+	\Sigma~Bool &\ ::=\ \powerset~Bool
+	\label{eqn:standard-boolean-rule}
+\\
+	\Sigma~T &\ ::=\ \powerset~T
+	\label{eqn:standard-traces-rule}
+\end{align}
+
+\begin{lemma}[measurable mapping arrow lifts]
+$\arrmap~id$, $\arrmap~fst$ and $\arrmap~snd$ are measurable.
+$\arrmap~(const~b)$ is measurable if $\set{b}$ is a measurable set.
+For all $j \in J$, $\arrmap~(\pi~j)$ is measurable.
+\end{lemma}
+
+%XXX: should that really be a lemma? $\arrmap$ removes $\bot$ from the domain
+
+\begin{corollary}[measurable mapping* arrow lifts]
+$\arrpmap~id$, $\arrpmap~fst$ and $\arrpmap~snd$ are measurable.
+$\arrpmap~(const~b)$ is measurable if $\set{b}$ is a measurable set.
+$random\pmap$ and $branch\pmap$ are measurable.
+\end{corollary}
+
+\begin{theorem}[$AStore$ combinators preserve measurability]
+\label{thm:astore-measurability-transfer}
+Every $AStore$ arrow combinator produces measurable mapping* computations from measurable mapping* computations.%
+\end{theorem}
+\begin{proof}
+$AStore$'s combinators are defined in terms of the base arrow's combinators and $\arrmap~fst$ and $\arrmap~snd$.
+\end{proof}
+
+\begin{theorem}[$\convifpmap$ measurability]
+$\convifpmap$ is measurable.
+\end{theorem}
+\begin{proof}
+$branch\pmap$ is measurable, and $\arrmap~agrees$ is measurable by~\eqref{eqn:standard-boolean-rule}.
+\end{proof}
+
+We can now prove all nonrecursive programs measurable by induction.
+
+\begin{definition}[finite expression]
+\label{def:finite-expression}
+A \mykeyword{finite expression} is any expression for which no subexpression is a first-order application.%
+\end{definition}
+
+\begin{theorem}[all finite expressions are measurable]
+\label{thm:nonrecursive-programs-are-measurable}
+For all finite expressions $\mathit{e}$, $\meaningof{\mathit{e}}\pmap$ is measurable.%
+\end{theorem}
+\begin{proof}
+By structural induction and the above theorems.
+\end{proof}
+
+Now all we need to do is represent recursive programs as a net of finite expressions, and take a sort of limit.
+
+\begin{theorem}[approximation with finite expressions]
+\label{thm:nonrecursive-approximation}
+Let $g := \meaningofconv{\mathit{e}}\pmap : X \pmapto Y$ and $t \in T$.
+Define $A := (R \times \set{t}) \times X$.
+There is a finite expression $\mathit{e'}$ for which $\meaningof{\mathit{e'}}\pmap~j_0~A = g~j_0~A$.%
+\end{theorem}
+\begin{proof}
+Let the index prefix $J'$ contain every $j$ for which $t~j \neq \bot$.
+To construct $\mathit{e'}$, exhaustively apply first-order functions in $\mathit{e}$, but replace any $\convifpmap$ whose index $j$ is not in $J'$ with the equivalent expression $\bot$.
+Because $\mathit{e}$ is well-defined, recurrences must be guarded by $if$, so this process terminates after finitely many first-order applications.
+\end{proof}
+
+\begin{theorem}[all probabilistic expressions are measurable]
+\label{thm:everything-is-measurable}
+For all expressions $\mathit{e}$, $\meaningofconv{\mathit{e}}\pmap$ is measurable.%
+\end{theorem}
+\begin{proof}
+Let $g := \meaningofconv{\mathit{e}}\pmap$ and $g' := g~j_0~((R \times T) \times X)$.
+By Corollary~\ref{cor:correct-convergence} (correct computation everywhere), $g' = g~j_0~A^*$ where $A^*$ is $g$'s maximal domain; thus we need only show $g'$ is a measurable mapping.
+
+By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction),
+\begin{equation}
+	g' \ =\ \bigcup\limits_{t \in T} g~j_0~((R \times \set{t}) \times X)
+\end{equation}
+By Theorem~\ref{thm:nonrecursive-approximation} (approximation with finite expressions), for every $t \in T$, there is a finite expression whose interpretation agrees with $g$ on $(R \times \set{t}) \times X$.
+Therefore, by Theorem~\ref{thm:nonrecursive-programs-are-measurable} (all finite expressions are measurable), $g~j_0~((R \times \set{t}) \times X)$ is a measurable mapping.
+By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction), they have disjoint domains.
+By Lemma~\ref{lem:union-of-measurable-mappings} (union of measurable mappings), their union is measurable.
+\end{proof}
+
+Theorem~\ref{thm:everything-is-measurable} remains true when $\meaningof{\cdot}\gen$ is extended with any rule whose right side is measurable, including rules for real arithmetic, equality, inequality and limits.
+More generally, any continuous or (countably) piecewise continuous function can be made available as a language primitive, as long as its domain's and codomain's standard $\sigma$-algebras are generated from their topologies.
+
+It is not difficult to compose $\meaningof{\cdot}\gen$ with another semantic function that defunctionalizes lambda expressions.
+Thus, the interpretations of all expressions in higher-order languages are measurable.
+
+\section{Measurable Projections}
+
+If $g := \meaningofconv{\mathit{e}}\pmap : X \pmapto Y$, the probability of a measurable output set $B \in \Sigma~Y$ is
+\begin{equation}
+	P~(image~(fst~\arrowcomp~fst)~(preimage~(g~j_0~A^*)~B))
+\end{equation}
+Unfortunately, projections are generally not measurable.
+Fortunately, for interpretations of programs $\meaningofconv{\mathit{p}}\pmap$, for which $X = \set{\pair{}}$, we have a special case.
+
+\begin{theorem}[measurable finite projections]
+\label{thm:measurable-projections}
+Let $A \in \Sigma~\pair{X_1,X_2}$.
+If $X_2$ is at most countable and $\Sigma~X_2 = \powerset~X_2$, then $image~fst~A \in \A_1$.%
+\end{theorem}
+\begin{proof}
+Because $\Sigma~X_2 = \powerset~X_2$, $A$ is a countable union of rectangles of the form $A_1 \times \set{a_2}$, where $A_1 \in \Sigma~X_1$ and $a_2 \in X_2$.
+Because $image~fst$ distributes over unions, $image~fst~A$ is a countable union of sets in $\Sigma~X_1$.
+\end{proof}
+
+\begin{theorem}
+Let $g : X \pmapto Y$ be measurable.
+If $X$ is at most countable and $\Sigma~X = \powerset~X$, for all $B \in \Sigma~Y$, $image~(fst~\arrowcomp~fst)~(preimage~(g~j_0~A^*)~B) \in \Sigma~R$.
+\end{theorem}
+\begin{proof}
+$T$ is countable and $\Sigma~T = \powerset~T$ by~\eqref{eqn:standard-traces-rule}; apply Theorem~\ref{thm:measurable-projections} twice.
+\end{proof}
+
+In particular, for $\meaningofconv{\mathit{p}}\pmap : \set{\pair{}} \pmapto Y$, the probabilities of $\Sigma~Y$ are well-defined.
+
+\mathversion{normal}
