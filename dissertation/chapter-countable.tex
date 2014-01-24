@@ -44,7 +44,7 @@ Measure-theoretic probability is the most successful theory of probability in pr
 
 Measure theory treats finite, countably infinite, and uncountably infinite probabilistic outcomes uniformly, but with significant complexity. Though there are relatively few important Bayesian models that require countably many outcomes but not uncountably many, in our preliminary work, we deal with only countable sets. This choice avoids most of measure theory's complexity while retaining its functional structure, and still requires approximation.
 
-\subsection{Approach and Target Language}
+\subsection{Approach}
 
 For three categories of Bayesian notation, we
 \begin{enumerate}
@@ -53,24 +53,7 @@ For three categories of Bayesian notation, we
 	\item If necessary, create an approximation and prove convergence.
 	\item Implement the approximation in Racket~\cite{cit:racket-lang}.
 \end{enumerate}
-This approach is most effective if the target language can express measure-theoretic calculations and is similar to Racket in structure and semantics.
-
-To this end, we are concurrently developing \targetlang: an untyped, call-by-value lambda calculus extended with sets as values, and primitive set operators that correspond with the Zermelo-Fraenkel axioms and Choice. Mixing lambdas and sets has been done in automated theorem proving \cite{cit:paulson-1993-settheory-i,cit:paulson-1995-settheory-ii,cit:gordon-1996-holst}; it is possible to define exact real arithmetic, and easy to express infinite set operations and infinite sums.  For this paper, we assume those operations are already defined.  We freely use syntactic sugar like infix, summation, set comprehensions, and pattern-matching definitions. In short, we intend \targetlang to be contemporary mathematics with well-defined lambdas, or a practical lambda calculus with infinite sets.
-
-For example, $image$ is a \texttt{map}-like primitive set operator corresponding to the replacement axiom schema. If $f$ is a lambda and $A$ is a set, $\appp \image f A\ =\ \setb{\app f x}{x \in A}$ applies $f$ to every element of $A$ and returns the set of results.
-
-Besides lambdas, \targetlang has an another class of applicable values: set-theoretic functions, or \keyword{mappings}. A mapping is just a set of pairs $\seq{x,y}$ where each $x$ is unique. If $g$ is a mapping and $x$ is in its domain, $\app g x$ returns the $y$ for which $\seq{x,y} \in g$. Restricting a lambda $f$ to a domain $A$ returns a mapping:
-\begin{equation}
-	{f}\restrict{A}
-		\ =\ \setb{\seq{x,\app f x}}{x \in A}
-		\ =\ \appp \image {(\fun x {\seq{x,\app f x}})} A
-\label{eqn:restrict}
-\end{equation}
-Mappings can also be restricted using \eqref{eqn:restrict}. We often write mappings as $\fun{x \in A} e$ instead of ${(\fun x e)}\restrict{A}$. We think of $\seq{A, f}$ as a \textit{lazy} mapping.
-
-Though \targetlang has no formal type system, we find it helpful to reason about types informally. When we do, $A \tto B$ is a lambda or mapping type, $A \to B$ is the set of total mappings from $A$ to $B$, and a set is a membership proposition.
-
-\subsection{Bayesian Languages}
+This approach is most effective if the target language can express measure-theoretic calculations and is similar to Racket in structure and semantics; we therefore use \targetlang.
 
 The Bayesian notation we interpret falls into three syntactic categories:
 \begin{itemize}

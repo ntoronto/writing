@@ -185,7 +185,7 @@ Syntax for constructing unnamed mappings is defined by
 	\end{aligned}
 \end{align}
 For symmetry with partial functions $x \tto y$, $mapping$ returns a member of the set $X \pto Y$ of all \emph{partial} mappings from $X$ to $Y$.
-\figref{fig:mapping-defs} defines other common mapping operations: $domain$, $range$, $preimage$ and $restrict$.
+\figref{fig:mapping-defs} defines other common mapping operations: $domain$, $range$, $preimage$ (which finds the mapping inputs that would produce outputs in a given set) and $restrict$ (which narrows the domain of a mapping).
 
 The set $J \to X$ contains all the \emph{total} mappings from $J$ to $X$; equivalently, all the vectors of $X$ indexed by $J$ (which may be infinite).
 The function
@@ -195,6 +195,7 @@ The function
 	&\pi~j~f \ := \ f~j
 \end{aligned}
 \end{equation}
-produces projections. This is particularly useful when $f$ is unnamed.
+produces projections.
+This is particularly useful when $f$ is unnamed or unknown: $\pi~j$ takes any such $f$ and returns the element at index $j$.
 
 \mathversion{normal}
