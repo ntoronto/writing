@@ -8,4 +8,9 @@ compiled
 *.log
 *.tex.backup
 *.bib.backup
+*.txt.backup
+.Z*.tex
+*.lof
+*.out
+*.toc
 
