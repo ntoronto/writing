@@ -574,9 +574,10 @@ To sample from $X$ according to $P$,
 \end{definition}
 
 The function $diff^+~(subcond~P~(s~n))~(Q~n)$, with type $X \to [0,+\infty)$, is a \keyword{Radon-Nikod\'ym\footnote{Pronounced ``RADon neekohDIM,'' and named after Austrian mathematician Johann Radon and Polish mathematician Otto Nikod\'ym.} derivative}.
-If $P$ has density $f$, $Q~n$ has density $g$ with respect to the same base measure (e.g. same-dimensional length, area or volume), and $a \in s~n$ implies $g~a > 0$, then\footnote{The equality holds $(Q~n)$-almost everywhere.}
+If $P$ has density $f$, $Q~n$ has density $g$ with respect to the same base measure (e.g. same-dimensional length, area or volume), and $a \in s~n$ implies $g~a > 0$, then\footnote{The equality in~\eqref{eqn:diff-is-actually-easy} holds $(Q~n)$-almost everywhere.}
 \begin{equation}
 	diff^+~(subcond~P~(s~n))~(Q~n)~a\ =\ if~(a \in s~n)~(f~a~{/}~g~a)~0
+\label{eqn:diff-is-actually-easy}
 \end{equation}
 Chapter~\ref{ch:sampling-algorithm-proofs} has definitions and more details.
 We use $diff^+$ in a more general sense, but in this section, it is usually fine to think of its return values as quotients of densities.

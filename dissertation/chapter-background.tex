@@ -1,12 +1,811 @@
-XXX: Candidates for exposition:
+The most difficult part of doing work in an emerging cross-disciplinary area is choosing a side and tutoring that side on the background knowledge taken for granted by the other.
+Finding a viable approach to bridge the two sides is a close second, followed by building the formalisms that bridge them and deciding which theorems to prove.
+Proving theorems and writing implementations are not only similar tasks, but are just as simple compared to convincing a reader that it is worthwhile to learn new notation and think in a different way.
+
+We cannot choose both sides.
+In an emerging cross-disciplinary area, there are very few readers who already have enough background in both sides to evaluate the work.
+
+We cannot choose \emph{neither} side, usually.
+Hardly any respectable publication venue is sufficiently external to both sides but still interested, nor allows enough space to tutor everyone.
+There is one major exception: the university publication of a dissertation.
+
+Dissertations are intended for a more general audience than either side, and have formats that allow the necessary tutorials.
+They are evaluated by a readership with at least five members who are, if not \emph{interested}, at least \emph{obligated}.
+Unfortunately, we must deal with the fact that dissertations written about emerging cross-disciplinary areas are assembled from published and publishable work that is targeted at just one side.
+
+In our work, the two sides are Bayesian practice and functional programming theory.
+The implicit background knowledge includes:
 \begin{itemize}
-	\item Basic probability
-	\item Bayesian inference
-	\item Measure theory
-	\item $\lambda$-calculus
-	\item Operational semantics
-	\item Monads, idioms, and arrows
+	\item In Bayesian practice, probability densities and manipulation rules, basic statistics, Bayesian modeling and philosophy, integration, and inference methods.
+	\item In functional programming, $\lambda$-calculus, big-step operational semantics, denotational semantics, categorical semantics, and abstract interpretation.
 \end{itemize}
-This is a lot of background information.
-How do I choose?
-How do I decide how much to include?
+
+\begin{comment}
+Bridging the two sides is complicated by these two facts:
+\begin{enumerate}
+	\item Bayesian notation often denotes uncountable things, so we must interpret it using a more expressive theory of computation than functional programming researchers are accustomed to.
+\label{complication:uncountable}
+	\item Programs in nontrivial languages with probabilistic choice can denote distributions that do not have densities, so we must use a more expressive theory of probability than Baysian practitioners are accustomed to.
+\label{complication:probability}
+\end{enumerate}
+To address complication~\ref{complication:uncountable}, we design \lzfclang, a supercomputational but intuitive $\lambda$-calculus, as a target language for interpretation (Chapter~\ref{ch:lambda-zfc}).
+To address complication~\ref{complication:probability}, we first present a simplified version of the more expressive theory (Chapter~\ref{ch:countable-models}), then avoid most of measure theory by concentrating on its one aspect we have found that leads to direct implementation: preimages (Chapter~\ref{ch:preimage1}).
+\end{comment}
+
+The greatest commonality in the two sides is the attitude with which they approach modeling.
+While Bayesian practitioners model processes and functional programming researchers model languages, both approach their tasks methodically, and both create models in which every entity they want to reason about is represented explicitly---sometimes painfully so.
+Both sides trust their explicit models to lead to more reliable artifacts and repeatable results than models created by other means.
+
+Therefore, for us, choosing a side to target for publication comes down to determining which side's venues will tolerate the precision necessary to explicitly define our models.
+At this stage, in which we almost exclusively model languages, it is clear that we must choose functional programming.
+Thus, most of this dissertation assumes readers are functional programming researchers, and tutors them in the necessary Bayesian background.
+
+For readers who are not functional programming researchers, we present this overview of the relevant functional programming theory, and beg their indulgence as we use it to model languages with enough precision to make our artifacts reliable and our results repeatable.
+
+We assume readers know basic computer science theory, including propositional logic, relations, functions, proof by induction, context-free grammars, and nondeterminism.
+
+\section{$\lambda$-Calculus}
+
+The following grammar defines a set of variable names $X$ and a language $E$ (a set of terms) called the \keyword{pure $\lambda$-calculus}.
+\begin{equation}
+\begin{aligned}
+	e\ ::=&\ x\ |\ e~e\ |\ \fun{x} e \\
+	x\ ::=&\ \text{[variable names]}
+\end{aligned}
+\end{equation}
+Terms $\fun{x} e$ are unnamed functions of one argument, terms $x$ refer to function arguments, and terms $e_1~e_2$ apply $e_1$ to $e_2$ (i.e. ``call'' function $e_1$ with argument $e_2$).
+For readers unused to the $\lambda$-calculus but familiar with other mathematical languages, perhaps the most difficult thing to get used to is that juxtaposition means application instead of multiplication.
+
+As in most mathematical languages, parentheses are optional.
+Lambda terms greedily enclose their bodies in implicit parentheses, so $\fun{x}\fun{y} e$ (with some assumed-meaningful function body $e$) is the same term as $\fun{x}(\fun{y} e)$: a function that receives an $x$ and returns a function of $y$ in which $x$ is available.
+Application is left-associative, so $e_1~e_2~e_3$ is the same term as $(e_1~e_2)~e_3$.
+Here, $e_1~e_2$ returns a function, which is applied to $e_3$.
+
+This duality makes it easy to write two-argument functions using nested lambdas, and apply them using sequences of arguments.
+For example, $(\fun{x} \fun{y} e)~e_x~e_y$ defines a function of two arguments and applies it to $e_x$ and $e_y$.
+
+Like Turing machines, the pure $\lambda$-calculus is a minimal universal model of computation.
+Also like Turing machines, it would be quite painful to program with it.
+Unlike Turing machines, it is easy to get something practical by extending the pure $\lambda$-calculus with values such as pairs and numbers, and a few primitive functions to operate on them.
+
+In most programming languages, the language implementation defines the meaning of function calls.
+Typically, the implementation pushes arguments onto a stack, copies them to a heap, or copies them to registers.
+It then stores a return address, jumps to a function address, executes the function body, and jumps back to the return address.
+
+In the pure $\lambda$-calculus and most of its extensions, there are no stacks, heaps, registers, addresses or jumps.
+Function application is defined entirely in terms of substitution, as in algebra.
+For example, suppose  $\mathit{hypot}$ is a term in a $\lambda$-calculus extended with real numbers, defined by
+\begin{equation}
+	\mathit{hypot}\ =\ \fun{x}\fun{y} \sqrt{x^2 + y^2}
+\end{equation}
+Applying $\mathit{hypot}$ eliminates lambdas by substituting their formal arguments with the supplied actual arguments:
+\begin{equation}
+\begin{aligned}
+	\mathit{hypot}~3~4
+		&\ =\ \left(\fun{x}\fun{y} \sqrt{x^2 + y^2}\right)~3~4 \\
+		&\ =\ \left(\left(\fun{x}\left(\fun{y} \sqrt{x^2 + y^2}\right)\right)~3\right)~4 \\
+		&\ \equiv\ \left(\fun{y} \sqrt{3^2 + y^2}\right)~4 \\
+		&\ \equiv\ \sqrt{3^2 + 4^2} \\
+\end{aligned}
+\label{eqn:lambda-calculus-reduce1}
+\end{equation}
+The two equivalences at the end of~\eqref{eqn:lambda-calculus-reduce1} are called \keyword{$\beta$-reductions}, or just \keyword{reductions}.
+We would expect $\sqrt{3^2 + 4^2}$ to further reduce to $5$.
+
+Computer implementations of an extended $\lambda$-calculus, such as the programming language Racket, necessarily use stacks, heaps, registers, addresses and jumps.
+However, the meanings of their programs are defined mathematically as the results of carrying out reductions.
+It is therefore possible to reason about programs algebraically and inductively, without having to consider complicating machine details.
+
+It is sometimes convenient to define a $\lambda$-calculus whose variables refer to function arguments by \emph{number} instead of by \emph{name}.
+Such numeric references are called \keyword{De Bruijn}\footnote{Typically pronounced ``deh brOIN,'' and named after Dutch mathematician Nicolaas de Bruijn.} \keyword{indexes}.
+One form of the pure $\lambda$-calculus with De Bruijn indexes is
+\begin{equation}
+\begin{aligned}
+	e\ ::=&\ \mathsf{env}~n\ |\ e~e\ |\ \lfun e \\
+	n\ ::=&\ 0\ |\ 1\ |\ 2\ |\ \cdots
+\end{aligned}
+\end{equation}
+where a ``variable'' term $\mathsf{env}~0$ refers to the innermost lambda's argument.
+
+Suppose we define $\mathit{hypot}$ as a term in a $\lambda$-calculus with De Bruijn indexes, extended with real numbers:
+\begin{equation}
+	\mathit{hypot}\ =\ \lfun\lfun\sqrt{(\mathsf{env}~1)^2 + (\mathsf{env}~0)^2}
+\end{equation}
+Here, $\mathsf{env}~1$ (which was previously $x$) refers to the outer lambda's argument and $\mathsf{env}~0$ refers to the inner lambda's argument.
+Reducing an application of $\mathit{hypot}$ proceeds this way:
+\begin{equation}
+\begin{aligned}
+	\mathit{hypot}~3~4
+		&\ =\ \left(\lfun\lfun \sqrt{(\mathsf{env}~1)^2 + (\mathsf{env}~0)^2}\right)~3~4 \\
+		&\ \equiv\ \left(\lfun \sqrt{3^2 + (\mathsf{env}~0)^2}\right)~4 \\
+		&\ \equiv\ \sqrt{3^2 + 4^2} \\
+\end{aligned}
+\label{eqn:lambda-calculus-reduce2}
+\end{equation}
+
+So far, we have been taking a certain evaluation order for granted when computing reductions.
+To highlight an ambiguity, consider this lambda term, which returns $0$ given any argument:
+\begin{equation}
+	\mathit{zero}\ =\ \fun{x} 0
+\end{equation}
+Suppose $1~{/}~0$ does not reduce to any value, as in algebra.
+Should $\mathit{zero}~(1~{/}~0)$ reduce to $0$, or likewise not reduce?
+In other words, should we accept this reduction:
+\begin{equation}
+\begin{aligned}
+	\mathit{zero}~(1~{/}~0)
+	&\ =\ (\fun{x} 0)~(1~{/}~0)
+\\
+	&\ \equiv\ 0
+\end{aligned}
+\end{equation}
+or should we require function arguments to reduce before substituting them?
+Always reducing function arguments first is \keyword{call-by-value} reduction, and substituting without reducing arguments is \keyword{call-by-name}.
+Both policies have their place, but we mostly use call-by-value reduction, in which $\mathit{zero}~(1~{/}~0)$ does not reduce.
+
+%Plotkin, Scott, Steele and many others following: work on correspondence of $\lambda$-calculus reduction with machine execution makes it possible to define an implementable theory for a programming language
+
+\section{Big-Step Operational Semantics}
+
+Instead of describing evaluation order using English phrases with scattered mathematical terms, we could instead give our $\lambda$-calculus a \keyword{semantics}: a precise mathematical definition of the meaning of its terms.
+To specify evaluation order and other operational aspects specifically, we would typically give it an \keyword{operational semantics}.
+
+An operational semantics is defined by a \keyword{reduction relation}, which relates program terms to other program terms.
+There are two main kinds of operational semantics:
+\begin{itemize}
+	\item \keyword{Small-step}, specified by a subset of $E \times E$, where $E$ is the set of program terms.
+	\item \keyword{Big-step}, specified by a subset of $E \times V$, where $E$ is the set of program terms and $V \subseteq E$ is the set of irreducible program values (e.g. the number $4$, the pair $\pair{10,23}$).
+\end{itemize}
+For example, suppose we have a lambda term
+\begin{equation}
+	\mathit{inc}\ =\ \fun{x} x + 1
+\end{equation}
+A small-step semantics would typically ``stop'' after a function application.
+If ``$\Rightarrow$'' is a small-step reduction relation, then $(\mathit{inc}~4) \Rightarrow (4 + 1)$ should be true, and also $(4 + 1) \Rightarrow 5$, so we can conclude $\mathit{inc}~4$ reduces to $5$ in two \keyword{small steps}.
+On the other hand, a big-step semantics cannot ``stop'' after most function applications.
+If ``$\dto$'' is a big-step reduction relation, then we cannot expect $(\mathit{inc}~4) \dto (4 + 1)$ because by any reasonable definition, the term $4 + 1$ is an \emph{expression} but not a \emph{value}.
+We should expect, however, that $(\mathit{inc}~4) \dto 5$ is true; i.e. $\mathit{inc}$ reduces to $5$ in one \keyword{big step}.
+
+As with call-by-name and call-by-value, small-step and big-step semantics both have their place.
+However, as Chapter~\ref{ch:lambda-zfc} contains the only operational semantics in this disseration and it is a big-step semantics, we concentrate on big-step in this overview.
+
+\begin{figure*}[tb]\centering
+\subfloat[A grammar to define sets $E$ and $V$]{
+\label{fig:add-language:grammar}
+\begin{minipage}[b]{2.5in}
+\begin{equation*}
+\begin{aligned}
+	&e\ ::=\ v\ |\ \mathsf{add}~e~e \\
+	&v\ ::=\ 0\ |\ 1\ |\ 2\ |\ \cdots
+\end{aligned}
+\end{equation*}
+\hrule
+\end{minipage}
+}
+\tab\tab
+\subfloat[Inference rules to define $\dto \subseteq E \times V$]{
+\label{fig:add-language:reduction}
+\begin{minipage}[b]{3in}
+\begin{equation*}
+\begin{aligned}
+	\dfrac{}{v \dto v}
+	\ \text{(val)}
+	\jand\jand
+	\dfrac{e_1 \dto v_1 \jand e_2 \dto v_2}{(\mathsf{add}~e_1~e_2) \dto (v_1 + v_2)}
+	\ \text{(add)}
+\end{aligned}
+\end{equation*}
+\hrule
+\end{minipage}
+}
+\caption[ ]{A big-step operational semantics for a simple addition language.}
+\label{fig:add-language}
+\end{figure*}
+
+\figref{fig:add-language} defines a language and its semantics by giving a grammar and a big-step reduction relation ``$\dto$''.
+The language is even simpler than the pure $\lambda$-calculus: its terms simply represent adding concrete numbers.
+The relation ``$\dto$'' is defined by \keyword{inference rules} in the form
+\begin{equation}
+	\dfrac{\mathit{premise}_1 \jand \mathit{premise}_2 \jand \cdots}{\mathit{conclusion}} \jand \text{(name)}
+\end{equation}
+Grammar nonterminals are implicitly universally quantified, premises are implicitly conjuncted, and the rule is interpreted as an implication.
+For example, the (add) rule in \figref{fig:add-language:reduction} means ``for all $e_1,e_2 \in E$ and $v_1,v_2 \in V$, if $e_1$ reduces to $v_1$ and $e_2$ reduces to $v_2$, then $\mathsf{add}~e_1~e_2$ reduces to $v_1 + v_2$.''
+The (val) rule means ``for all $v \in V$, $v$ reduces to $v$'' or equivalently, ``for all $v \in V$, $\mathit{true}$ implies $v$ reduces to $v$.''
+
+The reduction relation ``$\dto$'' is defined as the \emph{smallest} subset of $E \times V$ for which the inference rules hold.
+Defining it as the smallest subset precludes unintended conclusions such as $4 \dto 5$, which are not otherwise precluded by interpreting the rules as implications.
+Equivalently, it restricts ``$\dto$'' to conclusions that are provable from the inference rules.
+
+Inference rules can be used directly to build \keyword{derivation trees}, which represent both computation steps and proofs of conclusions.
+For example, suppose we want to use the inference rules in \figref{fig:add-language:reduction} to compute the value of $\mathsf{add}~(\mathsf{add}~4~5)~90$.
+We start by writing it as a conclusion without premises:
+\begin{equation}
+	\dfrac{}{(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto v_1}
+\label{eqn:add-to-99-start}
+\end{equation}
+There is only one rule (add) with a matching conclusion, so we add its premises, renaming variables as appropriate:
+\begin{equation}
+	\dfrac{\dfrac{}{(\mathsf{add}~4~5) \dto v_2} \jand \dfrac{}{90 \dto v_3}}{(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto v_1}
+\end{equation}
+There is only one rule (val) matching the conclusion $90 \dto v_3$, and it has no premises.
+We thus only add premises for the (add) rule matching $(\mathsf{add}~4~5)$:
+\begin{equation}
+	\dfrac{\dfrac{\dfrac{}{4 \dto v_4} \jand \dfrac{}{5 \dto v_5}}{(\mathsf{add}~4~5) \dto v_2} \jand \dfrac{}{90 \dto v_3}}{(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto v_1}
+\end{equation}
+It is easy to find values of $v_3$, $v_4$ and $v_5$ that make the leaf premises true, so we substitute them and recursively fill in the conclusions:
+\begin{equation}
+	\dfrac{\dfrac{\dfrac{}{4 \dto 4} \jand \dfrac{}{5 \dto 5}}{(\mathsf{add}~4~5) \dto v_2} \jand \dfrac{}{90 \dto v_3}}{(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto v_1}
+	\Longrightarrow
+	\dfrac{\dfrac{\dfrac{}{4 \dto 4} \jand \dfrac{}{5 \dto 5}}{(\mathsf{add}~4~5) \dto 9} \jand \dfrac{}{90 \dto 90}}{(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto v_1}
+	\Longrightarrow
+	\dfrac{\dfrac{\dfrac{}{4 \dto 4} \jand \dfrac{}{5 \dto 5}}{(\mathsf{add}~4~5) \dto 9} \jand \dfrac{}{90 \dto 90}}{(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto 99}
+\label{eqn:add-to-99-conclusion}
+\end{equation}
+Thus, the rightmost derivation tree in~\eqref{eqn:add-to-99-conclusion} is a proof that $(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto 99$.
+
+In most cases, reduction relations can be mathematically constructed by iterating a function that uses the inference rules to add more conclusions given known premises.
+A fixpoint is reachable in countably many iterations, and as a consequence, derivation trees are always finite.
+On the other hand, Chapter~\ref{ch:lambda-zfc} defines a $\lambda$-calculus in which the iterating function must be applied uncountably many times to reach a fixpoint, and as a consequence, its derivation trees may be infinite.
+Despite this minor difference in size, the basic principles behind the reduction relation's construction and use are the same.
+
+If a big-step reduction relation ``$\dto$'' relates each left-hand side term to exactly one right-hand side term, it is a total function, or $\dto : E \to V$.
+If it relates each left-hand side term to \emph{at most} one right-hand side term, it is a partial function, or $\dto : E \pto V$.
+In either case, if its derivation trees are finite, it can be implemented as a recursive function.
+
+\begin{figure*}[tb]\centering
+\begin{schemedisplay}
+(define value? exact-nonnegative-integer?)
+(struct add (e1 e2))
+<blank-line>
+(define (interp e)
+  (match e
+    [(? value? v)  v]
+    [(add e1 e2)  (define v1 (interp e1))
+                  (define v2 (interp e2))
+                  (+ v1 v2)]))
+\end{schemedisplay}
+\bottomhrule
+\caption[ ]{Racket implementation of the semantics defined in \figref{fig:add-language}.}
+\label{fig:add-language-impl}
+\end{figure*}
+
+\figref{fig:add-language-impl} gives a Racket implementation of ``$\dto$'' in \figref{fig:add-language:reduction}.
+The implementation defines a structure type \scheme{add} to model $\mathsf{add}$ expressions, and uses Racket's built-in big integers to model $V$.
+Computation recursively interprets expressions, and proceeds similarly to the derivation tree construction in~\eqref{eqn:add-to-99-start} through~\eqref{eqn:add-to-99-conclusion}.
+As an example of use, at DrRacket's Read-Eval-Print Loop (REPL), we get
+\begin{center}
+\singlespacing
+\begin{schemedisplay}
+          > (interp (add (add 4 5) 90))
+          99
+\end{schemedisplay}
+\end{center}
+as expected.
+
+\begin{figure*}[tb]\centering
+\subfloat[A grammar to define sets $E$ and $V$]{
+\label{fig:add-choose-language:grammar}
+\begin{varwidth}[b]{2.4in}
+\begin{equation*}
+\begin{aligned}
+	&e\ ::=\ v\ |\ \mathsf{add}~e~e\ |\ \mathsf{choose}~e~e \\
+	&v\ ::=\ 0\ |\ 1\ |\ 2\ |\ \cdots
+\end{aligned}
+\end{equation*}
+\hrule
+\end{varwidth}
+}
+\tab\tab
+\subfloat[Inference rules to define $\dto \subseteq E \times V$]{
+\label{fig:add-choose-language:reduction}
+\begin{varwidth}[b]{3.5in}
+\begin{equation*}
+	\dfrac{}{v \dto v}
+	\ \text{(val)}
+	\jand\jand
+	\dfrac{e_1 \dto v_1 \jand e_2 \dto v_2}{(\mathsf{add}~e_1~e_2) \dto (v_1 + v_2)}
+	\ \text{(add)}
+\end{equation*}
+\begin{equation*}
+	\dfrac{e_1 \dto v_1}{(\mathsf{choose}~e_1~e_2) \dto v_1}
+	\jand
+	\dfrac{e_2 \dto v_2}{(\mathsf{choose}~e_1~e_2) \dto v_2}
+	\ \text{(choose)}
+	\\[6pt]
+\end{equation*}
+\hrule
+\end{varwidth}
+}
+\caption[ ]{Big-step operational semantics for a language with nondeterministic choice.}
+\label{fig:add-choose-language}
+\end{figure*}
+
+\figref{fig:add-choose-language} extends the present example language with nondeterministic choice, which results in a reduction relation that is \emph{not} a function.
+The culprit is the new rule (choose), with which we can match a single term to multiple conclusions.
+For example, suppose we want to use the inference rules in \figref{fig:add-choose-language:reduction} to compute the value of $\mathsf{add}~(\mathsf{choose}~4~5)~90$.
+We start as before, by writing it as a conclusion without premises:
+\begin{equation}
+	\dfrac{}{(\mathsf{add}~(\mathsf{choose}~4~5)~90) \dto v_1}
+\end{equation}
+We match the conclusion to the (add) rule and add its premises:
+\begin{equation}
+	\dfrac{
+		\dfrac{}{(\mathsf{choose}~4~5) \dto v_2}
+		\jand
+		\dfrac{}{90 \dto v_3}
+	}{(\mathsf{add}~(\mathsf{choose}~4~5)~90) \dto v_1}
+\end{equation}
+Again, there is only one rule (val) matching the conclusion $90 \dto v_3$, and it has no premises.
+For the conclusion $(\mathsf{choose}~4~5) \dto v_2$, however, we have a choice of premises, leading to two different derivation trees:
+\begin{equation}
+	\dfrac{
+		\dfrac{
+			\dfrac{}{4 \dto v_4}
+		}{(\mathsf{choose}~4~5) \dto v_2}
+		\jand
+		\dfrac{}{90 \dto v_3}
+	}{(\mathsf{add}~(\mathsf{choose}~4~5)~90) \dto v_1}
+	\jand
+	\jand
+	\dfrac{
+		\dfrac{
+			\dfrac{}{5 \dto v_5}
+		}{(\mathsf{choose}~4~5) \dto v_2}
+		\jand
+		\dfrac{}{90 \dto v_3}
+	}{(\mathsf{add}~(\mathsf{choose}~4~5)~90) \dto v_1}
+\end{equation}
+After replacing $v_3$, $v_4$ and $v_5$ with the only values that make the leaf premises true and recursively filling in the conclusions, we would find that both $(\mathsf{add}~(\mathsf{choose}~4~5)~90) \dto 94$ and $(\mathsf{add}~(\mathsf{choose}~4~5)~90) \dto 95$ are true, and would have derivation trees to prove these facts.
+
+An implementation of a nondeterministic semantics would be correct if, for every interpretation of a term $e$ that produced value $v$, $e \dto v$ were a valid conclusion.
+For $\mathsf{choose}~4~5$, for example, a correct implementation may always choose $4$, always choose $5$, choose randomly, choose the number that gives the best or worst outcome according to some objective function, or always choose $4$ on weekends or during the fall equinox.
+Its choice is simply not modeled by the semantics.
+
+Suppose we wanted to compute results for every possible combination of nondeterministic choices.
+We could define a big-step relation $\dto : E \to \powerset~V$, which returns (when used as a function) a set of values, and implement an interpreter for it.
+However, we are saving that example for the next section.
+
+
+\section{Denotational Semantics}
+
+A \keyword{denotational semantics} is defined by a deterministic \keyword{semantic function} from language terms to values \emph{in another language}.
+The other language is called the \keyword{metalanguage} or \keyword{target language}, and is often an axiomatic logic such as first-order set theory (i.e. mathematics).
+
+\newsavebox{\compileonebox}
+
+\begin{lrbox}{\compileonebox}
+\begin{varwidth}[b]{3.3in}
+\singlespacing\centering
+\begin{schemedisplay}
+(define-syntax compile
+  (syntax-rules (add)
+    [(_ (add e1 e2))  (+ (compile e1)
+                         (compile e2))]
+    [(_ v)  v]))
+\end{schemedisplay}
+\hrule
+\end{varwidth}
+\end{lrbox}
+
+\begin{figure*}[tb]\centering
+\subfloat[blah]{
+\label{fig:add-denotational:semantic-function}
+\begin{varwidth}[b]{2.0in}
+\begin{equation*}
+\meaningof{\cdot} : E \to \Nat
+\\[6pt]
+\end{equation*}
+\begin{equation*}
+\begin{aligned}
+	\meaningof{v}&\ =\ v \\
+	\meaningof{\mathsf{add}~e_1~e_2}&\ =\ \meaningof{e_1} + \meaningof{e_2} \\
+\end{aligned}
+\end{equation*}
+\hrule
+\end{varwidth}
+}
+\tab\tab
+\subfloat[blah]{
+\label{fig:add-denotational:implementation}
+\usebox{\compileonebox}
+}
+\caption[ ]{blah}
+\label{fig:add-denotational}
+\end{figure*}
+
+\figref{fig:add-denotational:semantic-function} defines a denotational semantics for the addition language without $\mathsf{choose}$ by defining a semantic function $\meaningof{\cdot} : E \to \Nat$.
+The double square brackets are simply a different application syntax: they connote nothing mathematically, but serve as a visual cue to read applications of the semantic function as ``the meaning of'' or ``the denotation of.''
+For example, the meaning of $\mathsf{add}~(\mathsf{add}~4~5)~90$ is
+\begin{equation}
+\begin{aligned}
+	\meaningof{\mathsf{add}~(\mathsf{add}~4~5)~90}
+	&\ =\ \meaningof{\mathsf{add}~4~5} + \meaningof{90}
+\\
+	&\ =\ (\meaningof{4} + \meaningof{5}) + \meaningof{90}
+\\
+	&\ =\ (4 + 5) + 90
+\\
+	&\ =\ 99
+\end{aligned}
+\end{equation}
+The recursion in a semantic function precisely follows the grammar of a language, and gives meaning to terms \emph{independently of their context}.
+To describe these properties in one word, we say semantic functions are \keyword{compositional}.
+Constraining semantic functions be compositional allows most proofs of program properties to be done by structural induction, as we will demonstrate shortly.
+
+When the results of applying $\meaningof{\cdot}$ are computable, because it is compositional, it is often easy to implement it as local syntax transformation or compilation.
+\figref{fig:add-denotational:implementation} shows a Racket implementation of $\meaningof{\cdot}$ as a transformation from meaningless Racket syntax (an \scheme{add} function does not exist) to runnable Racket syntax.
+The syntax transformer is more or less a transcription of the semantic function, with a little extra code to signal to Racket that it is to be applied to the syntax of expressions before compiling or evaluating them (i.e. \scheme{define-syntax} instead of \scheme{define}) and to identify the symbol \scheme{add} as terminal.
+
+The results of compilation seem to be equivalent to the results of interpretation:
+\begin{center}
+\singlespacing
+\begin{schemedisplay}
+> (compile (add (add 4 5) 90))
+99
+\end{schemedisplay}
+\end{center}
+but the REPL does not show transformed syntax.
+Fortunately, \scheme{expand-syntax} can show it:
+\begin{center}
+\singlespacing
+\begin{schemedisplay}
+> (expand-syntax #'(add (add 4 5) 90))
+#'(%app + (%app + '4 '5) '90))
+\end{schemedisplay}
+\end{center}
+The \scheme{%app} in the result is Racket's application operator, which is usually implicit.
+
+\newsavebox{\compiletwobox}
+
+\begin{lrbox}{\compiletwobox}
+\begin{varwidth}[b]{3.5in}
+\singlespacing
+\centering
+\begin{schemedisplay}
+(define-syntax compile
+  (syntax-rules (add choose)
+    [(_ (add e1 e2))
+     (for*/set ([v1 (in-set (compile e1))]
+                [v2 (in-set (compile e2))])
+       (+ v1 v2))]
+    [(_ (choose e1 e2))
+     (set-union (compile e1) (compile e2))]
+    [(_ v)
+     (set v)]))
+\end{schemedisplay}
+\hrule
+\end{varwidth}
+\end{lrbox}
+
+\begin{figure*}[tb]\centering
+\begin{varwidth}[b]{\textwidth}
+\begin{equation*}
+\begin{aligned}[t]
+	\meaningof{\cdot} &: E \to \powerset~\Nat
+\\[6pt]
+	\meaningof{v}&\ =\ \set{v}
+\\
+	\meaningof{\mathsf{add}~e_1~e_2}&\ =\ \setb{v_1 + v_2}{v_1 \in \meaningof{e_1}, v_2 \in \meaningof{e_2}}
+\\
+	\meaningof{\mathsf{choose}~e_1~e_2}&\ =\ \meaningof{e_1} \u \meaningof{e_2} \\
+\end{aligned}
+\end{equation*}
+\end{varwidth}
+\bottomhrule
+\caption[ ]{blah}
+\label{fig:add-choose-denotational}
+\end{figure*}
+
+\figref{fig:add-choose-denotational} defines a compositional function $\meaningof{\cdot} : E \to \powerset~\Nat$, which transforms the addition language with nondeterministic choice into sets of natural numbers.
+For example, the meaning of $4$ is $\set{4}$, the meaning of $\mathsf{choose}~4~5$ is $\set{4} \u \set{5} = \set{4,5}$, and the meaning of $\mathsf{add}~(\mathsf{choose}~4~5)~90$ is
+\begin{equation}
+\begin{aligned}
+	\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~90}
+	&\ =\ \setb{v_1 + v_2}{v_1 \in \meaningof{\mathsf{choose}~4~5}, v_2 \in \meaningof{90}}
+\\
+	&\ =\ \setb{v_1 + v_2}{v_1 \in (\meaningof{4} \u \meaningof{5}), v_2 \in \meaningof{90}} 
+\\
+	&\ =\ \setb{v_1 + v_2}{v_1 \in (\set{4} \u \set{5}), v_2 \in \set{90}}
+\\
+	&\ =\ \setb{v_1 + v_2}{v_1 \in \set{4,5}, v_2 \in \set{90}}
+\\
+	&\ =\ \set{4+90,5+90}
+\\
+	&\ =\ \set{94,95}
+\end{aligned}
+\end{equation}
+We know that $\mathsf{add}~(\mathsf{choose}~4~5)~90 \dto 94$ and $\mathsf{add}~(\mathsf{choose}~4~5)~90 \dto 95$, so it appears that $\meaningof{\cdot}$ is correct.
+It would be nice to know whether it is \emph{always} correct.
+The following theorem states correctness precisely in terms of ``$\dto$,'' and critically uses $\meaningof{\cdot}$'s compositionality in a proof by induction on the structure of $e$.
+
+\begin{theorem}[semantic correctness]
+For all $v \in V$ and $e \in E$, $v \in \meaningof{e} \iff e \dto v$.
+\end{theorem}
+\begin{proof}
+Let $v \in V$ and $e \in E$.
+The proof is by induction on the structure of $e$.
+
+Base case $e \in V$.
+If $e = v$, then $v \in \meaningof{e} = \set{e} = \set{v}$ by definition of $\meaningof{\cdot}$, and $e \dto v$ by the (val) rule.
+Similarly, if $e \neq v$, then $v \not\in \meaningof{e}$, and not $e \dto v$.
+
+Inductive case $e = \mathsf{add}~e_1~e_2$ for some $e_1 \in E$ and $e_2 \in E$.
+
+Suppose $v \in \meaningof{\mathsf{add}~e_1~e_2}$.
+By definition of $\meaningof{\cdot}$, there exist $v_1 \in \meaningof{e_1}$, $v_2 \in \meaningof{e_2}$ such that $v = v_1 + v_2$.
+By the inductive hypothesis, $e_1 \dto v_1$ and $e_2 \dto v_2$.
+By the (add) rule, $(\mathsf{add}~e_1~e_2) \dto v$.
+
+Conversely, if $(\mathsf{add}~e_1~e_2) \dto v$,
+by (add), there exist $v_1,v_2$ such that $e_1 \dto v_1$, $e_2 \dto v_2$ and $v = v_1 + v_2$.
+By hypothesis, $v_1 \in \meaningof{e_1}$ and $v_2 \in \meaningof{e_2}$.
+By definition of $\meaningof{\cdot}$, $v \in \meaningof{\mathsf{add}~e_1~e_2}$.
+
+Proof of the inductive case $e = \mathsf{choose}~e_1~e_2$ is similar to the preceeding (though each ``${\Longleftrightarrow}$'' direction has in inner case for nondeterministic choice) and is left as an exercise.
+\end{proof}
+
+Now that we know $\meaningof{\cdot}$ is correct, we can regard any implementation of it as an implementation of ``$\dto$''  as well.
+In general, it is easy to transfer theorems about ``$\dto$'' to $\meaningof{\cdot}$.
+
+What if we wanted to represent nondeterministic choices using lists instead of sets, or model a different computational effect, such as mutation or probabilitistic choice?
+We could define a different semantic function for each model, but there is a more elegant way.
+
+
+\section{Categorical Semantics}
+
+When computer scientists from any area want to extend a fixed process without having to repeat themselves more than necessary, they \keyword{abstract}: they decouple the desired varying part from the fixed process, and parameterize the previously fixed process on the varying part.
+This characterizes modular, object-oriented, functional, and even semantic abstraction.
+
+To abstract a denotational semantics, we parameterize its semantic function on the meaning it produces.
+The parameter takes the form of a \keyword{category}.\footnote{The word ``category'' comes from category theory, an alternative axiomatization of mathematics. Fortunately, little knowledge of category theory is necesary to define or understand categorical semantics.}
+In semantics, the category is comprised of a collection of objects called \keyword{computations} (i.e. possible program meanings) and operations on them called \keyword{combinators}.
+A category may seem like an object-oriented concept, but there is not necessarily any encapsulation, data hiding or inheritance.
+
+The appropriate category for the addition language with $\mathsf{choose}$ contains sets of numbers as computations, or $\powerset~\Nat$, and operations on them.
+While there are many possible collections of combinators, one kind of collection that functional programmers and theorists have found very useful are \keyword{monads}.\footnote{Strictly speaking, in category theory, they are \emph{strong} monads.}
+The \keyword{set monad} operates on set-valued computations and is defined by these two combinators:
+\begin{equation}
+\begin{aligned}
+	\mathit{return_{set}}~v&\ =\ \set{v} \\
+	\mathit{bind_{set}}~A~f&\ =\ \bigcup_{v \in A} f~v
+\end{aligned}
+\end{equation}
+Evidently, we should expect $\meaningof{v}_\mathit{set} = \mathit{return_{set}}~v = \set{v}$.
+How to use $\mathit{bind_{set}}$ is less clear, however.
+It apparently applies $f$ to the objects in set $A$ to yield a set for each, and collects these sets' members in a big union.
+Turning the set comprehension in the definition of $\meaningof{\mathsf{add}~e_1~e_2}$ into an indexed union (as in $\mathit{bind_{set}}$) makes its use clear:
+\begin{equation}
+\begin{aligned}
+	\meaningof{\mathsf{add}~e_1~e_2}
+	&\ =\ \setb{v_1 + v_2}{v_1 \in \meaningof{e_1}, v_2 \in \meaningof{e_2}}
+\\
+	&\ =\ \bigcup_{v_1 \in \meaningof{e_1}} \bigcup_{v_2 \in \meaningof{e_2}} \set{v_1 + v_2}
+\\
+	&\ \equiv\ \bigcup_{v_1 \in \meaningof{e_1}} \bigcup_{v_2 \in \meaningof{e_2}} \mathit{return_{set}}~(v_1 + v_2)
+\\
+	&\ \equiv\ \bigcup_{v_1 \in \meaningof{e_1}} \mathit{bind_{set}}~\meaningof{e_2}~(\fun{v_2} \mathit{return_{set}}~(v_1 + v_2))
+\\
+	&\ \equiv\ \mathit{bind_{set}}~\meaningof{e_1}~(\fun{v_1} \mathit{bind_{set}}~\meaningof{e_2}~(\fun{v_2} \mathit{return_{set}}~(v_1 + v_2)))
+\end{aligned}
+\end{equation}
+Thus, we expect $\meaningof{\mathsf{add}~e_1~e_2}_\mathit{set} = \mathit{bind_{set}}~\meaningof{e_1}_\mathit{set}~(\fun{v_1} \mathit{bind_{set}}~\meaningof{e_2}_\mathit{set}~(\fun{v_2} \mathit{return_{set}}~(v_1 + v_2)))$.
+Finally, we need to extend the set monad with an operation for $\mathsf{choose}$ expressions.
+We define
+\begin{equation}
+	\mathit{merge_{set}}~A_1~A_2\ =\ A_1 \u A_2
+\end{equation}
+so that $\meaningof{\mathsf{choose}~e_1~e_2}_\mathit{set}\ =\ \mathit{merge_{set}}~\meaningof{e_1}_\mathit{set}~\meaningof{e_2}_\mathit{set}$.
+
+\begin{figure*}[tb]\centering
+\begin{varwidth}[b]{\textwidth}
+\begin{equation*}
+\begin{aligned}
+	\meaningof{\cdot}_a &: E \to M_a~\Nat
+\\[6pt]
+	\meaningof{v}_a&\ =\ \mathit{return_a}~v
+\\
+	\meaningof{\mathsf{add}~e_1~e_2}_a&\ =\ \mathit{bind_a}~\meaningof{e_1}_a~(\fun{v_1} \mathit{bind_a}~\meaningof{e_2}_a~(\fun{v_2} \mathit{return_a}~(v_1 + v_2)))
+\\
+	\meaningof{\mathsf{choose}~e_1~e_2}_a&\ =\ \mathit{merge_a}~\meaningof{e_1}_a~\meaningof{e_2}_a
+\end{aligned}
+\end{equation*}
+\end{varwidth}
+\bottomhrule
+\caption[ ]{blah}
+\label{fig:add-choose-categorical}
+\end{figure*}
+
+In \figref{fig:add-choose-categorical}, guided by our expectations for $\meaningof{\cdot}_\mathit{set}$, we define a categorical semantics for the addition language with $\mathsf{choose}$, by defining a semantic function $\meaningof{\cdot}_a$ parameterized on a target monad $a$.
+The parameterized function $M_a$ returns the monad's computations.
+If $M_\mathit{set}~X = \powerset~X$, then $\meaningof{\cdot}_\mathit{set} : E \to M_\mathit{set}~\Nat$ is equivalent to $\meaningof{\cdot} : E \to \powerset~\Nat$ as defined in \figref{fig:add-choose-denotational}, as expected.
+
+Because \figref{fig:add-choose-categorical} does not refer to sets or set operations, it is abstract enough to interpret programs as many different kinds of computations.
+For example, let $M_\mathit{list}~X = [X]$, where $[X]$ denotes all the lists of $X$, and define the \keyword{list monad} extended with $\mathit{merge}$ by
+\begin{equation}
+\begin{aligned}
+	\mathit{return_{list}}~v &\ =\ [v]
+\\
+	\mathit{bind_{list}}~\mathit{vs}~f &\ =\ \mathit{concat}~(\mathit{map}~f~\mathit{vs})
+\\
+	\mathit{merge_{list}}~\mathit{vs}_1~\mathit{vs}_2 &\ =\ \mathit{append}~\mathit{vs}_1~\mathit{vs}_2
+\end{aligned}
+\end{equation}
+Here, $[v]$ is a list containing just $v$, $\mathit{map}$ applies a function to every element in a list and returns the list of results, and $\mathit{concat} : [[X]] \to [X]$ appends the elements in a list of lists.
+Now $\meaningof{\cdot}_\mathit{list} : E \to [\Nat]$ models nondeterminism with lists of numbers instead of sets of numbers.
+For example, the meaning of $\mathsf{choose}~4~5$ as a list of nondeterministic choices is
+\begin{equation}
+\begin{aligned}
+	\meaningof{\mathsf{choose}~4~5}_\mathit{list}
+	&\ =\ \mathit{merge_{list}}~\meaningof{4}_\mathit{list}~\meaningof{5}_\mathit{list}
+\\
+	&\ =\ \mathit{merge_{list}}~(\mathit{return_{list}}~4)~(\mathit{return_{list}}~5)
+\\
+	&\ \equiv\ \mathit{merge_{list}}~[4]~[5]
+\\
+	&\ \equiv\ \mathit{append}~[4]~[5]
+\\
+	&\ \equiv\ [4,5]
+\label{eqn:list-monad-derivation1}
+\end{aligned}
+\end{equation}
+The meaning of $\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)$ is thus
+\begin{displaybreaks}
+\begin{align*}
+	&\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)}_\mathit{list}
+\\*
+	&\tab \equiv\ \mathit{bind_\mathit{list}}~[4,5]~(\fun{v_1} \mathit{bind_\mathit{list}}~[4,5]~(\fun{v_2} \mathit{return_{list}}~(v_1 + v_2)))
+\\
+	&\tab \equiv\ \mathit{concat}~(\mathit{map}~(\fun{v_1} \mathit{bind_\mathit{list}}~[4,5]~(\fun{v_2} \mathit{return_{list}}~(v_1 + v_2)))~[4,5])
+\\
+	&\tab \equiv\ \mathit{concat}~
+	\begin{aligned}[t]
+		[&\mathit{bind_\mathit{list}}~[4,5]~(\fun{v_2} \mathit{return_{list}}~(4 + v_2)),\\
+		&\mathit{bind_\mathit{list}}~[4,5]~(\fun{v_2} \mathit{return_{list}}~(5 + v_2))]
+	\end{aligned}
+\numberthis
+\label{eqn:list-monad-derivation2}
+\\
+	&\tab \equiv\ \mathit{concat}~
+	\begin{aligned}[t]
+		[&\mathit{concat}~(\mathit{map}~(\fun{v_2} \mathit{return_{list}}~(4 + v_2))~[4,5]),\\
+		&\mathit{concat}~(\mathit{map}~(\fun{v_2} \mathit{return_{list}}~(5 + v_2))~[4,5])]
+	\end{aligned}
+\\
+	&\tab \equiv\ \mathit{concat}~
+	\begin{aligned}[t]
+		[&\mathit{concat}~[\mathit{return_{list}}~(4 + 4), \mathit{return_{list}}~(4 + 5)],\\
+		&\mathit{concat}~[\mathit{return_{list}}~(5 + 4), \mathit{return_{list}}~(5 + 5)]]
+	\end{aligned}
+\\
+	&\tab \equiv\ \mathit{concat}~[\mathit{concat}~[[8], [9]], \mathit{concat}~[[9], [10]]]
+\\
+	&\tab \equiv\ \mathit{concat}~[[8, 9], [9, 10]]
+\\*
+	&\tab \equiv\ [8,9,9,10]
+\end{align*}
+\end{displaybreaks}
+In contrast, $\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)}_\mathit{set}\ \equiv\ \set{8,9,10}$.
+
+The semantic function $\meaningof{\cdot}_a$ can be parameterized not just on the set and list monads, but any monad $a$ for which $\mathit{merge_a}$ can be sensibly defined.
+This includes monads for any kind of nondeterminism (e.g. all possibilities, angelic/demonic, random, probabilistic) with any kind of encoding for nondeterministic values (e.g. sets, lists, worst/best choices, execution paths, random values, probability distributions).
+It also includes monads that combine nondeterminism with other effects, such as input/output or backtracking search.
+
+As evidenced by the long derivations in~\eqref{eqn:list-monad-derivation1} and~\eqref{eqn:list-monad-derivation2}, like most other abstractions, semantic abstraction increases complexity in return for its flexibility and generalization.
+There are many ways to deal with this, including inferring the behavior of effects from computation types, and classifying effectful behaviors as belonging to different categories.
+The programming language Haskell benefits greatly from categorical semantics by using them to hide the encodings of effects, which, being an implementation of an effect-free $\lambda$-calculus, it cannot compute directly by design.
+Its primary way to deal with the increase in complexity is to use just one built-in, standard semantic function that targets any monad, which transforms syntax that many Haskell programmers find (or learn to find) intuitive.
+
+Besides increasing complexity, abstraction affects the semantics in another way that we have only hinted at by using ``$\equiv$'' instead of ``$=$'' in some of our equations: \emph{it no longer targets first-order set theory}.
+Instead, the semantic function $\meaningof{\cdot}_a$ targets a $\lambda$-calculus.
+
+Targeting a $\lambda$-calculus restricts a denotational semantics to be \emph{directly implementable} as a syntax transformer.
+This restriction is generally regarded as good, because it makes the proof of the direct implementation's correctness trivial.
+However, we want to define semantic functions for Bayesian notation, which often denotes uncountable things such as probability distributions over $\Re$.
+The entire reason for the work in Chapter~\ref{ch:lambda-zfc} is to define a $\lambda$-calculus with a semantics that gives meaning to operations on infinite values of any size, so that we can define such semantics categorically in Chapter~\ref{ch:countable-models} and Chapter~\ref{ch:preimage1}.
+
+The combinators in a category must obey certain laws.
+For example, to define a monad, $\mathit{return_a}$ and $\mathit{bind_a}$ most obey these laws:
+\begin{equation}
+\begin{aligned}
+	\mathit{bind_a}~(\mathit{return_a}~x)~f&\ \equiv\ f~x
+		&\text{left identity}
+\\
+	\mathit{bind_a}~m~\mathit{return_a}&\ \equiv\ m
+		&\text{right identity}
+\\
+	\mathit{bind_a}~(\mathit{bind_a}~m~f)~g&\ \equiv\ \mathit{bind_a}~m~(\fun{x} \mathit{bind_a}~(f~x)~g)
+		\hspace{0.5in}&\text{associativity}
+\end{aligned}
+\end{equation}
+It is not necessary for readers to understand these laws deeply, just that they exist, are expected to hold, are occasionally useful, and that we interpret them a little more broadly than is typical.
+In particular, ``$\equiv$'' is almost always understood to be the default equivalence relation for the $\lambda$-calculus in which the combinators are defined.
+When programming in Haskell, this helpfully implies that using the laws to transform programs maintains program equivalence.
+When defining categorical semantics, however, there is no reason for ``$\equiv$'' to be defined so narrowly.
+In fact, it is often useful to define equivalence differently for each category.
+
+Lastly, there are other kinds of categories besides monads that are useful targets for categorical semantics, particularly \keyword{idioms} and \keyword{arrows}.
+Each has its own combinators and laws.
+We do not review them here because they are obscure enough that the chapters that use them necessarily review and explain them.
+
+
+\section{Abstract Interpretation}
+
+When we want to discover something about programs without actually evaluating them, it is often helpful to define an \keyword{abstract interpretation}: an evaluation method that operates on just a few properties of terms instead of their actual values.
+Equivalently, we can think of an abstract interpretation as operating on sets of values for which those properties hold.
+In either view, the properties or sets of values are thought of as \keyword{abstract values}.
+
+Perhaps the most common example of abstract interpretation is type checking.
+In this case, the abstract values are types, which represent properties such as ``is a number'' or ``is a function from lists to natural numbers.''
+During abstract interpretation, expressions are not evaluated on concrete values, but are checked to determine whether they preserve the properties that values should have.
+Equivalently, they are evaluated on abstract values.
+
+As with concrete semantics, any of a language's abstract semantics can be specified using inference rules or semantic functions.
+Type systems and type checkers are typically defined by inference rules.
+Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a semantic function, we give a small example of that approach here.
+
+\begin{figure*}[tb]\centering
+\begin{varwidth}[b]{\textwidth}
+\begin{equation*}
+\begin{aligned}
+	\mathcal{L}\meaningof{\cdot} &: E \to \Nat
+	\\[6pt]
+	\mathcal{L}\meaningof{v} &\ =\ 1 \\
+	\mathcal{L}\meaningof{\mathsf{add}~e_1~e_2} &\ =\ \mathcal{L}\meaningof{e_1} \cdot \mathcal{L}\meaningof{e_2} \\
+	\mathcal{L}\meaningof{\mathsf{choose}~e_1~e_2} &\ =\ \mathcal{L}\meaningof{e_1} + \mathcal{L}\meaningof{e_2}  \\
+\end{aligned}
+\end{equation*}
+\end{varwidth}
+\bottomhrule
+\caption[ ]{blah}
+\label{fig:add-choose-abstract}
+\end{figure*}
+
+\figref{fig:add-choose-abstract} defines $\mathcal{L}\meaningof{\cdot}$, which defines an abstract semantics for the addition language with $\mathsf{choose}$.
+(The prefix $\mathcal{L}$ means nothing mathematically; it simply differentiates this semantic function from the others we have defined.)
+The abstract meaning of a term is a bound on the number of nondeterministic values computed.
+The abstract values are the lengths of lists or cardinalities of sets; i.e. natural numbers.
+For example, the abstract meaning of $\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)$ is
+\begin{equation}
+\begin{aligned}
+	\mathcal{L}\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)}
+	&\ =\ \mathcal{L}\meaningof{\mathsf{choose}~4~5} \cdot \mathcal{L}\meaningof{\mathsf{choose}~4~5}
+\\
+	&\ =\ (\mathcal{L}\meaningof{4} + \mathcal{L}\meaningof{5}) \cdot (\mathcal{L}\meaningof{4} + \mathcal{L}\meaningof{5})
+\\
+	&\ =\ (1 + 1) \cdot (1 + 1)
+\\
+	&\ =\ 4
+\end{aligned}
+\end{equation}
+Indeed, $\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)}_\mathit{set} \equiv \set{8,9,10}$, which is no more than $4$ values.
+
+This example demonstrates a pervasive fact about abstract semantics: almost every abstract semantics trades precision to get efficiency or tractability.
+Certainly $\left|\set{8,9,10}\right| \neq 4$.
+
+Usually, we need the abstraction to be \keyword{sound}, which roughly means that the abstract values are always a kind of overapproximation.
+(There is a way to formalize this notion using Galois connections, but that brings in more complexity than we need.)
+To be useful, an abstraction must come with a theorem such as the following soundness theorem, relating it to a concrete semantics.
+
+\begin{theorem}[$\mathcal{L}\meaningof{\cdot}$ soundness]
+\label{thm:add-choose-abstract-soundness}
+For all $e \in E$, $\left|\meaningof{e}_\mathit{set}\right| \leq \mathcal{L}\meaningof{e}$.
+\end{theorem}
+\begin{proof}
+By structural induction on $e$.
+\end{proof}
+
+A soundness theorem sometimes suggests how the abstraction might be used.
+For a type system, soundness implies that accepted programs never compute concrete values with the wrong type, and that operations on them may be specialized in ways that would otherwise be unsafe or incorrect.
+(A child class's methods may be inlined, for example.)
+By Theorem~\ref{thm:add-choose-abstract-soundness}, we can use $\mathcal{L}\meaningof{\cdot}$ to determine how much space to preallocate for results in a less direct but faster implementation of $\meaningof{\cdot}_\mathit{set}$, and we will never allocate too little.
+
+Sometimes the abstraction is both sound and precise, as $\mathcal{L}\meaningof{\cdot}$ is with respect to $\meaningof{\cdot}_\mathit{list}$.
+
+\begin{theorem}[$\mathcal{L}\meaningof{\cdot}$ soundness and precision]
+For all $e \in E$, $\mathit{length}~\meaningof{e}_\mathit{list} = \mathcal{L}\meaningof{e}$.
+\end{theorem}
+\begin{proof}
+By structural induction on $e$.
+\end{proof}
+
+This usually means that the abstraction is not very abstract, or that the concrete semantics is itself an abstraction of something else (as is the case here).
