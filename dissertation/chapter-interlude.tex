@@ -1,0 +1,27 @@
+Now that we are satisfied that using \lzfclang as a target language for categorical semantics of constructive theories and queries works, we turn our attention to uncountable sample spaces and theories with general recursion.
+
+It seems that, having followed measure-theoretic structure so far, the extension to uncountable sample spaces should be fairly smooth.
+Discrete probability spaces, probability mass functions, summation, conditioning, and discrete transition kernels all have uncountable analogues that can be composed in much the same way.
+The probability space monad thus has an uncountable analogue that can be used as a target for a categorial semantics for Bayesian notation.
+There are two difficulties, however.
+
+The first difficulty is practical.
+As with the limit monad in Section~\ref{sec:limit-monad}, we would like to \emph{derive} an implementable semantics by approximating the target category.
+Unfortunately, this is complicated by the fact that the uncountable computations have large cardinalities.
+For example, a general probability space on $\Re$ is defined as a triple $\pair{\Re,\Sigma,P}$, where $\Sigma$ is a subset of $\powerset~\Re$ and $P : \Sigma \to [0,1]$.
+
+The second difficulty is theoretical.
+Suppose we define the following recursive function in a language with probabilistic choice, which counts the number of times $random < p$:
+\begin{equation}
+	geometric~p \ := \ if~(random < p)~0~(1 + geometric~p)
+\end{equation}
+To interpret $geometric~p$ using the uncountable probability space monad, we must interpret both branches of the $if$ as probability spaces and merge them.
+Unfortunately, doing so na\"ively results in nontermination, as $geometric~p$ is applied in the \emph{else} branch at every recurrence.
+Dealing with nontermination requires complicated fixpoint constructions and limits, which, with uncountable probability spaces, would put us on the frontier of research in mathematics instead of in computer science.
+
+Fortunately, we can take a hint from measure-theoretic probability's general approach to infinite processes: define them with respect to a canonical, infinite-dimensional probability space, and encode branching and other complexities into the random variables.
+The next chapter takes this approach by interpreting whole programs as random variables in which every $random$ expression indexes an infinite, random tree.
+
+We have not entirely given up on the probability space monad, however.
+It has already been useful in proving that distribution queries and conditioning do not commute.
+We could use it in the future to reason about other \emph{local} program properties; i.e. without referring to a global probability space. [XXX: move to future work]

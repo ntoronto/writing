@@ -147,7 +147,7 @@
 % out if these already exist.
 \newcommand{\Title}{Trustworthy, Useful Languages for Probabilistic Modeling and Inference}
 \newcommand{\Author}{Neil Toronto}
-\newcommand{\GraduationMonth}{January}
+\newcommand{\GraduationMonth}{February}
 \newcommand{\GraduationYear}{2014}
 
 % Set up the internal PDF information so that it becomes part of the document
@@ -184,22 +184,73 @@
 \yeargraduated{\GraduationYear}
 \yearcopyrighted{\GraduationYear}
 
+\begin{comment}
+To be useful in Bayesian practice, a probabilistic language must support conditioning: imposing constraints in a way that preserves the relative probabilities of program outputs.
+Every language to date that supports probabilistic conditioning also 
+
+We develop a semantics for a first-order language with recursion, probabilistic choice and conditioning.
+Distributions over program outputs are defined by the probabilities of their preimages, a measure-theoretic approach that ensures the language is not artificially limited.
+
+Measurability is a basic property similar to continuity that is often neglected, but critical.
+We prove that all probabilistic programs are measurable regardless of nontermination, if the language's primitives are measurable---which includes real arithmetic, inequalities and limits.
+
+Preimages are generally uncomputable, so we derive an approximating semantics for computing rectangular covers of preimages.
+We implement the approximating semantics in Haskell and Typed Racket, and demonstrate its expressive power using stochastic ray tracing.
+\end{comment}
+
 \documentabstract{%
-XXX: rewrite (was lifted from proposal)
+The ideals of exact modeling, and of putting off approximations as long as possible, make Bayesian practice both successful and difficult.
+Automating it has been taking the form of languages for modeling probabilistic processes and answering questions about them.
 
-The ideals of exact modeling, and of putting off approximations as long as possible, make Bayesian practice both successful and difficult. To address the difficulties, Bayesians have created languages for modeling and automatic inference. However, there are none that have a well-defined semantics, meaning that there is no way to distinguish between a bug and a feature, and there is no standard by which to prove optimizations correct.
+Unfortunately, very few of these languages have a mathematical specification.
+This makes them difficult to trust: there is no way to distinguish between a bug and a feature, and there is no standard by which to prove optimizations correct.
+Further, because the languages are based on the incomplete theories of probability used in Bayesian practice, they place seemingly artificial restrictions on legal programs and queries, such as disallowing unbounded recursion and allowing only simple equality constraints.
 
-Functional programming researchers have created probabilistic languages with well-defined semantics. Bayesians cannot use them in their day-to-day work, however, because they lack critical features; for example, all but one lack probabilistic conditioning.
+We prove it is possible to make trustworthy probabilistic languages for Bayesian practice by using functional programming theory to define them mathematically.
+The specifications interpret programs using the most complete known theory of probability, so they place no restrictions on programs and allow arbitrary conditions with arbitrarily low probability.
 
-I propose that it is possible to use measure-theoretic probability and functional programming theory to create languages with well-defined semantics, that are also useful to practicing Bayesians.
+We demonstrate that the results are useful by implementing the languages, and using them to model and answer questions about typical probabilistic processes.
+We also model and answer questions about processes that are either difficult or impossible to reason about precisely using Bayesian mathematical tools.
 }
 
 \documentkeywords{%
-	Probability, Domain-Specific Languages, Semantics
+	Bayesian, Probability, Domain-Specific Languages, Functional Programming, Semantics
+}
+
+% Fermat: I have discovered a truly marvellous proof of this, which this margin is too narrow to contain
+
+\dedication{%
+\centering
+	To my wife, Amy.
 }
 
 \acknowledgments{%
-    XXX: write
+I must first thank my parents for bringing me up right.
+
+I must secondly thank my parents again, for encouraging my curiosity and intellectual development.
+Only now do I hear stories of the difficulties they had finding age-appropriate computer accessories and programming books for my Christmas presents---in the mid-1980s, when such things were scarce and few were made for children.
+
+I must thirdly thank my parents yet again, for trying to instill in me a love of hard work.
+It eventually took.
+I assure them it was worth it.
+
+My PhD advisor, Jay McCarthy, has been stellar in every respect.
+He has shown me how to do programming language research with rigor, taught me how to structure my communication, and offered excellent insights and suggestions on research that crosses into a field he initially knew little about.
+Without Jay's guidance, there would be little to distinguish this work from other work in probabilistic languages.
+Together, we have done it in a way that is demonstrably the most complete and reliable.
+
+I cannot confine my thanks only to Jay's professional instruction.
+He has also ensured that I could take care of my family without going into debt, and ensured that I have the connections necessary to secure a good career.
+The wait for ``when Daddy gets a real job'' has been bearable, with no ever-increasing financial load and with good prospects to look forward to.
+The positive repurcussions will be nearly endless.
+I am eternally grateful.
+
+My wife's support of my academic pursuits has been positive and constant for 11 years.
+This is truly marvellous in a way that words are too narrow to contain.
+
+I thank my children, for praying for me every day; for being sweet, loving, talented, and so very interesting.
+
+Lastly, I thank my God and Savior, whose justice and mercy makes our mortal existence meaningful and beautiful.
 }
 
 \department{Computer Science}
@@ -213,6 +264,12 @@ I propose that it is possible to use measure-theoretic probability and functiona
 % Allow pages to have extra blank space at the bottom in order to accommodate
 % removal of widows and orphans.
 \raggedbottom
+
+
+\begin{comment}
+	Bayesian notation: italics
+	Math: lambda-ZFC
+\end{comment}
 
 \begin{document}
 
@@ -229,12 +286,13 @@ I propose that it is possible to use measure-theoretic probability and functiona
 \end{quote}
 \vspace*{\fill}
 
-\chapter{Thesis Statement}
+\chapter{Thesis}
 
 \input{chapter-thesis-statement.tex}
 
 
 \chapter{Background}
+\label{ch:background}
 
 \input{chapter-background.tex}
 
@@ -268,7 +326,8 @@ This chapter is derived from work published at the 22\textsuperscript{nd} \emph{
 \input{chapter-countable.tex}
 
 
-\chapter{Interlude: Infinite Programs}
+\chapter{Interlude: Uncountable Outcomes and Recursion}
+\label{ch:interlude}
 
 \input{chapter-interlude.tex}
 
@@ -285,19 +344,26 @@ This chapter is derived from work published at the 22\textsuperscript{nd} \emph{
 \input{chapter-preimage-2.tex}
 
 
-\chapter{Measurability}
+\chapter{Measurability Proofs}
 \label{ch:measurability}
 
 \input{chapter-measurability.tex}
 
 
-\chapter{Sampling Algorithm Proofs}
+\chapter{Sampling Proofs}
 \label{ch:sampling-algorithm-proofs}
 
 \input{chapter-sampling-proofs.tex}
 
 
 \chapter{Related Work}
+
+\input{chapter-related-work.tex}
+
+
+\chapter{Conclusions and Future Work}
+
+\input{chapter-conclusions.tex}
 
 %\appendix
 %\chapter{Proofs}

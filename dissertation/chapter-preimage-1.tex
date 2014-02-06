@@ -29,46 +29,9 @@ We implement the approximating semantics in Haskell and Typed Racket, and demons
 
 \section{Introduction}
 
-It is primarily Bayesian practice that drives probabilistic language development.
-To be useful, a probabilistic language must support \keyword{conditioning}, or imposing constraints in a way that preserves the relative probabilities of outputs.
-
-Unfortunately, there is currently no efficient probabilistic language implementation that supports conditioning and does not restrict legal programs.
-Most commonly, languages that support conditioning disallow recursion, allow only discrete or continuous distributions, and restrict conditions to the form $\mathit{x} = \mathit{c}$.
-
-\subsection{Probability Densities}
-
-These common language restrictions arise from reasoning about probability using \keyword{densities}, which are functions from random values to \emph{changes} in probability.
-While simple and convenient, densities have many limitations.
-For example, densities for random values with different dimension are incomparable, and they cannot be defined on infinite products.
-Either limitation rules out recursion.
-
-\mathversion{sans}
-Densities generally cannot define distributions for the outputs of discontinuous functions.
-For example, suppose we want to model a thermometer that reports in the range $[0,100]$, and that the temperature it would report (if it could) is distributed according to a bell curve.
-We might encode the process as
-\begin{equation}
-	t'\ :=\ \lzfclet{t & normal~\mu~1}{max~0~(min~100~t)}
-\label{eqn:thermometer-example}
-\end{equation}
-While $t$'s distribution has a density, the distribution of $t'$ does not.
-\mathversion{normal}
-
-Densities disallow all but the simplest conditions.
-\keyword{Bayes' law for densities} gives the density of $x$ given an observed $y$ in terms of other densities:
-\begin{equation}
-	p_x(x\,|\,y)\ =\ \frac{p_y(y\,|\,x) \cdot \pi_x(x)}{\int p_y(y\,|\,x) \cdot \pi_x(x)~dx}
-\label{eqn:bayes-law-densities}
-\end{equation}
-Bayesians interpret probabilistic processes as defining $p_y$ and $\pi_x$, and use~\eqref{eqn:bayes-law-densities} to find the distribution of ``$x$ given $y = c$.''
-Even though ``$x$ given $x + y = \mathrm{0}$'' has perfectly sensible distribution, Bayes' law for densities cannot express it.
-
-
-\subsection{Probability Measures}
-
-Measure-theoretic probability~\cite{cit:klenke-2006-probability} is widely believed to be able to define every reasonable distribution that densities cannot.
-It mainly does this by \emph{assigning probabilities to sets} instead of \emph{assigning changes in probability to values}.
+Measure-theoretic probability~\cite{cit:klenke-2006-probability} is widely believed to be able to define every reasonable distribution, including distributions arising from discontinuous transformations and distributions on infinite spaces.
+It mainly does this by \emph{assigning probabilities to sets}.
 Functions that do so are probability \keyword{measures}.
-In contrast to densities, probabilities of sets of values with different dimension \emph{are} comparable, and probability measures \emph{can} be defined on infinite products.
 
 If a probability measure $P$ assigns probabilities to subsets of $X$ and $f : X \to Y$, then \keyword{preimage measure} defines the distribution over subsets of $Y$:
 \begin{equation}
@@ -1483,6 +1446,14 @@ For probabilistic programs, we define a combinator $random\genc$ that returns th
 	&\meaningof{random}\genc \ :\equiv \ random\genc
 \end{aligned}
 \end{equation}
+Here, $\pi~j$ projects its argument onto the argument's $j$th coordinate:
+\begin{equation}
+\begin{aligned}
+	&\pi : J \tto (J \to X) \tto X \\
+	&\pi~j~f \ := \ f~j
+\end{aligned}
+\end{equation}
+So $\pi~j$ is analogous to $fst$ and $snd$ for pairs, but for vectors at index $j$.
 
 For partial programs, we define a combinator that reads branch traces, and an if-then-else combinator that ensures its test expression agrees with the trace:
 \begin{equation}
@@ -2480,56 +2451,6 @@ The smaller the aperture, the smaller the probability a path passes through it, 
 
 All efficient implementations of stochastic ray tracing to date use sophisticated, specialized sampling methods that bear little resemblance to the physical processes they simulate.
 The proof-of-concept ray tracer, written in Dr. Bayes, is little more than a simple physics simulation and a conditional query.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Related Work}
-
-Any programming language research described by the words ``bijective'' or ``reversible'' might seem to have much in common with ours.
-Unfortunately, when we look more closely, we can usually draw only loose analogies and perhaps inspiration.
-An example is lenses~\cite{cit:hofmann-2012popl-edit-lenses}, which are transformations from $X$ to $Y$ that can be run forward and backward, in a way that maintains some relationship between $X$ and $Y$.
-Usually, a destructive, external process is assumed, so that, for example, a change from $y \in Y$ to $y' \in Y$ induces a corresponding change from $x \in X$ to some $x' \in X$.
-When transformations lose information, lenses must satisfy certain behavioral laws.
-In our work, no input or output is updated, and preimages are always definable regardless of non-injectivity.
-
-Many multi-paradigm languages~\cite{cit:hanus-2007lp-multi-paradigm}, especially constraint functional languages, bear a strong resemblance to our work.
-In fact, it is easy to add a $fail$ expression to our semantics, or to transform constraints into boolean program outputs.
-The most obvious difference is evaluation strategy.
-The most important difference is that our interpretation of programs returns \emph{distributions} of constrained outputs, rather than arbitrary single values that meet constraints.
-
-The forward phase in computing preimages takes a subdomain and returns an overapproximation of the function's range for that subdomain.
-This clearly generalizes interval arithmetic~\cite{cit:kearfott-1996eb-interval} to all first-order algebraic types.
-
-Our approximating semantics can be regarded as an abstract interpretation~\cite{cit:cousot-1977popl-abstract-interpretation} where the concrete domain consists of measurable sets and the abstract domain consists of rectangular sets.
-In some ways, it is quite typical: it is sound, it labels expressions, the abstract domain is a lattice, and the exact semantics it approximates performs infinite computations.
-However, it is far from typical in other ways.
-It is used to run programs, not for static analysis.
-The abstraction boundaries are the $if$ branches of completely unrolled, infinite programs, and are not fixed.
-There is no Kleene iteration.
-Infinite computations are done in a library of \lzfclang-computable combinators, not by a semantic function.
-This cleanly separates the syntax from the semantics, and allows us to prove the exact semantics correct mostly by proving simple categorical properties.
-
-Probabilistic languages can be approximately placed into two groups: those defined by an implementation, and those defined by a semantics.
-
-Some languages defined by an implementation are a probabilistic Scheme by Koller and Pfeffer~\cite{cit:koller-1997aaai-bayes-programs-short}, BUGS~\cite{cit:winbugs-language-short}, BLOG~\cite{cit:blog-language-short}, BLAISE~\cite{cit:blaise-language}, Church~\cite{cit:church-language-short}, and Kiselyov's embedded language for O'Caml based on continuations~\cite{cit:kiselyov-2008uai-monolingual}.
-The reports on these languages generally describe interpreters, compilers, and algorithms for sampling with probabilistic conditions.
-Recently, Wingate et al~\cite{cit:wingate-2011ais-lightweight,cit:wingate-2011nips-nonstandard} have defined the semantics of \emph{nonstandard interpretations} that enable efficient inference, but do not define the languages.
-
-Early work in probabilistic language semantics is not motivated by Bayesian concerns, and thus does not address conditioning.
-Kozen~\cite{cit:kozen-1979fcs-prob-programs-short} defines the meaning of bounded-space, imperative ``while'' programs as functions from probability measures to probability measures.
-Hurd~\cite{cit:hurd-2002thesis} proves properties about programs with binary random choice by encoding programs and portions of measure theory in HOL.
-Jones~\cite{cit:jones-1990thesis} develops a domain-theoretic variation of probability theory, and with it defines the probability monad, whose discrete version is a distribution-valued variation of the set or list monad.
-Ramsey and Pfeffer~\cite{cit:ramsey-2002popl-stochastic-short} define the probability monad measure-theoretically and implement a language for finite probability.
-Park~\cite{cit:park-2008toplas-prob} extends a $\lambda$-calculus with probabilistic choice from a general class of probability measures using inverse transform sampling.
-
-Some recent work in probabilistic language semantics tackles conditioning. Pfeffer's IBAL~\cite{cit:pfeffer-2007chapter-ibal} is the earliest lambda calculus with finite probabilistic choice that also defines conditional queries.
-Borgstr\"om et al~\cite{cit:borgstrom-2011esop-measure-transformer} develop Fun, a first-order functional language without recursion, extended with probabilistic choice and conditioning.
-Its semantics interprets programs as \emph{measure transformers} by transforming expressions into arrow-like combinators.
-The implementation generates a decomposition of the probability density represented by the program, if it exists.
-Bhat et al~\cite{cit:bhat-2013etaps-densities} replaces Fun's $if$ with $match$, and interprets programs more directly as probability density functions by compositionally transforming expressions into an extension of the probability monad.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

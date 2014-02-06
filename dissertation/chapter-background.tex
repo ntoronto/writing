@@ -1,37 +1,384 @@
-The most difficult part of doing work in an emerging cross-disciplinary area is choosing a side and tutoring that side on the background knowledge taken for granted by the other.
-Finding a viable approach to bridge the two sides is a close second, followed by building the formalisms that bridge them and deciding which theorems to prove.
-Proving theorems and writing implementations are not only similar tasks, but are just as simple compared to convincing a reader that it is worthwhile to learn new notation and think in a different way.
+This work brings together Bayesian practice and functional programming theory, and bridges them using measure-theoretic probability.
 
-We cannot choose both sides.
-In an emerging cross-disciplinary area, there are very few readers who already have enough background in both sides to evaluate the work.
+In this chapter, we attempt to give enough background to motivate and explain Bayesian practice and functional programming theory.
+We only \emph{motivate} measure-theoretic probability here.
+Further on, we introduce, explain and use parts as we need them.
 
-We cannot choose \emph{neither} side, usually.
-Hardly any respectable publication venue is sufficiently external to both sides but still interested, nor allows enough space to tutor everyone.
-There is one major exception: the university publication of a dissertation.
+It is difficult to find two areas in computer science as different as Bayesian practice and functional programming theory.
+In Bayesian practice, we find deeply held belief that unknowns can and should be \emph{quantified} (by probabilities), reasoning by probabilistic inference, willingness to accept many kinds of approximations, and common notation that is---to put it kindly---flexible.
+In functional programming theory, we find deeply held belief that unknowns should be \emph{qualified} (usually universally), reasoning by logical inference, little tolerance for unsound approximations even if they converge, and common notation that is---to put it kindly---almost precise enough to feed to a compiler.
 
-Dissertations are intended for a more general audience than either side, and have formats that allow the necessary tutorials.
-They are evaluated by a readership with at least five members who are, if not \emph{interested}, at least \emph{obligated}.
-Unfortunately, we must deal with the fact that dissertations written about emerging cross-disciplinary areas are assembled from published and publishable work that is targeted at just one side.
+There is one common trait that makes bridging both areas even conceivable.
+While Bayesians model processes and functional programming researchers model languages, both approach their tasks methodically, and both create theories in which every entity they want to reason about is represented explicitly.
+If something important is going on behind the scenes---whether a hidden Markov process or mutating the program's store---it is brought to the fore and fully characterized.
+In both areas, the extra time and cognitive burden are considered worthwhile payment for reliable artifacts and repeatable results.
 
-In our work, the two sides are Bayesian practice and functional programming theory.
-The implicit background knowledge includes:
-\begin{itemize}
-	\item In Bayesian practice, probability densities and manipulation rules, basic statistics, Bayesian modeling and philosophy, integration, and inference methods.
-	\item In functional programming, $\lambda$-calculus, big-step operational semantics, denotational semantics, categorical semantics, and abstract interpretation.
-\end{itemize}
+It is this trait---explicit representation---that makes it possible to automate Bayesian inference, and again this trait that makes it possible to prove the automation correct.
+
+
+\section{Bayesian Practice}
+
+From Bayesian practice, the requisite background knowledge includes probability mass functions, probability densities, queries and manipulation rules, Bayesian modeling, and Bayesian inference.
+We assume readers know arithmetic, some set theory, functions, and the basic ideas behind integration.
+
+\subsection{Discrete Probability and Joint Distribution Models}
+
+In a probabilistic model of a real-world process, there are distinguished identifiers that denote random values, called \keyword{random variables}.
+These are regarded as nondeterministic, but with additional information that quantifies the likelihoods of the values they may take on.
+The additional information is completely characterized by a function called a \keyword{joint distribution}.
+
+For example, suppose $X,Y \in \set{h,t}$ are random variables that represent the outcomes of coin tosses.
+Further, let the joint distribution $p_{X,Y} : \set{h,t} \times \set{h,t} \to [0,1]$ quantify the likelihood of every possible combination of outcomes by defining
+\begin{equation}
+	p_{X,Y}\ =\ \left[(h,h) \mapsto \frac{1}{4},
+		(h,t) \mapsto \frac{1}{4},
+		(t,h) \mapsto \frac{1}{6},
+		(t,t) \mapsto \frac{1}{3}\right]
+\end{equation}
+(The subscript ``$X,Y$'' is just part of the function name, and has no special meaning.)
+This is a \keyword{probability mass function}: its outputs sum to $1$.
+
+The probability that $X = t$ and $Y = h$ is $p_{X,Y}(t,h) = \frac{1}{6}$.
+Another way to write ``the probability that $X = t$ and $Y = h$'' is with a \keyword{probability query}:
+\begin{equation}
+	\Pspec{X = t \band Y = h}\ =\ p_{X,Y}(t,h)
+\end{equation}
+A probability query always implicitly refers to some ambient joint distribution.
+In general, the result of a probability query $\Pspec{e}$ is the sum of probabilities of outcomes for which $e$ is true.
+Conjunctions are often separated by a comma; e.g. $\Pspec{X = x, Y = y} = \Pspec{X = x \band Y = y}$.
+
+Probability queries have manipulation rules.
+One is that random variables may be ``summed out'' to consider the probabilities of the values of others independently.
+For example, to consider just the probabilities of values of $X$, we may sum out $Y$:
+\begin{equation}
+	\Pspec{X = x}\ =\ \sum_{y \in \set{h,t}} \Pspec{X = x, Y = y}
+\end{equation}
+According to this rule, $X$ represents the outcome of a fair coin toss (independent of $Y$):
+\begin{equation}
+\begin{aligned}
+	\Pspec{X = h}&\ =\ \Pspec{X = h, Y = h} + \Pspec{X = h, Y = t}\ =\ \frac{1}{4} + \frac{1}{4}&=\ \frac{1}{2}
+\\
+	\Pspec{X = t}&\ =\ \Pspec{X = t, Y = h} + \Pspec{X = t, Y = t}\ =\ \frac{1}{6} + \frac{1}{3}&=\ \frac{1}{2}
+\end{aligned}
+\end{equation}
+
+Another manipulation rule allows fixing the value of one random variable to consider the probabilites of the values of others \emph{dependently}.
+For example, if $x$ is fixed and $\Pspec{X = x} > 0$, then the probability that $Y = y$ is
+\begin{equation}
+	\Pspec{Y = y \given X = x}\ =\ \frac{\Pspec{X = x,Y = y}}{\Pspec{X = x}}
+\end{equation}
+This \keyword{conditional probability} query is read ``the probability that $Y = y$ \emph{given} $X = x$.''
+Using this rule, we can determine that, if $X$ is known to be $t$, then $Y$ represents a coin toss that is not fair:
+\begin{equation}
+\begin{aligned}
+	\Pspec{Y = h \given X = t}&\ =\ \frac{\Pspec{X = t,Y = h}}{\Pspec{X = t}}\ =\ \frac{\frac{1}{6}}{\frac{1}{2}}&=\ \frac{1}{3}
+\\
+	\Pspec{Y = t \given X = t}&\ =\ \frac{\Pspec{X = t,Y = t}}{\Pspec{X = t}}\ =\ \frac{\frac{1}{3}}{\frac{1}{2}}&=\ \frac{2}{3}
+\end{aligned}
+\end{equation}
+We could similarly show $\Pspec{Y = h \given X = h} = \frac{1}{2}$ and $\Pspec{Y = t \given X = h} = \frac{1}{2}$, so when $X$ is known to be $h$, $Y$ represents a fair coin toss.
+
+To avoid the condition $\Pspec{X = x} > 0$, the preceeding rule is often written
+\begin{equation}
+\begin{aligned}
+	\Pspec{X = x, Y = y}&\ =\ \Pspec{X = x} \cdot \Pspec{Y = y \given X = x} \\
+	&\ =\ \Pspec{Y = y} \cdot \Pspec{X = x \given Y = y}
+\end{aligned}
+\end{equation}
+In this form, it is called the \keyword{chain rule}.
+
+As a function of $x$, $\Pspec{X = x}$ is a probability mass function, but over just $X$ instead of $X$ and $Y$ together.
+With any fixed $x$, as a function of $y$, $\Pspec{Y = y \given X = x}$ is also a probability mass function.
+Most Bayesian models are constructed by reifying these queries as functions called (respectively) \keyword{distributions} and \keyword{conditional distributions}, and using the chain rule to build a joint distribution.
+For the present example,
+\begin{equation}
+\begin{aligned}
+	p_X&\ =\ \left[h \mapsto \frac{1}{2}, t \mapsto \frac{1}{2}\right]
+\\
+	p_{Y|X}(y \given x)&\ =\
+	\begin{cases}
+		x = h & \left[h \mapsto \frac{1}{2}, t \mapsto \frac{1}{2}\right](y) \\
+		x = t & \left[h \mapsto \frac{1}{3}, t \mapsto \frac{2}{3}\right](y)
+	\end{cases}
+\\
+	p_{X,Y}(x,y)&\ =\ p_X(x) \cdot p_{Y|X}(y \given x)
+\end{aligned}
+\end{equation}
+In the conditional distribution $p_{Y|X}$, the ``$Y|X$'' subscript is simply part of the function name, and in applying it, $(y \given x)$ is just another way to write the arguments $(y,x)$.\footnote{It is common to leave off subscripts such as $Y|X$ and use the form of application to distinguish the different $p$s; e.g. $p(x)$ means $p_X(x)$ and $p(y \given x)$ means $p_{Y|X}(y \given x)$. Doing so is helpful when there are many random variables, and it is usually unambiguous, but the practice often confuses and frustrates newcomers.}
+The syntax simply connotes that we expect $\Pspec{Y = y \given X = x}\ =\ p_{Y|X}(y \given x)$.
+
+This model can be more compactly specified by a constructive theory about $X$ and $Y$, which states only the properties that a joint distribution model must satisfy:
+\begin{equation}
+\begin{aligned}
+	X&\ \sim\ \left[h \mapsto \frac{1}{2}, t \mapsto \frac{1}{2}\right]
+\\
+	Y&\ \sim\ 
+	\begin{cases}
+		X = h & \left[h \mapsto \frac{1}{2}, t \mapsto \frac{1}{2}\right] \\
+		X = t & \left[h \mapsto \frac{1}{3}, t \mapsto \frac{2}{3}\right]
+	\end{cases}
+\end{aligned}
+\end{equation}
+Here, $X \sim e$ is read ``$X$ is distributed $e$.''
+In this leaner form, it is perhaps easier to understand the process being modeled, which is
+\begin{enumerate}
+	\item Toss a coin and call its outcome $X$.
+	\item If $X = h$, toss a fair coin and call its outcome $Y$.
+	\item If $X = t$, toss a biased coin with heads probability $\frac{1}{3}$ and call its outcome $Y$.
+\end{enumerate}
+It is usually easy to manually translate constructive theories into programs that sample random variable values.
+
+By combining a conditional probability query and the chain rule (or using the chain rule twice), we get \keyword{Bayes' law}: if $\Pspec{Y = y} > 0$, then
+\begin{equation}
+	\Pspec{X = x \given Y = y}\ =\ \frac{\Pspec{X = x} \cdot \Pspec{Y = y \given X = x}}{\Pspec{Y = y}}
+\end{equation}
+This is different than $\Pspec{Y = y \given X = x}$.
+This time, we are interested in the conditional probability that $X = x$ given we know $Y = y$ for some fixed $y$.
+
+For example, suppose we did not observe $X$, but were allowed to observe $Y = t$.
+Given that we know the second coin toss is tails, the probability that $X = t$ is
+\begin{equation}
+\begin{aligned}
+	\Pspec{X = t \given Y = t}&\ =\ \frac{\Pspec{X = t} \cdot \Pspec{Y = t \given X = t}}{\Pspec{Y = t}}
+\\
+	&\ =\ \frac{\frac{1}{2} \cdot \frac{2}{3}}{\sum_{x \in \set{h,t}} \Pspec{X = x, Y = t}}
+\\
+	&\ =\ \frac{\frac{1}{2} \cdot \frac{2}{3}}{\frac{1}{4} + \frac{1}{3}}
+	\ =\ \frac{\frac{1}{3}}{\frac{7}{12}}
+	\ =\ \frac{4}{7}
+\end{aligned}
+\end{equation}
+which is greater than $\Pspec{X = t} = \frac{1}{2}$.
+Similarly, $\Pspec{X = h \given Y = t} = \frac{3}{7}$, which is less than $\Pspec{X = h} = \frac{1}{2}$.
+Observing the effects of the first coin toss---even random effects---allows us to draw stronger conclusions about the first coin toss.
+In this case, we know it is more likely to be tails.
+
+Using Bayes' law to draw probabilistic conclusions about probabilistic processes given observed probabilistic effects is called \keyword{Bayesian inference}.
+
+It is easy for probability newcomers with logical background to think of conditional queries as a fuzzy kind of logical implication.
+A short example demonstrates that doing so leads to faulty intuition.
+To compute the probability that $Y = t \implies X = t$, we apply logical rules to the query until it is a disjunction of distinct outcomes, and add their probabilities:
+\begin{equation}
+\begin{aligned}
+	\Pspec{Y = t \implies X = t}
+	&\ =\ \Pspec{\neg (Y = t) \bor X = t}
+\\
+	&\ =\ \Pspec{Y = h \bor X = t}
+\\
+	&\ =\ \Pspec{(Y = h \band X = t) \bor (Y = h \band X = h) \bor (Y = t \band X = t)}
+\\
+	&\ =\ \Pspec{Y = h \band X = t} + \Pspec{Y = h \band X = h} + \Pspec{Y = t \band X = t}
+\\
+	&\ =\ \frac{1}{6} + \frac{1}{4} + \frac{1}{3} \ =\ \frac{3}{4}
+\end{aligned}
+\end{equation}
+This is clearly not $\Pspec{X = t \given Y = t} = \frac{4}{7}$.
+In a similar fashion, $\Pspec{Y = t \implies X = h} = \frac{2}{3}$, which is not $\Pspec{X = h \given Y = t} = \frac{3}{7}$.
+
+In conditioning on $Y = t$, we did not consider any outcomes in which $Y \neq t$: we restricted the possible outcomes to those for which $Y = t$ and renormalized the probabilities of $X = h$ and $X = t$.
+On the other hand, in computing the probability that $Y = t \implies X = t$, we had to consider \emph{all} of the outcomes in which $Y \neq t$, and only \emph{one} outcome in which $Y = t$.
+
+
+\subsection{Probability Densities and Density Models}
+
+Probability mass functions cannot quantify the likelihoods of uncountably many outcomes, such as when $X \in \Re$.
+In these cases, the distributions, conditional distributions, and joint distributions are specified using \keyword{probability density functions}: functions over outcomes that \emph{integrate} to $1$ instead of sum to $1$.\footnote{For readers familiar with measure theory: we use the word \emph{density} for densities with respect to Lebesgue measure, and \emph{mass} for densities with respect to counting measure. We call all other densities \emph{derivatives}.}
+
+\begin{figure*}[tb]\centering
+\includegraphics[width=4in]{density-integrate}
+\caption[Computing probabilities using the standard normal density function]{Integrating under the standard normal density to compute $\Pspec{X \in (0,1)} \approx 0.34$.}
+\label{fig:density-integrate}
+\end{figure*}
+
+For example, this probability density function defines the \keyword{standard normal distribution}, or bell curve:
+\begin{equation}
+	f_N(x)\ =\ \frac{1}{\sqrt{2\pi}} \exp\left(-\frac{x^2}{2}\right)
+\end{equation}
+If $X$ has a standard normal distribution, then the probability that $X \in (0,1)$ is
+\begin{equation}
+	\Pspec{X \in (0,1)}\ =\ \int_0^1 f_N(x)\,dx\ \approx\ 0.3413447460685
+\end{equation}
+Figure~\ref{fig:density-integrate} plots this density and illustrates integrating under it to compute $\Pspec{X \in (0,1)}$.
+
+When probabilities are computed by integrating density functions, sets of outcomes may have positive probability, but every single outcome has zero probability.
+For any random variable $X \in \Re$, value $x \in \Re$, and density function $f : \Re \to [0,+\infty)$,
+\begin{equation}
+	\Pspec{X = x}\ =\ \int_x^x f(x)\, dx\ =\ (f(x) - 0) \cdot (x - x)\ =\ f(x) \cdot 0\ =\ 0
+\end{equation}
+As a consequence, interval endpoints do not matter; i.e. $\Pspec{X \in [a,b]}\ =\ \Pspec{X \in (a,b)}$.
+We demonstrate other, more difficult consequences further on.
+
+The normal distribution can be extended to a \keyword{distribution family} by parameterizing it on a \emph{location} $\mu$ and a \emph{scale} $\sigma$:
+\begin{equation}
+	f_N(x \given \mu,\sigma)\ =\ \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+\end{equation}
+A normal distribution's location $\mu$ and scale $\sigma$ are also known as its \emph{mean} and \emph{standard deviation}, respectively.
+
+\begin{figure*}[tb]\centering
+\includegraphics[width=4in]{2d-density-integrate}
+\caption[Joint density model plot]{The joint density model $f_{X,Y}$ constructed from the density $f_X$ and the conditional density $f_{Y|X}$. Integrating under $f_{X,Y}$ on the set $(-2,0) \times (-2,-1)$ computes $\Pspec{X \in (-2,0), Y \in (-2,-1)}$.}
+\label{fig:joint-density-model}
+\end{figure*}
+
+Using parameterized distributions, we can define a \keyword{joint density model} of a probabilistic process involving two random variables $X,Y \in \Re$:
+\begin{equation}
+\begin{aligned}
+	f_X(x)&\ =\ f_N(x \given 0,1) \\
+	f_{Y|X}(y \given x)&\ =\ f_N(y \given x,1) \\
+	f_{X,Y}(x,y)&\ =\ f_X(x) \cdot f_{Y|X}(y \given x)
+\end{aligned}
+\end{equation}
+Integrating under $f_{X,Y}$ computes probability queries:
+\begin{equation}
+	\Pspec{X \in (a,b), Y \in (c,d)}\ =\ \int_a^b \int_c^d f_{X,Y}(x,y)\,dy\,dx
+\end{equation}
+Figure~\ref{fig:joint-density-model} illustrates the joint density model $f_{X,Y}$ and computing a probability query.
+
+As with discrete models, density models can be specified by constructive theories:
+\begin{equation}
+\begin{aligned}
+	X&\ \sim\ \mathrm{Normal}(0,1) \\
+	Y&\ \sim\ \mathrm{Normal}(X,1)
+\end{aligned}
+\end{equation}
+The probabilistic process being modeled is
+\begin{enumerate}
+	\item Choose $X$ according to the standard normal distribution.
+	\item Choose $Y$ according to the normal distribution with mean $X$, standard deviation $1$.
+\end{enumerate}
+Again, it is usually easy to manually translate such theories into programs that sample random variable values.
+
+When all single outcomes have zero probability, interpreting theories in terms of expected conditional probability queries is difficult.
+(In fact, doing so requires measure theory.)
+Fortunately, densities have rules analogous to rules for manipulating probability queries, which allow practitioners to derive joint density models from theories and compute a restricted class of conditional queries.
+Instances of the two most important rules are
+\begin{equation}
+\begin{aligned}
+	f_{X}(x)&\ =\ \int_{-\infty}^{+\infty} f_{X,Y}(x,y)\,dy
+\\
+	f_{X,Y}(x,y)&\ =\ f_{X}(x) \cdot f_{Y|X}(y \given x)\ =\ f_{Y}(y) \cdot f_{X|Y}(x \given y)
+\end{aligned}
+\end{equation}
+The second rule is the \keyword{chain rule for densities}, and it justifies constructing the joint density $f_{X,Y}$ from the density $f_X$ and the conditional density $f_{Y|X}$.
+
+The rules for densities can be used to derive \keyword{Bayes' law for densities}: if $f_Y(y) > 0$, then, starting from the right-hand side of the chain rule,
+\begin{equation}
+\begin{aligned}
+	f_{Y}(y) \cdot f_{X|Y}(x \given y)&\ =\ f_{X}(x) \cdot f_{Y|X}(y \given x)
+\\
+	f_{X|Y}(x \given y)&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{f_{Y}(y)}
+\\
+	&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{\displaystyle\int_{-\infty}^{+\infty} f_{X,Y}(x,y)\,dx}
+\\
+	&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{\displaystyle\int_{-\infty}^{+\infty} f_{X}(x) \cdot f_{Y|X}(y \given x)\,dx}
+\end{aligned}
+\end{equation}
+The last form is conveniently in terms of $f_{X}$ and $f_{Y|X}$, which we have on-hand.
+
+Using Bayes' law for densities, we can draw conclusions about $X$ given knowledge about $Y$.
+For example, suppose we want to know the distribution of $X$ given $Y = 2$, as a density.
+A quite lengthy derivation finally results in
+\begin{equation}
+\begin{aligned}
+	f_{X|Y}(x \given 2)&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(2 \given x)}{\displaystyle\int_{-\infty}^{+\infty} f_{X}(x) \cdot f_{Y|X}(2 \given x)\,dx}
+\\
+	&\ =\ \frac{f_N(x \given 0,1) \cdot f_N(2 \given x,1)}{\displaystyle\int_{-\infty}^{+\infty}
+	f_N(x \given 0,1) \cdot f_N(2 \given x,1)\,dx}
+\\
+	&\,\,\cdots\ 
+\\
+	&\ =\ f_N(x \given 1, \sqrt{\tfrac{1}{2}})
+\end{aligned}
+\end{equation}
+We can answer conditional probability queries by integrating $f_{X|Y}(x \given 2)\ =\ f_N(x \given 1, \sqrt{\tfrac{1}{2}})$:
+\begin{equation}
+	\Pspec{X \in (a,b) \given Y = 2}\ =\ \int_a^b f_N(x \given 1, \sqrt{\tfrac{1}{2}})\,dx
+\end{equation}
+
+\begin{figure*}[tbp]\centering
+\subfloat[The original joint density model.]{
+\label{fig:bayes-densities:1}
+\includegraphics[width=3in]{bayes-densities-1}
+}
+\tab
+\subfloat[Restricting the model to the subset of its domain where $y = 2$. The probability of the subset is zero.]{
+\label{fig:bayes-densities:2}
+\includegraphics[width=3in]{bayes-densities-2}
+}
+\vspace{\baselineskip}
+
+\subfloat[Projecting the restricted model onto the $x$ axis results in a density that integrates to a nonzero constant that is less than $1$.]{
+\label{fig:bayes-densities:3}
+\includegraphics[width=3in]{bayes-densities-3}
+}
+\tab
+\subfloat[Normalizing the restricted, projected model results in a probability density that characterizes the distribution of $X$ given $Y = 2$.]{
+\label{fig:bayes-densities:4}
+\includegraphics[width=3in]{bayes-densities-4}
+}
+\caption[Bayes' law for densities, in pictures]{Bayes' law for densities, in pictures.}
+\label{fig:bayes-densities}
+\end{figure*}
+
+While using Bayes' law for densities is difficult, it is easy to visualize, at least in two dimensions.
+We may think of its application as happening in three steps: restrict, project, then renormalize.
+\figref{fig:bayes-densities} illustrates them.
+First, we restrict the joint density model (\figref{fig:bayes-densities:1}) to the subset of $\Re \times \Re$ where $y = 2$ (\figref{fig:bayes-densities:2}).
+Second, because the resulting model integrates to zero and therefore all answers to probability queries using it would be zero, we project it onto the $x$ axis (\figref{fig:bayes-densities:3}), on which it integrates to a positive value.
+Third, because the total probability is now less than $1$, we renormalize the restricted, projected model by dividing its output by its area, and obtain a probability density (\figref{fig:bayes-densities:4}).
+
+Using Bayes' law for densities is not only often technically challenging, but in general there are no closed-form solutions.
+In such cases, practitioners turn to Monte Carlo techniques, or sampling, to answer conditional probability queries.
+
+XXX: restricted sampling?
+
+\subsection{Motivating Measure-Theoretic Models}
+
+It is easy to define a random variable whose distribution cannot be characterized by a density.
+Suppose we have a thermometer whose output is not quite correct, but is usually within $1$ degree.
+We could model this with a normal distribution with standard deviation $1$.
+If we want to model the fact that the thermometer cannot show a number greater than $100$, assuming the correct temperature is $99$, we could write a theory about it like this:
+\begin{equation}
+\begin{aligned}
+	T'&\ \sim\ \mathrm{Normal}(99,1) \\
+	T&\ =\ \min(T',100)
+\end{aligned}
+\end{equation}
+$T' \ge 100$ if and only if $T = 100$.
+Therefore, $\Pspec{T' \ge 100} = \Pspec{T = 100} > 0$.
+But we know that if $T$ has a density, $\Pspec{T = 100} = 0$.
+
+Even though $T$ has no density, it must have a distribution, because $T \in (a,b)$ for any interval $(a,b)$ has a sensible probability, which we can compute by integrating the density of $T'$ up to $100$ and adding $\Pspec{T' \ge 100}$ if the interval happens to contain $100$:
+\begin{equation}
+	\Pspec{T \in (a,b)}\ =\ \int_{\min(a,100)}^{\min(b,100)} f_N(x \given 99,1)\,dx +
+	\begin{cases}
+		100 \in (a,b) & \Pspec{T' \ge 100} \\
+		100 \notin (a,b) & 0
+	\end{cases}
+\end{equation}
+Further, it is easy to write a program that samples $T$ values, and we expect the outputs of such programs to have well-defined probability distributions.
+
+Another way to define a distribution that cannot be characterized by a density is to restrict a joint density model with a non-axial condition.
+For example, with the present theory and model for $X,Y \in \Re$, suppose we want to answer questions like
+\begin{equation}
+	\Pspec{X \in (a,b),Y \in (c,d) \given \sqrt{X^2 + Y^2} = 1}
+\end{equation}
+which restricts the model to a unit circle.
+To do so with a density, we need $f_{X,Y|\sqrt{X^2+Y^2}}(x,y \given z)$.
+But for any $z$, a joint density for $X,Y$ restricted to $\sqrt{X^2+Y^2} = z$ cannot exist because the area of that circular set is zero.
+
+In both examples, on a part of the distribution's domain that has length or area $0$ (i.e. the single outcome $100$ or the set $\setb{x \in \Re, y \in \Re}{\sqrt{x^2+x^2} = z}$), the probability of that set is nonzero.
+Integrating on such a set can yield only $0$, so the distributions cannot be defined by densities.
+
+Measure theory's answer is to define probability distributions using \keyword{probability measures}, which map \emph{sets to probabilities} instead of \emph{values to instantaneous changes} in probability.
+The measure defining $T$'s distribution directly answers queries such as $\Pspec{T \in (a,b)}$.
+There is also a measure defined on sets of $\Re \times \Re$ that directly answers queries such as $\Pspec{X \in (a,b),Y \in (c,d) \given \sqrt{X^2 + Y^2} = 1}$.
+
+Chapter~\ref{ch:countable-models} introduces measure theory by using it to interpret discrete Bayesian theories mechanically.
+Chapter~\ref{ch:preimage1} gives a measure-theoretic interpretation of probabilistic programs, which can encode Bayesian theories that do not have density models.
+
 
 \begin{comment}
-Bridging the two sides is complicated by these two facts:
-\begin{enumerate}
-	\item Bayesian notation often denotes uncountable things, so we must interpret it using a more expressive theory of computation than functional programming researchers are accustomed to.
-\label{complication:uncountable}
-	\item Programs in nontrivial languages with probabilistic choice can denote distributions that do not have densities, so we must use a more expressive theory of probability than Baysian practitioners are accustomed to.
-\label{complication:probability}
-\end{enumerate}
-To address complication~\ref{complication:uncountable}, we design \lzfclang, a supercomputational but intuitive $\lambda$-calculus, as a target language for interpretation (Chapter~\ref{ch:lambda-zfc}).
-To address complication~\ref{complication:probability}, we first present a simplified version of the more expressive theory (Chapter~\ref{ch:countable-models}), then avoid most of measure theory by concentrating on its one aspect we have found that leads to direct implementation: preimages (Chapter~\ref{ch:preimage1}).
-\end{comment}
-
 The greatest commonality in the two sides is the attitude with which they approach modeling.
 While Bayesian practitioners model processes and functional programming researchers model languages, both approach their tasks methodically, and both create models in which every entity they want to reason about is represented explicitly---sometimes painfully so.
 Both sides trust their explicit models to lead to more reliable artifacts and repeatable results than models created by other means.
@@ -44,7 +391,14 @@ For readers who are not functional programming researchers, we present this over
 
 We assume readers know basic computer science theory, including propositional logic, relations, functions, proof by induction, context-free grammars, and nondeterminism.
 
-\section{$\lambda$-Calculus}
+\end{comment}
+
+\section{Functional Programming Theory}
+
+From functional programming theory, the requisite background knowledge includes the $\lambda$-calculus, big-step operational semantics, denotational semantics, categorical semantics, and abstract interpretation.
+We assume readers know basic computer science theory, including propositional logic, relations, functions, proof by induction, context-free grammars, and nondeterminism.
+
+\subsection{$\lambda$-Calculus}
 
 The following grammar defines a set of variable names $X$ and a language $E$ (a set of terms) called the \keyword{pure $\lambda$-calculus}.
 \begin{equation}
@@ -145,7 +499,7 @@ Both policies have their place, but we mostly use call-by-value reduction, in wh
 
 %Plotkin, Scott, Steele and many others following: work on correspondence of $\lambda$-calculus reduction with machine execution makes it possible to define an implementable theory for a programming language
 
-\section{Big-Step Operational Semantics}
+\subsection{Big-Step Operational Semantics}
 
 Instead of describing evaluation order using English phrases with scattered mathematical terms, we could instead give our $\lambda$-calculus a \keyword{semantics}: a precise mathematical definition of the meaning of its terms.
 To specify evaluation order and other operational aspects specifically, we would typically give it an \keyword{operational semantics}.
@@ -198,13 +552,13 @@ However, as Chapter~\ref{ch:lambda-zfc} contains the only operational semantics 
 \hrule
 \end{minipage}
 }
-\caption[ ]{A big-step operational semantics for a simple addition language.}
+\caption[Big-step operational semantics example]{A big-step operational semantics for a simple addition language.}
 \label{fig:add-language}
 \end{figure*}
 
 \figref{fig:add-language} defines a language and its semantics by giving a grammar and a big-step reduction relation ``$\dto$''.
 The language is even simpler than the pure $\lambda$-calculus: its terms simply represent adding concrete numbers.
-The relation ``$\dto$'' is defined by \keyword{inference rules} in the form
+The relation ``$\dto$'' is defined by \keyword{reduction rules} in the form
 \begin{equation}
 	\dfrac{\mathit{premise}_1 \jand \mathit{premise}_2 \jand \cdots}{\mathit{conclusion}} \jand \text{(name)}
 \end{equation}
@@ -212,12 +566,12 @@ Grammar nonterminals are implicitly universally quantified, premises are implici
 For example, the (add) rule in \figref{fig:add-language:reduction} means ``for all $e_1,e_2 \in E$ and $v_1,v_2 \in V$, if $e_1$ reduces to $v_1$ and $e_2$ reduces to $v_2$, then $\mathsf{add}~e_1~e_2$ reduces to $v_1 + v_2$.''
 The (val) rule means ``for all $v \in V$, $v$ reduces to $v$'' or equivalently, ``for all $v \in V$, $\mathit{true}$ implies $v$ reduces to $v$.''
 
-The reduction relation ``$\dto$'' is defined as the \emph{smallest} subset of $E \times V$ for which the inference rules hold.
+The reduction relation ``$\dto$'' is defined as the \emph{smallest} subset of $E \times V$ for which the reduction rules hold.
 Defining it as the smallest subset precludes unintended conclusions such as $4 \dto 5$, which are not otherwise precluded by interpreting the rules as implications.
-Equivalently, it restricts ``$\dto$'' to conclusions that are provable from the inference rules.
+Equivalently, it restricts ``$\dto$'' to conclusions that are provable from the reduction rules.
 
 Inference rules can be used directly to build \keyword{derivation trees}, which represent both computation steps and proofs of conclusions.
-For example, suppose we want to use the inference rules in \figref{fig:add-language:reduction} to compute the value of $\mathsf{add}~(\mathsf{add}~4~5)~90$.
+For example, suppose we want to use the reduction rules in \figref{fig:add-language:reduction} to compute the value of $\mathsf{add}~(\mathsf{add}~4~5)~90$.
 We start by writing it as a conclusion without premises:
 \begin{equation}
 	\dfrac{}{(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto v_1}
@@ -243,7 +597,7 @@ It is easy to find values of $v_3$, $v_4$ and $v_5$ that make the leaf premises 
 \end{equation}
 Thus, the rightmost derivation tree in~\eqref{eqn:add-to-99-conclusion} is a proof that $(\mathsf{add}~(\mathsf{add}~4~5)~90) \dto 99$.
 
-In most cases, reduction relations can be mathematically constructed by iterating a function that uses the inference rules to add more conclusions given known premises.
+In most cases, reduction relations can be mathematically constructed by iterating a function that uses the reduction rules to add more conclusions given known premises.
 A fixpoint is reachable in countably many iterations, and as a consequence, derivation trees are always finite.
 On the other hand, Chapter~\ref{ch:lambda-zfc} defines a $\lambda$-calculus in which the iterating function must be applied uncountably many times to reach a fixpoint, and as a consequence, its derivation trees may be infinite.
 Despite this minor difference in size, the basic principles behind the reduction relation's construction and use are the same.
@@ -265,7 +619,7 @@ In either case, if its derivation trees are finite, it can be implemented as a r
                   (+ v1 v2)]))
 \end{schemedisplay}
 \bottomhrule
-\caption[ ]{Racket implementation of the semantics defined in \figref{fig:add-language}.}
+\caption[Implementation of the big-step semantics]{Racket implementation of the semantics defined in \figref{fig:add-language}.}
 \label{fig:add-language-impl}
 \end{figure*}
 
@@ -316,13 +670,13 @@ as expected.
 \hrule
 \end{varwidth}
 }
-\caption[ ]{Big-step operational semantics for a language with nondeterministic choice.}
+\caption[Big-step operational semantics with nondeterminism]{Big-step operational semantics for a language with nondeterministic choice.}
 \label{fig:add-choose-language}
 \end{figure*}
 
 \figref{fig:add-choose-language} extends the present example language with nondeterministic choice, which results in a reduction relation that is \emph{not} a function.
 The culprit is the new rule (choose), with which we can match a single term to multiple conclusions.
-For example, suppose we want to use the inference rules in \figref{fig:add-choose-language:reduction} to compute the value of $\mathsf{add}~(\mathsf{choose}~4~5)~90$.
+For example, suppose we want to use the reduction rules in \figref{fig:add-choose-language:reduction} to compute the value of $\mathsf{add}~(\mathsf{choose}~4~5)~90$.
 We start as before, by writing it as a conclusion without premises:
 \begin{equation}
 	\dfrac{}{(\mathsf{add}~(\mathsf{choose}~4~5)~90) \dto v_1}
@@ -366,7 +720,7 @@ We could define a big-step relation $\dto : E \to \powerset~V$, which returns (w
 However, we are saving that example for the next section.
 
 
-\section{Denotational Semantics}
+\subsection{Denotational Semantics}
 
 A \keyword{denotational semantics} is defined by a deterministic \keyword{semantic function} from language terms to values \emph{in another language}.
 The other language is called the \keyword{metalanguage} or \keyword{target language}, and is often an axiomatic logic such as first-order set theory (i.e. mathematics).
@@ -388,7 +742,7 @@ The other language is called the \keyword{metalanguage} or \keyword{target langu
 \end{lrbox}
 
 \begin{figure*}[tb]\centering
-\subfloat[blah]{
+\subfloat[A semantic function for the addition language]{
 \label{fig:add-denotational:semantic-function}
 \begin{varwidth}[b]{2.0in}
 \begin{equation*}
@@ -405,11 +759,11 @@ The other language is called the \keyword{metalanguage} or \keyword{target langu
 \end{varwidth}
 }
 \tab\tab
-\subfloat[blah]{
+\subfloat[An implementation of the semantic function as a syntax transformer]{
 \label{fig:add-denotational:implementation}
 \usebox{\compileonebox}
 }
-\caption[ ]{blah}
+\caption[Denotational semantics and implementation]{A denotational semantics and its implementation.}
 \label{fig:add-denotational}
 \end{figure*}
 
@@ -492,7 +846,7 @@ The \scheme{%app} in the result is Racket's application operator, which is usual
 \end{equation*}
 \end{varwidth}
 \bottomhrule
-\caption[ ]{blah}
+\caption[Denotational semantics with nondeterminism]{A denotational semantics for the addition language with nondeterministic choice.}
 \label{fig:add-choose-denotational}
 \end{figure*}
 
@@ -551,7 +905,7 @@ What if we wanted to represent nondeterministic choices using lists instead of s
 We could define a different semantic function for each model, but there is a more elegant way.
 
 
-\section{Categorical Semantics}
+\subsection{Categorical Semantics}
 
 When computer scientists from any area want to extend a fixed process without having to repeat themselves more than necessary, they \keyword{abstract}: they decouple the desired varying part from the fixed process, and parameterize the previously fixed process on the varying part.
 This characterizes modular, object-oriented, functional, and even semantic abstraction.
@@ -611,7 +965,7 @@ so that $\meaningof{\mathsf{choose}~e_1~e_2}_\mathit{set}\ =\ \mathit{merge_{set
 \end{equation*}
 \end{varwidth}
 \bottomhrule
-\caption[ ]{blah}
+\caption[Categorical semantics with nondeterminism]{A categorical semantics for the addition language with nondeterministic choice.}
 \label{fig:add-choose-categorical}
 \end{figure*}
 
@@ -728,7 +1082,7 @@ Each has its own combinators and laws.
 We do not review them here because they are obscure enough that the chapters that use them necessarily review and explain them.
 
 
-\section{Abstract Interpretation}
+\subsection{Abstract Interpretation}
 
 When we want to discover something about programs without actually evaluating them, it is often helpful to define an \keyword{abstract interpretation}: an evaluation method that operates on just a few properties of terms instead of their actual values.
 Equivalently, we can think of an abstract interpretation as operating on sets of values for which those properties hold.
@@ -739,8 +1093,8 @@ In this case, the abstract values are types, which represent properties such as 
 During abstract interpretation, expressions are not evaluated on concrete values, but are checked to determine whether they preserve the properties that values should have.
 Equivalently, they are evaluated on abstract values.
 
-As with concrete semantics, any of a language's abstract semantics can be specified using inference rules or semantic functions.
-Type systems and type checkers are typically defined by inference rules.
+As with concrete semantics, any of a language's abstract semantics can be specified using rules or semantic functions.
+Type systems and type checkers are typically defined by rules with premises and conclusions similar to reduction rules.
 Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a semantic function, we give a small example of that approach here.
 
 \begin{figure*}[tb]\centering
@@ -756,7 +1110,7 @@ Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a se
 \end{equation*}
 \end{varwidth}
 \bottomhrule
-\caption[ ]{blah}
+\caption[Abstract semantics with nondeterminism]{An abstract semantics for the addition language with nondeterministic choice.}
 \label{fig:add-choose-abstract}
 \end{figure*}
 
@@ -808,4 +1162,4 @@ For all $e \in E$, $\mathit{length}~\meaningof{e}_\mathit{list} = \mathcal{L}\me
 By structural induction on $e$.
 \end{proof}
 
-This usually means that the abstraction is not very abstract, or that the concrete semantics is itself an abstraction of something else (as is the case here).
+XXX: segue: abstract interpretation embraces infinities and infinite computation in the concrete semantics; in this case the objective is to define the abstract semantics as a computable, sound approximation of the concrete; learn something about programs by running them approximately on infinite sets of inputs (e.g. type checking); to make the concrete semantics a categorical semantics, we need a powerful $\lambda$-calculus

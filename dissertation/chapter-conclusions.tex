@@ -1,0 +1,32 @@
+\section{Copied from Chapter 5}
+
+For discrete Bayesian theories, we explained a large subclass of notation as measure-theoretic calculations by transformation into \targetlang. There is now at least one precisely defined set of expressions that denote discrete conditional distributions in conditional theories, and it is very large and expressive. We gave a converging approximating semantics and implemented it in Racket.
+
+%We could have interpreted notation as first-order logic and ZFC, in which measure theory is developed. Defining the exact semantics compositionally would have been excruciating, and deriving an implementation from the semantics would have involved much hand-waving. With our approach, the path from notation to exact meaning to approximation to implementation is clear.
+
+Now that we are satisfied that our approach works, we turn our attention to uncountable sample spaces and theories with infinitely many statements.
+
+Following measure-theoretic structure in our preliminary work should make the transition to uncountable spaces fairly smooth. The functional structure of the exact semantics will not change, but some details will. The random variable idiom will be identical, but will require measurability proofs. We will still interpret statements as state monad computations, but with general probability spaces as state instead of discrete probability spaces. We will use regular conditional probability in $\condps$, $\extendps$ will calculate product $\sigma$-algebras and transition kernel products, and $\distps$ will return probability measures. We will not need to change $\RV\cdot$, $\Dist\cdot$ or $\Prob\cdot$. Many approximations are available; the most efficient and general are sampling methods. We will likely choose sampling methods that parallelize easily.
+
+The most general constructive way to specify theories with infinitely many primitive random variables is with recursive abstractions, but it is not clear what kind of abstraction we need. Lambdas are suitable for most functional programming, in which it is usually good that intermediate values are unobservable. However, they do not meet Bayesian needs: practitioners define theories to study them, not to obtain single answers. If lambdas were the only abstraction, returning every intermediate value from every lambda would become \textit{good practice}. Because we do not know what form abstraction will take, we will likely develop it independently by allowing theories with infinitely many statements.
+
+Model equivalence in distribution extends readily to uncountable spaces. It defines a standard for measure-theoretic optimizations, which can only be done in the exact semantics. Examples are variable collapse, a probabilistic analogue of constant folding that can increase efficiency by an order of magnitude, and a probabilistic analogue of constraint propagation to speed up conditional queries.
+
+\section{Copied from Chapter 7}
+
+To allow recursion and arbitrary conditions in probabilistic programs, we combined the power of measure theory with the unifying elegance of arrows. We
+\begin{enumerate}
+	\item Defined a transformation from first-order programs to arbitrary arrows.
+	\item Defined the bottom arrow as a standard translation target.
+	\item Derived the uncomputable preimage arrow as an alternative target.
+	\item Derived a sound, computable approximation of the preimage arrow, and enough computable lifts to transform programs.
+\end{enumerate}
+Critically, the preimage arrow's lift from the bottom arrow distributes over bottom arrow computations.
+Our semantics thus generalizes this process to all programs: 1) encode a program as a bottom arrow computation; 2) lift this computation to get an uncomputable function that computes preimages; 3) distribute the lift; and 4) replace uncomputable expressions with sound approximations.
+
+Our semantics trades efficiency for simplicity by threading a constant, tree-shaped random source (Section~\ref{sec:threading-and-indexing}).
+Passing subtrees instead would make $random$ a constant-time primitive, and allow combinators to detect lack of change and return cached values.
+Other future optimization work includes creating new sampling algorithms, and using other easily measured but more expressive set representations, such as parallelotopes~\cite{cit:amato-2012tcs-parallelotopes}.
+On the theory side, we intend to explore preimage computation's connection to type checking and type inference, investigate ways to integrate and leverage polymorphic type systems, and find the conditions under which preimage refinement is complete in the limit.
+
+More broadly, we hope to advance Bayesian practice by providing a rich modeling language with an efficient, correct implementation, which allows general recursion and any computable, probabilistic condition.

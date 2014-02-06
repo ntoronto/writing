@@ -11,7 +11,7 @@ Applied mathematicians increasingly use computers to answer mathematical questio
 The languages should have exact meanings and computational meanings.
 Some proof assistants can encode exact mathematics and extract programs, but formalizing the required theorems can take years.
 
-As an alternative, we develop \targetlang, a lambda calculus that contains infinite sets as values, in which to express exact mathematics and gradually change infinite calculations to computable ones. We define it as a conservative extension of set theory, and prove that most contemporary theorems apply directly to \targetlang terms.
+As an alternative, we develop \targetlang, a $\lambda$-calculus that contains infinite sets as values, in which to express exact mathematics and gradually change infinite calculations to computable ones. We define it as a conservative extension of set theory, and prove that most contemporary theorems apply directly to \targetlang terms.
 
 We demonstrate \targetlang's expressiveness by coding up the real numbers, arithmetic and limits. We demonstrate that it makes deriving computational meaning easier by defining a monad in it for expressing limits, and using standard topological theorems to derive a computable replacement.
 \end{abstract}
@@ -31,7 +31,7 @@ David Hilbert passionately defended Cantor's set theory as a mathematical founda
 
 The calculations done in Cantor's Paradise range from computable to unimaginably uncomputable. Still, its inhabitants increasingly use computers to answer questions. We want to make domain-specific languages (DSLs) for writing these questions, with implementations that compute exact and approximate answers.
 
-Such a DSL should have two meanings: an exact mathematical semantics, and an approximate computational one. A traditional, denotational approach is to give the exact as a transformation to first-order set theory, and because set theory is unlike any intended implementation language, the approximate as a transformation to a lambda calculus. However, deriving approximations while switching target languages is rife with opportunities to commit errors.
+Such a DSL should have two meanings: an exact mathematical semantics, and an approximate computational one. A traditional, denotational approach is to give the exact as a transformation to first-order set theory, and because set theory is unlike any intended implementation language, the approximate as a transformation to a $\lambda$-calculus. However, deriving approximations while switching target languages is rife with opportunities to commit errors.
 
 A more certain way is to define the exact semantics in a proof assistant like HOL~\cite{leivant-1994-hol} or Coq~\cite{cit:book-coqart}, prove theorems, and extract programs. The type systems confer an advantage: if the right theorems are proved, the programs are certainly correct.
 
@@ -39,13 +39,13 @@ Unfortunately, reformulating and re-proving theorems in such an exacting way cau
 
 Some middle ground is clearly needed: something between the traditional, error-prone way and the slow, absolutely certain way.
 
-Instead of using a typed, higher-order logic, suppose we defined, in first-order set theory, an untyped lambda calculus that contained infinite sets and operations on them. We could interpret DSL terms exactly as uncomputable programs in this lambda calculus. But instead of redoing a century of work to extract programs that compute approximations, we could directly reuse first-order theorems to derive them from the uncomputable programs.
+Instead of using a typed, higher-order logic, suppose we defined, in first-order set theory, an untyped $\lambda$-calculus that contained infinite sets and operations on them. We could interpret DSL terms exactly as uncomputable programs in this $\lambda$-calculus. But instead of redoing a century of work to extract programs that compute approximations, we could directly reuse first-order theorems to derive them from the uncomputable programs.
 
 Conversely, set theory, which lacks lambdas and general recursion, is an awkward target language for a semantics that is intended to be implemented. Suppose we extended set theory with untyped lambdas (as objects, not quantifiers). We could still interpret DSL terms as operations on infinite objects. But instead of leaping from infinite sets and operations on them to implementations, we could replace those operations with computable approximations piece at a time.
 
-If we had a lambda calculus with infinite sets as values, we could approach computability from above in a principled way, gradually changing programs for Cantor's Paradise until they can be implemented in Church's Purgatory.
+If we had a $\lambda$-calculus with infinite sets as values, we could approach computability from above in a principled way, gradually changing programs for Cantor's Paradise until they can be implemented in Church's Purgatory.
 
-We define that lambda calculus, \targetlang, and a call-by-value, big-step reduction semantics. To show that it is expressive enough, we code up the real numbers, arithmetic and limits, following standard analysis. To show that it simplifies language design, we define the uncomputable limit monad in \targetlang, and derive a computable, directly implementable replacement monad by applying standard topological theorems. When certain proof obligations are met, the output of programs that use the computable monad converge to the same values as the output of programs that use the uncomputable monad but are otherwise identical.
+We define that $\lambda$-calculus, \targetlang, and a call-by-value, big-step reduction semantics. To show that it is expressive enough, we code up the real numbers, arithmetic and limits, following standard analysis. To show that it simplifies language design, we define the uncomputable limit monad in \targetlang, and derive a computable, directly implementable replacement monad by applying standard topological theorems. When certain proof obligations are met, the output of programs that use the computable monad converge to the same values as the output of programs that use the uncomputable monad but are otherwise identical.
 
 Readers interested only in probabilistic programming languages may skip to Chapter~\ref{ch:using-lambda-zfc}, which reviews this chapter's highlights, without missing important prerequisites.
 
@@ -58,7 +58,7 @@ To help ensure \targetlang's definition conservatively extends set theory, we en
 
 \targetlang's semantics reduces terms to terms; e.g. $\pair{\tpowerset,\Re}$ reduces to the actual powerset of $\Re$.
 Thus, \targetlang contains infinite terms.
-Infinitary languages are useful and definable: the infinitary lambda calculus~\cite{cit:kennaway-1996-inf-lc} is an example, and Aczel's broadly used work~\cite{cit:aczel-1977-inductive} on inductive sets treats infinite inference rules explicitly.
+Infinitary languages are useful and definable: the infinitary $\lambda$-calculus~\cite{cit:kennaway-1996-inf-lc} is an example, and Aczel's broadly used work~\cite{cit:aczel-1977-inductive} on inductive sets treats infinite inference rules explicitly.
 
 For convenience, we define a language \ftargetlang of finite terms and a function $\enc{\cdot}$ from \ftargetlang to \targetlang. We can then write $\powerset~\Re$, meaning $\enc{\powerset~\Re} = \pair{\tpowerset,\Re}$.
 
@@ -230,7 +230,7 @@ We call the sets in $\V(\kappa)$ \keyword{hereditarily accessible}.
 
 Inaccessible cardinals are not usually assumed but are widely believed consistent. Set theorists regard them as no more dangerous than $\omega$. Interpreting category theory with small and large categories, second-order set theory, or CIC in first-order set theory requires at least one inaccessible cardinal \cite{cit:uzquiano-1999-models-zf2,cit:barras-2010-sets-coq,cit:werner-1997-sets-types}.
 
-Constructing a set $A \not\in \V(\kappa)$ requires assuming $\kappa$ or an equivalent, so $\V(\kappa)$ easily contains most mathematics. In fact, most can be modeled well within $\V(2^\omega)$; e.g. the model of $\Re$ we define in Sect.~\ref{sec:reals} is in $\V(\omega + 11)$. Besides, if \targetlang needed to contain large cardinals, we could always assume even larger ones.
+Constructing a set $A \not\in \V(\kappa)$ requires assuming $\kappa$ or an equivalent, so $\V(\kappa)$ easily contains most mathematics. In fact, most can be modeled well within $\V(2^\omega)$; e.g. the model of $\Re$ we define in Section~\ref{sec:reals} is in $\V(\omega + 11)$. Besides, if \targetlang needed to contain large cardinals, we could always assume even larger ones.
 
 \begin{comment}
 rank(A x B) = max(rank(A),rank(B)) + 2
@@ -745,6 +745,7 @@ From here, it is not difficult to treat \tlzfc{\Rat} and \tlzfc{\Re} uniformly b
 
 
 \section{Example: Computable Real Limits}
+\label{sec:limit-monad}
 
 \newcommand{\seqtype}[1]{\lnat \to {#1}}
 
@@ -911,7 +912,7 @@ O'Connor's completion monad~\cite{cit:oconnor-2008-real-numbers} is quite simila
 
 We start with a monad for exact values and define a computable replacement. It was two weeks from conception to implementation. Between directly using well-known theorems, and deriving the computable monad from the uncomputable monad without switching languages, we are as certain as we can be without mechanically verifying it. We have found our middle ground.
 
-Higher-order logics such as HOL~\cite{leivant-1994-hol}, CIC~\cite{cit:book-coqart}, MT~\cite{cit:berline-1997-mt} (Map Theory) and EFL*~\cite{cit:myhill-1989-efl} continue Church's programme to found mathematics on the lambda calculus. Like \targetlang, interpreting them in set theory seems to require a slightly stronger theory than plain ZFC. HOL and CIC ensure consistency using types, and use the Curry-Howard correspondence to extract programs.
+Higher-order logics such as HOL~\cite{leivant-1994-hol}, CIC~\cite{cit:book-coqart}, MT~\cite{cit:berline-1997-mt} (Map Theory) and EFL*~\cite{cit:myhill-1989-efl} continue Church's programme to found mathematics on the $\lambda$-calculus. Like \targetlang, interpreting them in set theory seems to require a slightly stronger theory than plain ZFC. HOL and CIC ensure consistency using types, and use the Curry-Howard correspondence to extract programs.
 
 MT and EFL* are more like \targetlang in that they are untyped. MT ensures consistency partly by making nontermination a truth value, and EFL* partly by tagging propositions.
 Both support classical reasoning.
@@ -920,15 +921,14 @@ MT and EFL* are interpreted in set theory using a straightforward extension of S
 
 The key difference between \targetlang and these higher-order logics is that \targetlang is not a logic. It is a programming language with infinite terms, which by design includes a transitive model of set theory (Theorem~\ref{thm:lambda-zfc-is-a-model}). Therefore, ZFC theorems can be applied to its set-valued terms with only trivial interpretation, whereas the interpretation it takes to apply ZFC theorems to lambda terms that represent sets in MT or EFL* can be highly nontrivial. Applying a ZFC theorem in HOL or CIC requires re-proving it to the satisfaction of a type checker.
 
-The infinitary lambda calculus~\cite{cit:kennaway-1996-inf-lc} has ``infinitely deep'' terms. Although it exists for investigating laziness, cyclic data, and undefinedness in finitary languages, it is possible to encode uncomputable mathematics in it. In \targetlang, such up-front encodings are unnecessary.
+The infinitary $\lambda$-calculus~\cite{cit:kennaway-1996-inf-lc} has ``infinitely deep'' terms. Although it exists for investigating laziness, cyclic data, and undefinedness in finitary languages, it is possible to encode uncomputable mathematics in it. In \targetlang, such up-front encodings are unnecessary.
 
-Hypercomputation~\cite{cit:ord-2006-hypercomp} describes many Turing machine extensions, including completion of transfinite computations. Much of the research is for discovering the properties of computation in physically plausible extensions. While \targetlang might offer a civilized way to program such machines, we do not think of our work as hypercomputation, but as approaching computability from above.
+Hypercomputation~\cite{cit:ord-2006-hypercomp} describes many Turing machine extensions, including completion of transfinite computations. Much of the research is devoted to discovering the properties of computation in physically plausible extensions. While \targetlang might offer a civilized way to program such machines, we do not think of our work as hypercomputation, but as approaching computability from above.
 
 
-\section{Conclusions and Future Work}
+\section{Conclusions}
 
 We defined \targetlang, which can express essentially anything constructible in contemporary mathematics, in a way that makes it compatible with existing first-order theorems. We demonstrated that it makes deriving computational meaning easier by defining the limit monad in it, deriving a computable replacement, and computing real numbers to arbitrary accuracy with acceptable speed.
 
-Our main future work is using \targetlang to define languages for Bayesian inference, then deriving implementations that compute converging probabilities.
-Overall, we no longer have to hold back when a set-theoretic construction could be defined elegantly with untyped lambdas or recursion, or generalized precisely with higher-order functions. If we can derive a computable replacement, we might help someone in Cantor's Paradise compute the apparently uncomputable.
+Now that we have a suitably expressive target language for exact and approximating categorical semantics, we can get back to defining languages for Bayesian modeling and inference. But more generally, we no longer have to hold back when a set-theoretic construction could be defined elegantly with untyped lambdas or recursion, or generalized precisely with higher-order functions. If we can derive a computable replacement, we might help someone in Cantor's Paradise compute the apparently uncomputable.
 

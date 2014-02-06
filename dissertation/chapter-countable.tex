@@ -582,6 +582,7 @@ $\app {\Dist{e_X \given e_Y}} m = \app {\Dist{e_X \given e_Y}} {m'}$ for all ran
 \end{theorem}
 
 \begin{definition}[commutativity in distribution]
+\label{def:commutativity-in-distribution}
 We say $t_i$ and $t_{i+1}$ commute \mykeyword{in distribution} when $\PS{t_1;\dots;t_i;t_{i+1};\dots;t_n} \equivdist \PS{t_1;\dots;t_{i+1};t_i;\dots;t_n}$.
 \end{definition}
 
@@ -601,36 +602,11 @@ The following table summarizes commutativity of $\condps$, $\distps$ and $\exten
 \end{center}
 \end{theorem}
 
-
 By Thm.~\ref{thm:commutativity}, if we are to maintain the idea that theories are sets of facts, we cannot allow both conditioning and query statements.
 
-\section{Related Work}
-
-Our approach to semantics is similar to abstract interpretation: we have a concrete (exact) semantics and a family of abstractions parameterized by $z$ (approximating semantics). We have not framed our approach this way because our approximations are not conservative, and would be difficult to formulate as abstractions when parameterized on a random source (which we intend to do).
-
-Bayesian practitioners occasionally create languages for modeling and queries. Analyzing their properties is usually difficult, as they tend to be defined by implementations. Almost all of them compute converging approximations and support conditional queries. When they work as expected, they are useful.
-
-Koller and Pfeffer~\cite{cit:koller-1997aaai-bayes-programs-short} efficiently compute exact distributions for the outputs of programs in a Scheme-like language. BUGS~\cite{cit:winbugs-language-short} focuses on efficient approximate computation for probabilistic theories with a finitely many statements, with distributions that practitioners typically use. BLOG~\cite{cit:blog-language-short} exists specifically to allow stating distributions over countably infinite vectors. BLAISE~\cite{cit:blaise-language} allows stating both distribution and approximation method for each random variable. Church~\cite{cit:church-language-short} is a Scheme-like probabilistic language with approximate inference, and focuses on expressiveness.
-
-Kiselyov~\cite{cit:kiselyov-2008uai-monolingual} embeds a probabilistic language in O'Caml for efficient computation. It uses continuations to enumerate or sample random variable values, and has a \texttt{fail} construct for the \textit{complement} of conditioning. The sampler looks ahead for \texttt{fail} and can handle it efficiently. This may be justified by commutativity (Thm.~\ref{thm:commutativity}), depending on interaction with other language features.
-
-There is a fair amount of semantics work in probabilistic languages. Most of it is not motivated by Bayesian concerns, and thus does not define conditioning. Kozen~\cite{cit:kozen-1979fcs-prob-programs-short} defines the meaning of bounded-space, imperative ``while'' programs as functions from probability measures to probability measures. Hurd~\cite{cit:hurd-2002thesis} proves properties about programs with binary random choice by encoding programs and portions of measure theory in HOL.
-
-Jones~\cite{cit:jones-1990thesis} develops a domain-theoretic variation of probability theory, and with it defines the probability monad, whose discrete version is a distribution-valued variation of the set or list monad. Ramsey and Pfeffer~\cite{cit:ramsey-2002popl-stochastic-short} define the probability monad measure-theoretically and implement a language for finite probability. We do not build on this work because the probability monad does not build a probability space, making it difficult to reason about conditioning.
-
-Pfeffer also develops IBAL~\cite{cit:pfeffer-2007chapter-ibal}, apparently the only lambda calculus with finite probabilistic choice that also defines conditional queries. Park~\cite{cit:park-2008toplas-prob} extends a lambda calculus with probabilistic choice, defining it for a very general class of probability measures using inverse transform sampling.
-
-\section{Conclusions and Future Work}
+\section{Conclusions}
 \label{sec:conclusion}
 
 For discrete Bayesian theories, we explained a large subclass of notation as measure-theoretic calculations by transformation into \targetlang. There is now at least one precisely defined set of expressions that denote discrete conditional distributions in conditional theories, and it is very large and expressive. We gave a converging approximating semantics and implemented it in Racket.
 
-%We could have interpreted notation as first-order logic and ZFC, in which measure theory is developed. Defining the exact semantics compositionally would have been excruciating, and deriving an implementation from the semantics would have involved much hand-waving. With our approach, the path from notation to exact meaning to approximation to implementation is clear.
-
-Now that we are satisfied that our approach works, we turn our attention to uncountable sample spaces and theories with infinitely many statements.
-
-Following measure-theoretic structure in our preliminary work should make the transition to uncountable spaces fairly smooth. The functional structure of the exact semantics will not change, but some details will. The random variable idiom will be identical, but will require measurability proofs. We will still interpret statements as state monad computations, but with general probability spaces as state instead of discrete probability spaces. We will use regular conditional probability in $\condps$, $\extendps$ will calculate product $\sigma$-algebras and transition kernel products, and $\distps$ will return probability measures. We will not need to change $\RV\cdot$, $\Dist\cdot$ or $\Prob\cdot$. Many approximations are available; the most efficient and general are sampling methods. We will likely choose sampling methods that parallelize easily.
-
-The most general constructive way to specify theories with infinitely many primitive random variables is with recursive abstractions, but it is not clear what kind of abstraction we need. Lambdas are suitable for most functional programming, in which it is usually good that intermediate values are unobservable. However, they do not meet Bayesian needs: practitioners define theories to study them, not to obtain single answers. If lambdas were the only abstraction, returning every intermediate value from every lambda would become \textit{good practice}. Because we do not know what form abstraction will take, we will likely develop it independently by allowing theories with infinitely many statements.
-
-Model equivalence in distribution extends readily to uncountable spaces. It defines a standard for measure-theoretic optimizations, which can only be done in the exact semantics. Examples are variable collapse, a probabilistic analogue of constant folding that can increase efficiency by an order of magnitude, and a probabilistic analogue of constraint propagation to speed up conditional queries.
+We could have interpreted notation as first-order set theory, in which measure theory is developed. Defining the exact semantics compositionally would have been difficult, and deriving an implementation from the semantics would have involved much hand-waving. By targeting \lzfclang instead, the path from notation to exact meaning to approximation to implementation is clear.

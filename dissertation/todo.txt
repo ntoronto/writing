@@ -1,14 +1,6 @@
-Rewrite abstract (possibly just the last paragraph)
-
-Write Chapter 1: Thesis Statement (crib from proposal)
-
-Figure out what goes in Chapter 2: Background and write it
- * Possibly crib from proposal
- * Probably focus on operational semantics and Haskell-style denotational semantics
+Jay's comments on Background chapter
 
 Change notation in Chapter 5 (IFL paper) to match the other chapters
-
-Write Chapter 6: Interlude: Infinite Programs (two pages or so?)
 
 Chapter 8
  * Write intro to Chapter 8: Implementation ("you are here")
@@ -21,8 +13,10 @@ Add either Section 8.5 or new chapter after Chapter 8 with examples and uses of 
 
 Remove redundant stuff from chapter intros
 
-Collect related work into one chapter
+Consolidate Related Work chapter
 
-Collect conclusions into one chapter (?)
+Remove non-local conclusions from Chapters 5 and 7
+
+Write Conclusions and Future Work
 
 Schedule defense

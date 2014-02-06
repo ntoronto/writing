@@ -484,12 +484,17 @@
 %
 \newcommand{\@documentabstract}{}
 \newcommand{\@documentkeywords}{}
+\newcommand{\@dedication}{}
 \newcommand{\@acknowledgments}{}
 \newcommand{\@bindingoffset}{0.5in}
 %
 % This tells us whether to generate document keywords
 \newif\if@hasdocumentkeywords
 \@hasdocumentkeywordsfalse
+%
+% This tells us whether to generate a dedication page
+\newif\if@hasdedication
+\@hasdedicationfalse
 %
 % This tells us whether to generate the acknowledgments
 \newif\if@hasacknowledgments
@@ -534,6 +539,10 @@
 \newcommand{\documentkeywords}[1]{%
     \@hasdocumentkeywordstrue
     \renewcommand{\@documentkeywords}{#1}%
+}
+\newcommand{\dedication}[1]{%
+    \@hasdedicationtrue
+    \renewcommand{\@dedication}{#1}%
 }
 \newcommand{\acknowledgments}[1]{%
     \@hasacknowledgmentstrue
@@ -661,6 +670,17 @@
 % properly (like listoftables, etc.) without using an existing counter and
 % messing up the numbering of other kinds of sections.
 \newcounter{toclistings}
+%
+\newcommand{\dedicationpage}{%
+    \clearpage
+    \begin{doublespace}%
+    \vspace*{\fill}%
+    \parindent 0pt%
+    \@dedication
+    \vspace*{\fill}%
+    \end{doublespace}%
+    \newpage
+}%
 %
 \newcommand{\acknowledgmentspage}{%
     \clearpage
@@ -893,6 +913,9 @@
         \fi
         \titlepage
         \abstractpage
+        \if@hasdedication
+            \dedicationpage
+        \fi
         \if@hasacknowledgments
             \acknowledgmentspage
         \fi
