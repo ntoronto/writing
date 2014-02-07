@@ -24,11 +24,11 @@ We assume readers know arithmetic, some set theory, functions, and the basic ide
 \subsection{Discrete Probability and Joint Distribution Models}
 
 In a probabilistic model of a real-world process, there are distinguished identifiers that denote random values, called \keyword{random variables}.
-These are regarded as nondeterministic, but with additional information that quantifies the likelihoods of the values they may take on.
+These are regarded as free variables, but with additional information that quantifies the likelihoods of the values they may take on.
 The additional information is completely characterized by a function called a \keyword{joint distribution}.
 
-For example, suppose $X,Y \in \set{h,t}$ are random variables that represent the outcomes of coin tosses.
-Further, let the joint distribution $p_{X,Y} : \set{h,t} \times \set{h,t} \to [0,1]$ quantify the likelihood of every possible combination of outcomes by defining
+For example, suppose $X,Y \in \set{h,t}$ are random variables that represent the \emph{observable} outcomes of coin tosses.
+Further, let the joint distribution $p_{X,Y} : \set{h,t} \times \set{h,t} \to [0,1]$ quantify the likelihood of every possible combination of observable outcomes by defining
 \begin{equation}
 	p_{X,Y}\ =\ \left[(h,h) \mapsto \frac{1}{4},
 		(h,t) \mapsto \frac{1}{4},
@@ -44,7 +44,7 @@ Another way to write ``the probability that $X = t$ and $Y = h$'' is with a \key
 	\Pspec{X = t \band Y = h}\ =\ p_{X,Y}(t,h)
 \end{equation}
 A probability query always implicitly refers to some ambient joint distribution.
-In general, the result of a probability query $\Pspec{e}$ is the sum of probabilities of outcomes for which $e$ is true.
+In general, the result of a probability query $\Pspec{e}$ is the sum of probabilities of observable outcomes for which $e$ is true.
 Conjunctions are often separated by a comma; e.g. $\Pspec{X = x, Y = y} = \Pspec{X = x \band Y = y}$.
 
 Probability queries have manipulation rules.
@@ -157,7 +157,7 @@ Using Bayes' law to draw probabilistic conclusions about probabilistic processes
 
 It is easy for probability newcomers with logical background to think of conditional queries as a fuzzy kind of logical implication.
 A short example demonstrates that doing so leads to faulty intuition.
-To compute the probability that $Y = t \implies X = t$, we apply logical rules to the query until it is a disjunction of distinct outcomes, and add their probabilities:
+To compute the probability that $Y = t \implies X = t$, we apply logical rules to the query until it is a disjunction of distinct observable outcomes, and add their probabilities:
 \begin{equation}
 \begin{aligned}
 	\Pspec{Y = t \implies X = t}
@@ -181,7 +181,7 @@ On the other hand, in computing the probability that $Y = t \implies X = t$, we 
 
 \subsection{Probability Densities and Density Models}
 
-Probability mass functions cannot quantify the likelihoods of uncountably many outcomes, such as when $X \in \Re$.
+Probability mass functions cannot quantify the likelihoods of uncountably many observable outcomes, such as when $X \in \Re$.
 In these cases, the distributions, conditional distributions, and joint distributions are specified using \keyword{probability density functions}: functions over outcomes that \emph{integrate} to $1$ instead of sum to $1$.\footnote{For readers familiar with measure theory: we use the word \emph{density} for densities with respect to Lebesgue measure, and \emph{mass} for densities with respect to counting measure. We call all other densities \emph{derivatives}.}
 
 \begin{figure*}[tb]\centering
@@ -201,9 +201,9 @@ If $X$ has a standard normal distribution, then the probability that $X \in (0,1
 Figure~\ref{fig:density-integrate} plots this density and illustrates integrating under it to compute $\Pspec{X \in (0,1)}$.
 
 When probabilities are computed by integrating density functions, sets of outcomes may have positive probability, but every single outcome has zero probability.
-For any random variable $X \in \Re$, value $x \in \Re$, and density function $f : \Re \to [0,+\infty)$,
+For any random variable $X \in \Re$, value $x \in \Re$, and density function $f_X : \Re \to [0,+\infty)$,
 \begin{equation}
-	\Pspec{X = x}\ =\ \int_x^x f(x)\, dx\ =\ (f(x) - 0) \cdot (x - x)\ =\ f(x) \cdot 0\ =\ 0
+	\Pspec{X = x}\ =\ \int_x^x f_X(x)\, dx\ =\ (f_X(x) - 0) \cdot (x - x)\ =\ f_X(x) \cdot 0\ =\ 0
 \end{equation}
 As a consequence, interval endpoints do not matter; i.e. $\Pspec{X \in [a,b]}\ =\ \Pspec{X \in (a,b)}$.
 We demonstrate other, more difficult consequences further on.
@@ -1097,15 +1097,17 @@ As with concrete semantics, any of a language's abstract semantics can be specif
 Type systems and type checkers are typically defined by rules with premises and conclusions similar to reduction rules.
 Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a semantic function, we give a small example of that approach here.
 
+\newcommand{\Count}[1]{\mathcal{L}\!\meaningof{#1}}
+
 \begin{figure*}[tb]\centering
 \begin{varwidth}[b]{\textwidth}
 \begin{equation*}
 \begin{aligned}
-	\mathcal{L}\meaningof{\cdot} &: E \to \Nat
+	\Count{\cdot} &: E \to \Nat
 	\\[6pt]
-	\mathcal{L}\meaningof{v} &\ =\ 1 \\
-	\mathcal{L}\meaningof{\mathsf{add}~e_1~e_2} &\ =\ \mathcal{L}\meaningof{e_1} \cdot \mathcal{L}\meaningof{e_2} \\
-	\mathcal{L}\meaningof{\mathsf{choose}~e_1~e_2} &\ =\ \mathcal{L}\meaningof{e_1} + \mathcal{L}\meaningof{e_2}  \\
+	\Count{v} &\ =\ 1 \\
+	\Count{\mathsf{add}~e_1~e_2} &\ =\ \Count{e_1} \cdot \Count{e_2} \\
+	\Count{\mathsf{choose}~e_1~e_2} &\ =\ \Count{e_1} + \Count{e_2}  \\
 \end{aligned}
 \end{equation*}
 \end{varwidth}
@@ -1114,17 +1116,17 @@ Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a se
 \label{fig:add-choose-abstract}
 \end{figure*}
 
-\figref{fig:add-choose-abstract} defines $\mathcal{L}\meaningof{\cdot}$, which defines an abstract semantics for the addition language with $\mathsf{choose}$.
+\figref{fig:add-choose-abstract} defines $\Count{\cdot}$, which defines an abstract semantics for the addition language with $\mathsf{choose}$.
 (The prefix $\mathcal{L}$ means nothing mathematically; it simply differentiates this semantic function from the others we have defined.)
 The abstract meaning of a term is a bound on the number of nondeterministic values computed.
 The abstract values are the lengths of lists or cardinalities of sets; i.e. natural numbers.
 For example, the abstract meaning of $\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)$ is
 \begin{equation}
 \begin{aligned}
-	\mathcal{L}\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)}
-	&\ =\ \mathcal{L}\meaningof{\mathsf{choose}~4~5} \cdot \mathcal{L}\meaningof{\mathsf{choose}~4~5}
+	\Count{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)}
+	&\ =\ \Count{\mathsf{choose}~4~5} \cdot \Count{\mathsf{choose}~4~5}
 \\
-	&\ =\ (\mathcal{L}\meaningof{4} + \mathcal{L}\meaningof{5}) \cdot (\mathcal{L}\meaningof{4} + \mathcal{L}\meaningof{5})
+	&\ =\ (\Count{4} + \Count{5}) \cdot (\Count{4} + \Count{5})
 \\
 	&\ =\ (1 + 1) \cdot (1 + 1)
 \\
@@ -1140,9 +1142,9 @@ Usually, we need the abstraction to be \keyword{sound}, which roughly means that
 (There is a way to formalize this notion using Galois connections, but that brings in more complexity than we need.)
 To be useful, an abstraction must come with a theorem such as the following soundness theorem, relating it to a concrete semantics.
 
-\begin{theorem}[$\mathcal{L}\meaningof{\cdot}$ soundness]
+\begin{theorem}[$\Count{\cdot}$ soundness]
 \label{thm:add-choose-abstract-soundness}
-For all $e \in E$, $\left|\meaningof{e}_\mathit{set}\right| \leq \mathcal{L}\meaningof{e}$.
+For all $e \in E$, $\left|\meaningof{e}_\mathit{set}\right| \leq \Count{e}$.
 \end{theorem}
 \begin{proof}
 By structural induction on $e$.
@@ -1151,12 +1153,12 @@ By structural induction on $e$.
 A soundness theorem sometimes suggests how the abstraction might be used.
 For a type system, soundness implies that accepted programs never compute concrete values with the wrong type, and that operations on them may be specialized in ways that would otherwise be unsafe or incorrect.
 (A child class's methods may be inlined, for example.)
-By Theorem~\ref{thm:add-choose-abstract-soundness}, we can use $\mathcal{L}\meaningof{\cdot}$ to determine how much space to preallocate for results in a less direct but faster implementation of $\meaningof{\cdot}_\mathit{set}$, and we will never allocate too little.
+By Theorem~\ref{thm:add-choose-abstract-soundness}, we can use $\Count{\cdot}$ to determine how much space to preallocate for results in a less direct but faster implementation of $\meaningof{\cdot}_\mathit{set}$, and we will never allocate too little.
 
-Sometimes the abstraction is both sound and precise, as $\mathcal{L}\meaningof{\cdot}$ is with respect to $\meaningof{\cdot}_\mathit{list}$.
+Sometimes the abstraction is both sound and precise, as $\Count{\cdot}$ is with respect to $\meaningof{\cdot}_\mathit{list}$.
 
-\begin{theorem}[$\mathcal{L}\meaningof{\cdot}$ soundness and precision]
-For all $e \in E$, $\mathit{length}~\meaningof{e}_\mathit{list} = \mathcal{L}\meaningof{e}$.
+\begin{theorem}[$\Count{\cdot}$ soundness and precision]
+For all $e \in E$, $\mathit{length}~\meaningof{e}_\mathit{list} = \Count{e}$.
 \end{theorem}
 \begin{proof}
 By structural induction on $e$.

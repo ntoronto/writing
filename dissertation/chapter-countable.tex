@@ -28,27 +28,25 @@ In this paper, we demonstrate the approach using our preliminary work on discret
 
 \section{Introduction}
 
-Bayesian practitioners define \textit{models}, or probabilistic relationships among objects of study, without regard to whether future calculations are closed-form or tractable. They are loath to make simplifying assumptions.
-(If some probabilistic phenomenon is best described by an unsolvable integral or infinitely many distributions, so be it.)
-When they must approximate, they often create two models: an ``ideal'' model first, and a second model that approximates it.
+Bayesians write theories without regard to whether future calculations are closed-form or tractable. They are loath to make simplifying assumptions.
+(If answering questions about some probabilistic process involves an unsolvable integral, so be it.)
+When they must approximate, they often create two theories: an ``ideal'' theory first, and a second that approximates it.
 
-Because they create models without regard to future calculations, they usually must accept approximate answers to queries about them. Typically, they adapt algorithms that compute converging approximations in programming languages they are familiar with. The process is tedious and error-prone, and involves much performance tuning and manual optimization. It is by far the most time-consuming part of their work---and also the most automatable part.
+Because they create theories without regard to future calculations, they usually must accept approximate answers to queries about them. Typically, they adapt algorithms that compute converging approximations in programming languages they are familiar with. The process is tedious and error-prone, and involves much performance tuning and manual optimization. It is by far the most time-consuming part of their work---and also the most automatable part.
 
-They follow this process to adhere to an overriding philosophy: an approximate answer to the right question is worth more than an exact answer to an approximate question. Thus, they put off approximating  as long as possible.
+They follow this process to adhere to an overriding philosophy: an approximate answer to the right question is worth more than an exact answer to an approximate question. Thus, they put off approximating as long as possible.
 
 We must also adhere to this philosophy because Bayesian practitioners are unlikely to use a language that requires them to approximate early, or that approximates earlier than they would. We have found that a good way to put the philosophy into practice in language design is to create two semantics: an ``ideal,'' or \textit{exact} semantics first, and a converging, \textit{approximating} semantics.
 
-\subsection{Theory of Probability}
+\subsection{Approach}
 
 Measure-theoretic probability is the most successful theory of probability in precision, maturity, and explanatory power. In particular, it is believed to explain every Bayesian model. We therefore define the exact semantics as a transformation from Bayesian notation to measure-theoretic calculations.
 
 Measure theory treats finite, countably infinite, and uncountably infinite probabilistic outcomes uniformly, but with significant complexity. Though there are relatively few important Bayesian models that require countably many outcomes but not uncountably many, in our preliminary work, we deal with only countable sets. This choice avoids most of measure theory's complexity while retaining its functional structure, and still requires approximation.
 
-\subsection{Approach}
-
 For three categories of Bayesian notation, we
 \begin{enumerate}
-	\item Manually interpret an unambiguous subclass of typical notation.
+	\item Manually interpret an unambiguous subclass of common notation.
 	\item Mechanize the interpretation with a semantic function.
 	\item If necessary, create an approximation and prove convergence.
 	\item Implement the approximation in Racket~\cite{cit:racket-lang}.
@@ -80,50 +78,64 @@ where $\Omega$ and $S_X$ are sets called \keyword{sample spaces}, with elements 
 \label{example:even/odd}
 Suppose we want to encode, as a random variable $E$, the act of observing whether the outcome of a die roll is even or odd.
 
-A complicated way is to define $\Omega$ as the possible states of the universe. $E : \Omega \to \set{\even,\odd}$ must simulate the universe until the die is still, and then recognize the outcome. Hopefully, the probability that $\app E \omega = \even$ is $\frac{1}{2}$.
+A complicated way is to define $\Omega$ as the possible states of the universe. $E : \Omega \to \set{\even,\odd}$ must simulate the universe until the die is still, and then recognize the outcome. Hopefully, the probability that $E~\omega = \even$ is close to $\frac{1}{2}$.
 
-A tractable way defines $\Omega = \set{1,2,3,4,5,6}$ and $\app E \omega = \even \text{ if } \omega \in \set{2,4,6}$, otherwise $\odd$. The probability that $\app E \omega = \even$ is the sum of probabilities of every even $\omega \in \Omega$, or $\tfrac{1}{6} + \tfrac{1}{6} + \tfrac{1}{6} = \tfrac{1}{2}$.
+A tractable way defines $\Omega := \set{1,2,3,4,5,6}$ and $E : \Omega \to \set{even,odd}$ so that $E~\omega = \even \text{ if } \omega \in \set{2,4,6}$, otherwise $\odd$. The probability that $E~\omega = \even$ is the sum of probabilities of every even $\omega \in \Omega$, or $\tfrac{1}{6} + \tfrac{1}{6} + \tfrac{1}{6} = \tfrac{1}{2}$.
 
-If we are interested in observing only evenness, we can define $\Omega = \set{\even,\odd}$, each with probability $\tfrac{1}{2}$, and $\app E \omega = \omega$.
+If we are interested in observing only evenness, we can define $\Omega := \set{\even,\odd}$, each with probability $\tfrac{1}{2}$, and $E~\omega := \omega$.
 \exampleqed
 \end{example}
 
-Random variables enable a kind of probabilistic abstraction. The example does it twice. The first makes calculating the probability that $\app E \omega = \even$ tractable. The second is an optimization. In fact, redefining $\Omega$, the random variables, and the probabilities of outcomes---without changing the probabilities of \textit{observable} outcomes---is the essence of measure-theoretic optimization.
+Random variables enable a kind of probabilistic abstraction. The example does it twice. The first makes calculating the probability that $E~\omega = \even$ tractable. The second is an optimization. In fact, redefining $\Omega$, the random variables, and the probabilities of outcomes---without changing the probabilities of \textit{observable} outcomes---is the essence of measure-theoretic optimization.
 
 Defining random variables as functions is also a good factorization: it separates nondeterminism from assigning probabilities. It allows us to interpret expressions involving random variables without considering probabilities at all.
 
 \subsection{Interpreting Random Variable Expressions As Computations}
 
-When random variables are regarded as free variables, arithmetic with random variables is no different from deterministic arithmetic. Measure-theoretic probability uses the same notation, but regards it as implicit pointwise lifting (as in vector arithmetic). For example, if $A$, $B$ and $C$ are random variables, $\objlang{C = A + B}$ means $\app C \omega = \papp A \omega + \papp B \omega$, and $\objlang{B = 4 + A}$ means $\app B \omega = 4 + \papp A \omega$.
+When random variables are regarded as free variables, arithmetic with random variables is no different from deterministic arithmetic. Measure-theoretic probability uses the same notation, but regards it as implicit pointwise lifting (as in vector arithmetic). For example, if $A,B,C : \Omega \to \Re$ are random variables, \mathversion{normal}$C := A + B$\mathversion{sans} means $C~\omega := (A~\omega) + (B~\omega)$, and
+\mathversion{normal}$B := 4 + A$\mathversion{sans} means $B~\omega := 4 + (A~\omega)$.
 
-Because we write all of our math in \targetlang, we can extend the class of random variables from $\Omega \to S_X$ to $\Omega \tto S_X$. Including lambdas as well as mappings makes it easy to interpret unnamed random variables: $\objlang{4 + A}$, or $\objlang{\pappp + 4 A}$, means $\fun \omega {\pappp + 4 {\papp A \omega}}$. Lifting constants allows us to interpret expressions uniformly: if we interpret $\objlang{+}$ as $Plus = \fun \omega +$ and $\objlang{4}$ as ${Four = \fun \omega 4}$, then $\objlang{\pappp + 4 A}$ means
+Because we use \targetlang, we can extend the class of random variables from $\Omega \to S_X$ to $\Omega \tto S_X$. Including lambdas as well as mappings makes it easy to interpret unnamed random variables: \mathversion{normal}$4 + A$\mathversion{sans}, or in prefix form \mathversion{normal}$((+)~4~A)$\mathversion{sans}, means $\fun \omega {((+)~4~(A~\omega))}$. Lifting constants allows us to interpret expressions uniformly: if we interpret \mathversion{normal}$(+)$\mathversion{sans} as $Plus := \fun \omega (+)$ and \mathversion{normal}$4$\mathversion{sans} as $Four := \fun \omega 4$, then \mathversion{normal}$((+)~4~A)$\mathversion{sans} means
 \begin{equation}
-	\fun \omega {\pappp {\papp {Plus} \omega} {\papp {Four} \omega} {\papp A \omega}}
+	\fun \omega ((Plus~\omega)~(Four~\omega)~(A~\omega))
 \end{equation}
-We abstract lifting and application with the combinators
+We abstract lifting and application with these combinators:
 \begin{equation}
 \begin{split}
-	\app \purerv c &\ =\  \fun \omega c \\
-	\appppp \applyrv F {X_1} \dots {X_n} &\ =\ 
-		\fun \omega {\papppp {\papp F \omega} {\papp {X_1} \omega} \dots {\papp {X_n} \omega}}
+	\purerv~c &\ :=\  \fun \omega c \\
+	\applyrv~F~X_1~\dots~X_\mathit{n} &\ :=\ 
+		\fun \omega ((F~\omega)~(X_1~\omega)~\dots~(X_\mathit{n}~\omega))
 \end{split}
 \end{equation}
-so that $\objlang{\pappp + 4 A}$ means $\apppp \applyrv {\papp \purerv +} {\papp \purerv 4} A = \cdots = \fun \omega {\pappp + 4 {\papp A \omega}}$. These combinators define an \keyword{idiom}~\cite{cit:mcbride-2008jfp-idiom}, which is like a monad but can impose a partial order on computations. The \mykeyword{random variable idiom} instantiates the environment idiom with the type constructor $\papp I a = (\Omega \tto a)$ for some $\Omega$.
+In terms of $\purerv$ and $\applyrv$, \mathversion{normal}$4 + A$\mathversion{sans} means
+\begin{equation}
+\begin{aligned}
+	\applyrv~(\purerv~(+))~(\purerv~4)~A
+		&\ \equiv\ \applyrv~(\fun{\omega}(+))~(\fun{\omega} 4)~A
+\\
+		&\ \equiv\ \fun{\omega} ((\fun{\omega}(+))~\omega)~((\fun{\omega} 4)~\omega)~(A~\omega)
+\\
+		&\ \equiv\ \fun{\omega} (+)~4~(A~\omega)
+\\
+		&\ =\ \fun{\omega} 4 + (A~\omega)
+\end{aligned}
+\end{equation}
+as desired. These combinators define an \keyword{idiom}~\cite{cit:mcbride-2008jfp-idiom}, which is like a monad but can impose a partial order on computations. The \mykeyword{random variable idiom} instantiates the environment idiom with the type constructor $I~a\ ::=\ \Omega \tto a$ for some $\Omega$.
 
 \begin{figure}[tb]
 \centering
 \begin{equation*}
 \begin{aligned}
-	\RV{\mathit{X}} &\ :=\ \mathit{X} \\
-	\RV{\mathit{x}} &\ :=\ \purerv~\mathit{x} \\
-	\RV{\mathit{v}} &\ :=\ \purerv~\mathit{v} \\
+	\RV{\mathit{X}} &\ :\equiv\ \mathit{X} \\
+	\RV{\mathit{x}} &\ :\equiv\ \purerv~\mathit{x} \\
+	\RV{\mathit{v}} &\ :\equiv\ \purerv~\mathit{v} \\
 	\RV{\mathit{e_f}~\mathit{e}_1~\dots~\mathit{e_n}}
-		&\ :=\ \applyrv~\RV{\mathit{e_f}}~\RV{\mathit{e}_1}~\dots~\RV{\mathit{e_n}} \\
+		&\ :\equiv\ \applyrv~\RV{\mathit{e_f}}~\RV{\mathit{e}_1}~\dots~\RV{\mathit{e_n}} \\
 	\RV{\fun {\mathit{x}_1 \dots \mathit{x_n}} \mathit{e}}
-		&\ :=\ \fun \omega {\fun {\mathit{x}_1 \dots \mathit{x_n}}(\RV{\mathit{e}}~\omega)} \\
-	\app \purerv c &\ :=\ \fun \omega c \\
-	\appppp \applyrv F {X_1} \dots {X_n}
-		&\ :=\ \fun \omega {\papppp {\papp F \omega} {\papp {X_1} \omega} \dots {\papp {X_n} \omega}}
+		&\ :\equiv\ \fun \omega {\fun {\mathit{x}_1 \dots \mathit{x_n}}(\RV{\mathit{e}}~\omega)}
+\\[6pt]
+	\purerv~c &\ :=\ \fun \omega c \\
+	\applyrv~F~X_1~\dots~X_\mathit{n} &\ :=\ \fun \omega {\papppp {\papp F \omega} {\papp {X_1} \omega} \dots {\papp {X_\mathit{n}} \omega}}
 \end{aligned}
 \end{equation*}
 \hrulefill
@@ -131,9 +143,13 @@ so that $\objlang{\pappp + 4 A}$ means $\apppp \applyrv {\papp \purerv +} {\papp
 \label{fig:rv}
 \end{figure}
 
-$\RV\cdot$ (Fig.~\ref{fig:rv}), the semantic function that interprets random variable expressions, targets this idiom. It does mechanically what we have done manually, and additionally interprets lambdas. For simplicity, it follows probability convention by assuming single uppercase letters are random variables. Fig.~\ref{fig:rv} assumes syntactic sugar has been replaced; e.g. that application is in prefix form.
+$\RV\cdot$ (\figref{fig:rv}), the semantic function that interprets random variable expressions, targets this idiom. It does mechanically what we have done manually, and additionally interprets lambdas. For simplicity, it follows probability convention by assuming single uppercase letters are random variables. \figref{fig:rv} assumes syntactic sugar has been replaced; e.g. that application is in prefix form.
 
-$\RV{\cdot}$ may return lambdas that do not converge when applied. These lambdas do not represent random variables, which are total. We will be able to recover mappings by restricting them, as in ${\RV{\objlang{\pappp + 4 A}}}\restrict{\Omega}$.
+$\RV{\cdot}$ may return lambdas that do not terminate when applied to an $\omega$.
+For now, we assume they terminate for all $\omega \in \Omega$.
+(Chapter~\ref{ch:preimage1} deals with nonterminating programs.)
+
+We will be able to recover mappings using the $mapping$ function, which, given a domain, converts a lambda or mapping to a mapping, as in $mapping~\RV{\objlang{4 + A}}~\Omega$.
 
 \subsection{Implementation in Racket}
 
@@ -167,7 +183,7 @@ Rather than differentiate between kinds of identifiers, \scheme{RV} takes a list
 \section{The Query Language}
 \label{sec:prob-dist}
 
-It is best to regard statements in Bayesian notation as specifications for the results of later observations. We therefore interpret queries before interpreting statements. First, however, we must define the state objects that queries observe.
+It is best to regard statements in Bayesian theories as specifications for the results of later observations. We therefore interpret queries before interpreting statements. First, however, we must define the state objects that queries observe.
 
 \subsection{Background Theory: Probability Spaces}
 
@@ -175,53 +191,56 @@ In practice, functions called \keyword{distributions} assign probabilities or pr
 
 Measure-theoretic probability generalizes assigning probabilities and densities using \keyword{probability measures}, which assign probabilities to \textit{sets} of outcomes. There are typically no special random variables: all random variable distributions are calculated from one global probability measure.
 
-It is generally not possible to assign meaningful probabilities to all subsets of a sample space $\Omega$---except when $\Omega$ is countable. We thus deal here with \keyword{discrete probability measures} $\Pmeas : \powerset(\Omega) \to [0,1]$. Any discrete probability measure is uniquely determined by its value on singleton sets, or by a \keyword{probability mass function} $P : \Omega \to [0,1]$. It is easy to convert $P$ to a probability measure:
+It is generally not possible to assign meaningful probabilities to all subsets of a sample space $\Omega$---except when $\Omega$ is countable. We thus deal here with \keyword{discrete probability measures} $P : Set~\Omega \to [0,1]$, where $\Omega$ is countable. Any discrete probability measure is uniquely determined by its value on singleton sets, or by a \keyword{probability mass function} $p : \Omega \to [0,1]$. It is easy to convert $p$ to a probability measure:
 \begin{equation}
-	\appp \prob P A = \sum_{\omega \in A} \app P \omega
+	\prob~p~A\ :=\ \sum_{\omega \in A} p~\omega
 \end{equation}
-Then $\Pmeas = \app \prob P$. Converting the other direction is also easy: $\app P e = \app \Pmeas {\set{e}}$.
+Then $P = \prob~p$. Converting the other direction is also easy: $p~e = P~\set{e}$.
 
-A \keyword{discrete probability space} $\seq{\Omega,P}$ embodies all probabilistic nondeterminism introduced by statements. It is fine to think of $\Omega$ as the set of all possible states of a write-once memory, with $P$ assigning a probability to each state.
+A \keyword{discrete probability space} $\seq{\Omega,p}$ embodies all probabilistic nondeterminism introduced by theory statements. It is fine to think of $\Omega$ as the set of all possible states of a write-once memory, with $p$ assigning a probability to each state.
 
 \subsection{Background Theory: Queries}
 
-Any probability can be calculated from $\seq{\Omega,P}$. For example, suppose we want to calculate, as in Example~\ref{example:even/odd}, the probability of an even die outcome. We must apply $\Pmeas$ to the correct subset of $\Omega$. Suppose that $\Omega = \set{1,2,3,4,5,6}$ and that $P = [1,2,3,4,5,6 \to \tfrac{1}{6}]$ determines $\Pmeas$. The probability that $E$ outputs $\even$ is
+Any probability can be calculated from $\seq{\Omega,p}$. For example, suppose we want to calculate, as in Example~\ref{example:even/odd}, the probability of an even die outcome. We must apply $P$ to the correct subset of $\Omega$. Suppose $\Omega := \set{1,2,3,4,5,6}$ and that $p := [1,2,3,4,5,6 \to \tfrac{1}{6}]$ determines $P$. The probability that $E$ outputs $\even$ is
 \begin{equation}
-	\app \Pmeas {\setb{\omega\in\Omega}{\app E \omega = \even}}
-		\ =\ \app \Pmeas {\set{2,4,6}}
-		\ =\ \appp \prob P {\set{2,4,6}}
+	\app P {\setb{\omega\in\Omega}{\app E \omega = \even}}
+		\ =\ \app P {\set{2,4,6}}
+		\ =\ \appp \prob p {\set{2,4,6}}
 		\ =\ \tfrac{1}{2}
 \label{eqn:example-prob-query}
 \end{equation}
 This is a \keyword{probability query}.
 
-Alternatively, we could use a \keyword{distribution query} to calculate $E$'s distribution $\Pmeas_E$, and then apply it to $\set\even$. Measure-theoretic probability elegantly defines $\Pmeas_E$ as $\Pmeas \circ E^{-1}$, but for now we do not need a measure. We only need the probability mass function $\app {P_E} e = \appp \prob P {\papp {E^{-1}} {\set e}}$. Applying it yields
+Alternatively, we could use a \keyword{distribution query} to calculate $E$'s distribution $P_E$, and then apply it to $\set\even$. Measure-theoretic probability elegantly defines $P_E$ as $P \circ (preimage~E)$, but for now we do not need a measure. We only need the probability mass function $p_E : \set{even,odd} \to [0,1]$, defined by $p_E~e = \prob~p~(preimage~E~\set{e})$. Applying it to $even$ yields
 \begin{equation}
-	\app {P_E} \even
-		\ =\ \appp \prob P {\papp {E^{-1}} {\set \even}}
-		\ =\ \appp \prob P {\set{2,4,6}}
+	\app {p_E} \even
+		\ =\ \prob~p~(preimage~E~\set{even})
+		\ =\ \appp \prob p {\set{2,4,6}}
 		\ =\ \tfrac{1}{2}
 \label{eqn:example-dist-query}
 \end{equation}
 More abstractly, we can calculate discrete distribution queries using
 \begin{equation}
-	\appp \dist X {\seq{\Omega,P}}
-		\ =\ \fun{x \in {S_X}} {\appp \prob P {\papp {{X}\restrict{\Omega}^{-1}} {\set x}}}
+	\dist~X~\seq{\Omega,p}
+		\ :=\ \lzfclet{
+			S_X & image~X~\Omega
+		}{\fun{x \in {S_X}} \prob~p~(preimage~(mapping~X~\Omega)~\set{x})}
 \end{equation}
-where $S_X = \appp \image X \Omega$. Recall that ${X}\restrict{\Omega}$ converts $X$, which may be a lambda, to a mapping with domain $\Omega$, on which preimages are well-defined.
+Now $p_E = dist~E~\seq{\Omega,p}$.
+Recall that the special syntax $\fun{\mathit{x} \in \mathit{e_A}} \mathit{e}$ creates an unnamed mapping with domain $\mathit{e_A}$, and $mapping~X~\Omega$ converts $X$, which may be a lambda, to a mapping with domain $\Omega$, on which preimages are well-defined.
 
 \subsection{Interpreting Query Notation}
 
-When random variables are regarded as free variables, special notation $\Pspec{\cdot}$ replaces applying $\Pmeas$ and sets become propositions. For example, a common way to write ``the probability of an even die outcome'' in practice is $\Pspec{\objlang{E=even}}$.
+When random variables are regarded as free variables, special notation \mathversion{normal}$\Pspec{\cdot}$\mathversion{sans} replaces applying the probability measure $P$ and sets become propositions. For example, a common way to write ``the probability of an even die outcome'' in practice is \mathversion{normal}$\Pspec{E=\mathit{even}}$\mathversion{sans}.
 
-The semantic function $\RV{\cdot}$ turns propositions about random variables into predicates on $\Omega$. The set corresponding to the proposition is the preimage of ${\set\true}$. For $\objlang{E=even}$, for example, it is $\app {{\RV{\objlang{E=even}}}\restrict{\Omega}^{-1}} {\set\true}$. In general,
+The semantic function $\RV{\cdot}$ turns propositions about random variables into predicates on $\Omega$. The set corresponding to the proposition is the preimage of $\set{true}$. For the proposition $\objlang{E=even}$, for example, it is $preimage~(mapping~\RV{\objlang{E=even}}~\Omega)~\set{true}$. In general,
 \begin{equation}
-	\appp \prob P {\papp {{\RV{e}}\restrict{\Omega}^{-1}} {\set\true}}
-		\ =\ \apppp \dist {\RV{e}} {\seq{\Omega,P}} \true
+	\prob~p~(preimage~(mapping~\RV{\mathit{e}}~\Omega)~\set{true})
+		\ =\ \apppp \dist {\RV{\mathit{e}}} {\seq{\Omega,p}} {true}
 \end{equation}
-calculates $\Pspec{e}$ when $e$ is a proposition; i.e. when $\RV{e} : \Omega \tto \set{\true,\false}$.
+calculates \mathversion{normal}$\Pspec{e}$\mathversion{sans} when $\mathit{e}$ is a proposition; i.e. when $\RV{\mathit{e}} : \Omega \tto \set{true,false}$.
 
-Although probability queries have common notation, there seems to be no common notation that denotes distributions \textit{per se}. The typical workarounds are to write implicit formulas like $\Pspec{\objlang{E=e}}$ and to give distributions suggestive names like $P_E$. Some theorists use $\mathcal{L}[\cdot]$, with $\mathcal{L}$ for \textit{law}, an obscure synonym of \textit{distribution}. We define $\Dist{\cdot}$ in place of $\mathcal{L}[\cdot]$. Then $\Dist{\objlang{E}}$ denotes $E$'s distribution.
+Although probability queries have common notation, there seems to be no common notation that denotes distributions \textit{per se}. The typical workarounds are to write implicit formulas like \mathversion{normal}$\Pspec{E=e}$\mathversion{sans} and to give distributions suggestive names like $\objlang{p_E}$. Some theorists use \mathversion{normal}$\mathcal{L}[\cdot]$\mathversion{sans}, with $\mathcal{L}$ for \textit{law}, an obscure synonym of \textit{distribution}. We define $\Dist{\cdot}$ in place of \mathversion{normal}$\mathcal{L}[\cdot]$\mathversion{sans}. Then $\Dist{\objlang{E}}$ denotes $E$'s distribution.
 
 Though we could define semantic functions $\Prob{\cdot}$ and $\Dist{\cdot}$ right now, we are putting them off until after interpreting statements.
 
@@ -231,13 +250,14 @@ Probabilities are real numbers. They remain real in the approximating semantics;
 
 Arbitrary countable sets are not finitely representable. In the approximating semantics, we restrict $\Omega$ to recursively enumerable sets. The implementation encodes them as lazy lists. We trust users to not create ``sets'' with duplicates.
 
-When $A$ is infinite, $\appp \prob P A$ is an infinite series. With $A$ as a lazy list, it is easy to compute a converging approximation---but then approximate answers to distribution queries sum to values less than $1$. Instead, we approximate $\Omega$ and normalize $P$, which makes the sum finite and the distributions proper.
+When $A$ is infinite, $\prob~p~A$ is an infinite series. With $A$ represented by a lazy list, it is easy to compute a converging approximation---but then approximate answers to distribution queries sum to values less than $1$. Instead, we approximate $\Omega$ and normalize $p$, which makes the sum finite and the distributions proper.
 
-Suppose $\seq{\omega_1,\omega_2,\dots}$ is an enumeration of $\Omega$. Let $z \in \Nat$ be the length of the prefix $\Omega_z = \set{\omega_1,\dots,\omega_z}$ and let $\app {P_z} \omega = {\papp P \omega} / {\pappp \prob P {\Omega_z}}$. Then $P_z$ converges to $P$. We define $\app \finitize {\seq{\Omega,P}} = \seq{\Omega_z,P_z}$ with $z\in\Nat$ as a free variable.
+Suppose $\seq{\omega_1,\omega_2,\dots}$ is an enumeration of $\Omega$. Let $z \in \Nat^+$ be the length of the prefix $\Omega_z := \set{\omega_1,\dots,\omega_z}$ and define $p_z : \Omega \to [0,1]$ by $p_z~\omega = {\papp p \omega} / {\pappp \prob p {\Omega_z}}$ if $\omega \in \Omega_z$; otherwise $0$. Then $p_z$ converges to $p$ pointwise.
+We define $\app \finitize {\seq{\Omega,p}} := \seq{\Omega_z,p_z}$ with $z\in\Nat$ as a free variable.
 
 \subsection{Implementation in Racket}
 
-Fig.~\ref{fig:dist-impl} shows the implementations of $\finitize$ and $\dist$ in Racket. The free variable $z$ appears as a \textit{parameter} \scheme{appx-z}: a variable with static scope but dynamic extent. The \scheme{cotake} procedure returns the prefix of a lazy list as a finite list.
+\figref{fig:dist-impl} shows the implementations of $\finitize$ and $\dist$ in Racket. The free variable $z$ appears as a \textit{parameter} \scheme{appx-z}: a variable with static scope but dynamic extent. The \scheme{cotake} procedure returns the prefix of a lazy list as a finite list.
 
 \setspecialsymbol{Ωn}{\va{$\mathtt{\Omega}$n}}
 
@@ -278,18 +298,19 @@ We do use \scheme{mapping}, but only for probability spaces and stated distribut
 
 \section{Conditional Queries}
 
-For Bayesian practitioners, the most meaningful queries are \keyword{conditional} queries: those \textit{conditioned on}, or \textit{given}, some random variable's value. (For example, the probability an email is spam given it contains words like ``madam,'' or the distribution over suspects given security footage.) A language without conditional queries is of little more use to them than a general-purpose language.
+For Bayesian practitioners, the most meaningful queries are \keyword{conditional} queries: those \textit{conditioned on}, or \textit{given}, some random variable's value. (For example, the probability an email is spam given it contains words like ``madam,'' or the distribution over suspects given security footage.) A probabilistic language without conditional queries is of little more use to them than a general-purpose language with a \texttt{random} primitive.
 
-Measure-theoretic conditional probability is too involved to accurately summarize here. When $\Pmeas$ is discrete, however, the conditional probability of set $A$ given set $B$ (i.e. asserting that $\omega \in B$), simplifies to
+Measure-theoretic conditional probability is too involved to accurately summarize here. When $P$ is discrete, however, the conditional probability of set $A$ given set $B$ (i.e. asserting that $\omega \in B$), simplifies to
 \begin{equation}
-	\Pspec{A \given B}\ =\ {\papp \Pmeas {A \cap B}} / {\papp \Pmeas B}
+	\Pspec{A \given B}\ =\ P~(A \cap B)~{/}~P~B
 \label{eqn:discrete-conditioning}
 \end{equation}
-In theory and practice, $\Pspec{\,\cdot \given \cdot\,}$ is special notation. As with $\Pspec{\cdot}$, practitioners apply it to propositions. They define it with $\Pspec{e_A \given e_B} = {\Pspec{e_A \wedge e_B}} / {\Pspec{e_B}}$.
+In theory and practice, $\Pspec{\,\cdot \given \cdot\,}$ is special notation. As with \mathversion{normal}$\Pspec{\cdot}$\mathversion{sans}, practitioners apply \mathversion{normal}$\Pspec{\,\cdot \given \cdot\,}$\mathversion{sans} to propositions, and define it with \mathversion{normal}$\Pspec{e_A \given e_B}\ :=\ {\Pspec{e_A \wedge e_B}} / {\Pspec{e_B}}$\mathversion{sans}.
 
 \begin{example}
 \label{example:low/high}
-Extend Example~\ref{example:even/odd} with random variable $\app L \omega = \low \text{ if } \omega \le 3$, else $\high$. The probability that $\objlang{E=even}$ given $\objlang{L=low}$ is
+Extend Example~\ref{example:even/odd} with random variable $L : \Omega \to \set{low,high}$ defined by $L~\omega = if~(\omega \le 3)~low~high$. The probability that $\objlang{E=even}$ given $\objlang{L=low}$ is
+\mathversion{normal}
 \begin{equation}
 	\Pspec{\objlang{E=even \given L=low}}
 		\ =\ \frac{\Pspec{\objlang{E=even \wedge L=low}}}{\Pspec{\objlang{L=low}}}
@@ -298,24 +319,25 @@ Extend Example~\ref{example:even/odd} with random variable $\app L \omega = \low
 		\ =\ \frac{\tfrac{1}{6}}{\tfrac{1}{2}}
 		\ =\ \tfrac{1}{3}
 \end{equation}
+Similarly, $\Pspec{\objlang{E=odd \given L=low}} = \frac{2}{3}$.
 Less precisely, there are proportionally fewer even outcomes when $\objlang{L=low}$.
+\mathversion{sans}
 \exampleqed
 \end{example}
 
-Conditional \textit{distribution} queries ask how one random variable's output influences the distribution of another. As with unconditional distribution queries, practitioners work around a lack of common notation. For example, they might write the distribution of $E$ given $L$ as $\Pspec{\objlang{E=e \given L=l}}$ or $\objlang{P_{E|L}}$.
+Conditional \textit{distribution} queries ask how one random variable's output influences the distribution of another. As with unconditional distribution queries, practitioners work around a lack of common notation. For example, they might write the distribution of $E$ given $L$ as \mathversion{normal}$\Pspec{\objlang{E=e \given L=l}}$\mathversion{sans} or $\objlang{p_{E|L}}$.
 
-It is tempting to define $\Prob{\,\cdot\given\cdot\,}$ in terms of $\Prob{\cdot}$ (and $\Dist{\,\cdot\given\cdot\,}$ in terms of $\Dist{\cdot}$). However, defining conditioning as an operation on probability spaces instead of on queries is more flexible, and it better matches the unsimplified measure theory. The following abstraction returns a discrete probability space in which $\Omega$ is restricted to the subset where random variable $Y$ returns $y$:
+It is tempting to define $\Prob{\,\cdot\given\cdot\,}$ in terms of $\Prob{\cdot}$, and $\Dist{\,\cdot\given\cdot\,}$ in terms of $\Dist{\cdot}$. However, defining conditioning as an operation on probability spaces instead of on queries is more flexible. The following abstraction returns a discrete probability space in which $\Omega$ is restricted to the subset where random variable $Y$ returns $y$:
 \begin{equation}
-\begin{split}
-	\apppp \cond Y y {\seq{\Omega,P}}\ =\ {\seq{\Omega',P'}}
-	\;\;\text{where}\;\;
-		\Omega' &= \app {{Y}\restrict{\Omega}^{-1}} {\set y} \\
-		P' &= \fun{\omega \in {\Omega'}} {{\papp P \omega} / {\pappp \prob P {\Omega'}}}
-\end{split}
+	\cond~Y~y~\seq{\Omega,p}\ :=\ 
+	\lzfclet{
+		\Omega' & preimage~(mapping~Y~\Omega)~\set{y} \\
+		p' & \fun{\omega \in \Omega'} (p~\omega)~{/}~(\prob~p~\Omega')
+	}{\seq{\Omega',p'}}
 \end{equation}
-Then $\Pspec{\objlang{E=even \given L=low}}$ means $\apppp \dist E {\papppp \cond L \low {\seq{\Omega,P}}} \even$.
+Then \mathversion{normal}$\Pspec{\objlang{E=even \given L=low}}$\mathversion{sans} means $\dist~E~(\cond~L~low~\seq{\Omega,p})~even$.
 
-We approximate $\cond$ by applying $\finitize$ to the probability space. Its implementation uses finite list procedures instead of set operators.
+We approximate $\cond$ by applying $\finitize$ to the probability space first. Its implementation uses finite list procedures instead of set operators.
 
 
 \section{The Statement Language}
@@ -326,9 +348,9 @@ Random variables influence each other through global probability spaces. However
 
 Discrete \mykeyword{conditional theories} can always be written to conform to
 \begin{equation}
-	t_i\ ::=\ X_i \sim e_i;\ t_{i+1}\ |\ X_i := e_i;\ t_{i+1}\ |\ e_a = e_b;\ t_{i+1}\ |\  \epsilon
+	\mathit{t_i\ ::\equiv\ X_i \sim e_i;\ t_{i+1}\ |\ X_i := e_i;\ t_{i+1}\ |\ e_a = e_b;\ t_{i+1}\ |\  \epsilon}
 \end{equation}
-Further, they can always be made \mykeyword{well-formed}: an $e_j$ may refer to some $X_i$ only when $j > i$ (i.e. no circular bindings). We start by interpreting the most common kind of Bayesian theories, which contain only distribution statements.
+Further, they can always be made \mykeyword{well-formed}: an $\objlang{e_j}$ may refer to some $\objlang{X_i}$ only when $\objlang{j > i}$ (i.e. no circular bindings). We start by interpreting the most common kind of Bayesian theories, which contain only distribution statements.
 
 \subsection{Interpreting Common Conditional Theories}
 
@@ -338,46 +360,53 @@ Further, they can always be made \mykeyword{well-formed}: an $e_j$ may refer to 
 
 \begin{example}
 \label{example:conditional-theory}
-Suppose we want to know only whether a die outcome is even or odd, high or low. If $L$'s distribution is $P_L = [\low,\high \mapsto \tfrac{1}{2}]$, then $E$'s distribution depends on $L$'s output.
+Suppose we want to know only whether a die outcome is even or odd, high or low. If $L$'s distribution is $p_L := [\low,\high \mapsto \tfrac{1}{2}]$, then $E$'s distribution depends on $L$'s output.
 
-Define $P_{E|L} : S_L \to S_E \to [0,1]$ by $\app {P_{E|L}} \low = [\even \mapsto \tfrac{1}{3}, \odd \mapsto \tfrac{2}{3}]$ and $\app {P_{E|L}} \high = [\even \mapsto \tfrac{2}{3}, \odd \mapsto \tfrac{1}{3}]$.\footnote{\CurryingNote} The conditional theory could be written
+Define $p_{E|L} : S_L \to S_E \to [0,1]$ by $\app {p_{E|L}} \low = [\even \mapsto \tfrac{1}{3}, \odd \mapsto \tfrac{2}{3}]$ and $\app {p_{E|L}} \high = [\even \mapsto \tfrac{2}{3}, \odd \mapsto \tfrac{1}{3}]$.\footnote{\CurryingNote} The conditional theory could be written
 \begin{equation}
-	\objlang{L \sim P_L};\ \objlang{E \sim \papp {P_{E|L}} L}
+	\objlang{L \sim p_L};\ \objlang{E \sim \papp {p_{E|L}} L}
 \label{eqn:die-theory}
 \end{equation}
 
-If $L$ is a measure-theoretic random variable, $\objlang{\papp {P_{E|L}} L}$ does not type-check: $L : \Omega \to S_L$ is clearly not in $S_L$. The \textit{intent} is that $E$'s distribution depends on $L$, and that $P_{E|L}$ specifies how.
+If $L$ is a measure-theoretic random variable, $\objlang{\papp {p_{E|L}} L}$ does not typecheck: $L : \Omega \to S_L$ is clearly not in $S_L$. The \textit{intent} is that $p_{E|L}$ specifies how $E$'s distribution depends on $L$.
 \exampleqed
 \end{example}
 
-We can regard $\objlang{L \sim P_L}$ as a constraint: for every model $\seq{\Omega,P,L}$, $\appp \dist L {\seq{\Omega,P}}$ must be $P_L$. Similarly, $\objlang{E \sim \papp {P_{E|L}} L}$ means $E$'s conditional distribution is $P_{E|L}$. We have been using the model $\Omega = \set{1,2,3,4,5,6}$, $\app P = [1,2,3,4,5,6 \mapsto \tfrac{1}{6}]$, and the obvious $E$ and $L$. It is not hard to verify that this is also a model:
+We can regard $\objlang{L \sim p_L}$ as a constraint on models: $\appp \dist L {\seq{\Omega,p}}$ must be $p_L$ for every model $\seq{\Omega,p,L}$. Similarly, $\objlang{E \sim \papp {p_{E|L}} L}$ means $E$'s conditional distribution is $p_{E|L}$. We have been using the model $\Omega := \set{1,2,3,4,5,6}$, $p := [1,2,3,4,5,6 \mapsto \tfrac{1}{6}]$, and the obvious $E$ and $L$. It is not hard to verify that this is also a model:
 \begin{equation}
 \begin{split}
-	&\Omega = \set{\low,\high} \times \set{\even,\odd}
-	\ \ \ \ \ \  \app L \omega = \omega_1
-	\ \ \ \ \ \  \app E \omega = \omega_2 \\
-	&P = [\seq{\low,\even},\seq{\high,\odd} \mapsto \tfrac{1}{6}, \seq{\low,\odd},\seq{\high,\even} \mapsto \tfrac{2}{6}]
+	\Omega&\ :=\ \set{\low,\high} \times \set{\even,\odd}
+\\
+	L~\seq{\omega_1,\omega_2}&\ :=\ \omega_1
+\\
+	E~\seq{\omega_1,\omega_2}&\ :=\ \omega_2
+\\
+	p&\ :=\ [\seq{\low,\even},\seq{\high,\odd} \mapsto \tfrac{1}{6}, \seq{\low,\odd},\seq{\high,\even} \mapsto \tfrac{2}{6}]
 \end{split}
 \label{eqn:other-model}
 \end{equation}
 
-The construction of $\Omega$, $L$ and $E$ in \eqref{eqn:other-model} clearly generalizes, but $P$ is trickier. Fully justifying the generalization (including that it meets implicit independence assumptions that we have not mentioned) is rather tedious, so we do not do it here. But, for the present example, it is not hard to check these facts:
+The construction of $\Omega$, $L$ and $E$ in \eqref{eqn:other-model} clearly generalizes, but $p$ is trickier. Fully justifying the generalization (including that it meets implicit independence assumptions that we have not mentioned) is rather tedious, so we do not do it here. But, for the present example, it is not hard to check these facts:
 \begin{equation}
 \begin{split}
-	\app P \omega &= {\papp {P_L} {\papp L \omega}} \times {\pappp {P_{E|L}} {\papp L \omega} {\papp E \omega}} \\
-	\text{or}\ \ \ \  P &= \RV{\papp {P_L} L \times \papp {\papp {P_{E|L}} L} E}
+	p &\ =\ \fun{\omega \in \Omega} {\papp {p_L} {\papp L \omega}} \cdot {\pappp {p_{E|L}} {\papp L \omega} {\papp E \omega}}
+\\
+		&\ =\ mapping~\RV{\papp {\objlang{p_L}} L \cdot \papp {\objlang{\papp {p_{E|L}} L}} E}~\Omega
 \end{split}
 \end{equation}
-If $K_L = \RV{\objlang{P_L}}$ and $K_E = \RV{\objlang{\papp {P_{E|L}} L}}$---which interpret \eqref{eqn:die-theory}'s statements' right-hand sides---then $P = \RV{\papp {K_L} L \times\papp {K_E} E}$. This can be generalized.
+Let $K_L := \RV{\objlang{p_L}}$ and $K_E := \RV{\objlang{\app {p_{E|L}} L}}$, which interpret \eqref{eqn:die-theory}'s statements' right-hand sides.
+Then $p = mapping~\RV{\papp {K_L} L \cdot \papp {K_E} E}~\Omega$. This can be generalized.
 
 \begin{definition}[discrete product model]
 \label{def:discrete-product-model}
-Given a well-formed, discrete conditional theory $X_1 \sim e_1; \dots; X_n \sim e_n$, let $K_i : \Omega \tto S_i \to [0,1]$, $K_i = \RV{e_i}$ for each $1 \le i \le n$. The \mykeyword{discrete product model} of the theory is
+Given a well-formed, discrete conditional theory $\mathit{X_1 \sim e_1; \dots; X_n \sim e_n}$, let $K_\mathit{i} : \Omega \tto S_\mathit{i} \to [0,1]$, defined by $K_\mathit{i} = \RV{\mathit{e_i}}$ for each $1 \le \mathit{i} \le \mathit{n}$. The \mykeyword{discrete product model} of the theory is
 \begin{equation}
 \begin{split}
-	\Omega &= \bigtimes_{i=1}^n S_i\;\;\;\;\;\;
-	\app {X_i} \omega = \omega_i\ (1 \le i \le n)\;\;\;\;\;\;
-	P = \RV{\prod_{i=1}^n \papp {K_i} {X_i}}
+	\Omega&\ :=\ S_1 \times \dots \times S_\mathit{n}
+\\
+	X_\mathit{i}~\seq{\omega_1,...,\omega_\mathit{i},...,\omega_\mathit{n}} &\ :=\ \omega_\mathit{i}\ \ \ \ \ (1 \le i \le n)
+\\
+	p&\ :=\ mapping~\RV{(K_1~X_1) \cdot~\dots~\cdot (K_\mathit{n}~X_\mathit{n})}~\Omega
 \end{split}
 \label{eqn:product-model}
 \end{equation}
@@ -387,56 +416,76 @@ Given a well-formed, discrete conditional theory $X_1 \sim e_1; \dots; X_n \sim 
 The discrete product model induces the stated conditional distributions and meets implicit independence assumptions.
 \end{theorem}
 
-When writing distribution statements, practitioners tend to apply first-order distributions to simple random variables. But the discrete product model allows any \targetlang term $e_i$ whose interpretation is a discrete \keyword{transition kernel} $\RV{e_i} : \Omega \tto S_i \to [0,1]$. In measure theory, transition kernels are used to build \keyword{product spaces} such as $\seq{\Omega,P}$. Thus, $\RV{\cdot}$ links Bayesian practice to measure theory and represents an increase in expressive power in specifying distributions, by turning properly typed \targetlang terms into precisely what measure theory requires.
+When writing distribution statements, practitioners tend to apply first-order distributions to simple random variables. But the discrete product model allows any \targetlang term $\objlang{e_i}$ whose interpretation is a discrete \keyword{transition kernel} $\RV{\mathit{e_i}} : \Omega \tto S_\mathit{i} \to [0,1]$. In measure theory, transition kernels are used to build \keyword{product spaces} such as $\seq{\Omega,p}$. Thus, $\RV{\cdot}$ links Bayesian practice to measure theory and represents an increase in expressive power in specifying distributions, by turning properly typed \targetlang terms into precisely what measure theory requires.
 
 \subsection{Interpreting Statements as Monadic Computations}
 
-Some conditional theories state more than just distributions~\cite{cit:mateescu-2008amai,cit:toronto-2009cvpr}. Interpreting theories with different kinds of statements requires recursive, rather than whole-theory, interpretation. Fortunately, well-formedness amounts to lexical scope, making it straightforward to interpret statements as monadic computations. We use the state monad with probability-space-valued state.
+Some conditional theories state more than just distributions~\cite{cit:mateescu-2008amai,cit:toronto-2009cvpr}. Interpreting theories with different kinds of statements requires recursive, rather than whole-theory, interpretation. Fortunately, well-formedness amounts to lexical scope, making it straightforward to interpret statements as monadic computations.
 
 \begin{figure}[tb]
-\centering
+\centering\doublespacing
 \begin{equation*}
-\begin{split}
-	&\begin{aligned}
-		\appp \distps X {\seq{\Omega,P}} = \seq{\Omega,P,P_X}
-		\;\;\text{where}\;\;
-		S_X &= \appp \image X \Omega \\
-		P_X &= \fun{x \in {S_X}} {\appp \prob P {\papp {{X}\restrict{\Omega}^{-1}} {\set x}}}
-	\end{aligned} \\
-	&\begin{aligned}
-		\apppp \condps Y y {\seq{\Omega,P}} = \seq{\Omega',P',\uscore}
-		\;\;\text{where}\;\;
-		\Omega' &= \app {{Y}\restrict{\Omega}^{-1}} {\set y} \\
-		P' &= \fun{\omega \in {\Omega'}} {{\papp P \omega} / {\pappp \prob P {\Omega'}}}
-	\end{aligned} \\
-	&\appp \extendps {K_i} {\seq{\Omega_{i-1},P_{i-1}}}
-		= \seq{\Omega_i,P_i,X_i} \\
-	&\where{
-		\app {S_i'} \omega &= \app \domain {\papp {K_i} \omega}, \;\;\;\;
-		\Omega_i = (\omega \in \Omega_{i-1}) \times {\papp {S_i'} \omega} \\
-		\app {X_i} \omega &= \omega_j\;\; (\text{where } j = \text{length of any } \omega \in \Omega_{i-1}),\;\;\;\;
-		P_i = \RV{P_{i-1} \times {\papp {K_i} {X_i}}}
-	} \\
-	&\app \runps m = x \where{\seq{\Omega,P,x} = \app m {\seq{\set{\seq{}},\fun \omega 1}}}
-\end{split}
+\begin{aligned}
+	&\distps~X~\seq{\Omega,p}\ :=\ 
+	\lzfclet{
+		S_X & \appp \image X \Omega \\
+		p_X & \fun{x \in S_X} \prob~p~(preimage~(mapping~{X}~\Omega)~\set{x})
+	}{\seq{\Omega,p,p_X}}
+\\
+	&\condps~Y~y~\seq{\Omega,p}\ :=\ 
+	\lzfclet{
+		\Omega' & preimage~(mapping~Y~\Omega)~\set{y} \\
+		p' & \fun{\omega \in \Omega'} (p~\omega)~{/}~(\prob~p~\Omega')
+	}{\seq{\Omega',p',\uscore}}
+\\
+	&\extendps~K~\seq{\Omega,p}\ :=\ 
+	\lzfclet{
+		\app {S'} \omega & \app \domain {\papp K \omega} \\
+		\Omega' & (\omega \in \Omega) \times {\papp {S'} \omega} \\
+		\app X \omega & \omega_\mathit{j}\;\;\;\; \text{(where $\mathit{j}$ is the length of any $\omega \in \Omega$)} \\
+		p' & mapping~\RV{p \cdot {\papp K X}}~\Omega'
+	}{\seq{\Omega',p',X}}
+\\
+	&\app \runps m\ :=\ 
+	\lzfclet{
+		\Omega & \seq{\set{\seq{}}} \\
+		\seq{\Omega',p',x} & m~\seq{\Omega,\fun{\omega \in \Omega} 1}
+	}{x}
+\end{aligned}
 \end{equation*}
-\hrulefill
+\vspace{-0.5\baselineskip}
+\bottomhrule
 \caption[State monad functions for queries and statements]{State monad functions that represent queries and statements. The state is probability-space-valued.}
 \label{fig:monad}
 \end{figure}
 
-We assume the state monad's $\ret$ and $\bind$. Fig.~\ref{fig:monad} shows the additional $\distps$, $\condps$ and $\extendps$. The first two simply reimplement $\dist$ and $\cond$. But $\extendps$, which interprets statements, needs more explanation.
+We use the state monad with probability-space-valued state: computations are functions from probability spaces to probability spaces paired with a statement-specific value.
+The probability space monad's $return$ and $bind$ are defined as
+\begin{equation}
+\begin{aligned}
+	\ret~x~\seq{\Omega,p}&\ :=\ \seq{\Omega,p,x}
+\\
+	\bind~m~f~\seq{\Omega,p}&\ :=\ 
+	\lzfclet{
+		\seq{\Omega',p',x} & m~\seq{\Omega,p}
+	}{f~x~\seq{\Omega',p'}}
+\end{aligned}
+\end{equation}
+\figref{fig:monad} shows the additional $\distps$, $\condps$ and $\extendps$. The first two simply reimplement $\dist$ and $\cond$. But $\extendps$, which interprets statements, needs more explanation.
 
 \newcommand{\DependentSumNote}{The dependent cartesian product also generalizes disjoint union to arbitrary index sets. It is often called a \textit{dependent sum} and denoted $\Sigma a : A . {\papp B a}$.}
 
-According to \eqref{eqn:product-model}, interpreting $X_i \sim e_i$ results in $\Omega_i = \Omega_{i-1} \times S_i$, with $S_i$ extracted from $K_i : \Omega_{i-1} \tto S_i \to [0,1]$. A more precise type for $K_i$ is the dependent type $(\omega : \Omega_{i-1}) \tto {\papp {S_i'} \omega} \to [0,1]$, which reveals a complication. To extract $S_i$, we first must extract the random variable $S_i' : \Omega_{i-1} \to \powerset(S_i)$. So let $\app {S_i'} \omega = \app \domain {\papp {K_i} \omega}$; then $S_i = \bigcup \pappp \image {S_i'} {\Omega_{i-1}}$.
+According to \eqref{eqn:product-model}, interpreting $\objlang{X_i \sim e_i}$ results in $\Omega_\mathit{i} = \Omega_{\mathit{i}-1} \times S_\mathit{i}$, with $S_\mathit{i}$ extracted from $K_\mathit{i} : \Omega_{\mathit{i}-1} \tto S_\mathit{i} \to [0,1]$. A more precise type for $K_\mathit{i}$ is the dependent type $(\omega : \Omega_{\mathit{i}-1}) \tto {\papp {S_\mathit{i}'} \omega} \to [0,1]$, which reveals a complication. To extract $S_\mathit{i}$, we first must extract the random variable $S_\mathit{i}' : \Omega_{\mathit{i}-1} \to Set~S_\mathit{i}$. So let $\app {S_\mathit{i}'} \omega = \app \domain {\papp {K_\mathit{i}} \omega}$; then $S_\mathit{i} = \bigcup \pappp \image {S_\mathit{i}'} {\Omega_{\mathit{i}-1}}$.
 
-But this makes query implementation inefficient: if the union has little overlap or is disjoint, $P$ will assign $0$ to most $\omega$. In more general terms, we actually have a \textit{dependent} cartesian product $(\omega \in \Omega_{i-1}) \times \papp {S_i'} \omega$, a generalization of the cartesian product.\footnote{\DependentSumNote} To extend $\Omega$, $\extendps$ calculates this product instead.
+But this makes query implementation inefficient: if the union has little overlap or is disjoint, $p$ will assign $0$ to most $\omega$. In more general terms, we actually have a \textit{dependent} cartesian product $(\omega \in \Omega_{\mathit{i}-1}) \times \papp {S_\mathit{i}'} \omega$, a generalization of the cartesian product.\footnote{\DependentSumNote} To extend $\Omega$, $\extendps$ calculates this product instead.
 
 Dependent cartesian products are elegantly expressed using the set monad:
 \begin{equation}
-	\app \retset x = \set{x}
-	\ \ \ \ \ \ \appp \bindset m f = \bigcup \pappp \image f m
+\begin{aligned}
+	\app \retset a&\ :=\ \set{a}
+\\
+	\appp \bindset A f&\ :=\ \bigcup \pappp \image f A
+\end{aligned}
 \end{equation}
 Then $(a \in A) \times \papp B a
 		= \appp \bindset A
@@ -447,24 +496,29 @@ Then $(a \in A) \times \papp B a
 \centering
 \begin{equation*}
 \begin{split}
-	\PS{X_i := e_i;\ t_{i+1}}
-		&= \appp \bind {\papp \ret {\RV{e_i}}} {\fun {X_i} {\PS{t_{i+1}}}} \\
-	\PS{X_i \sim e_i;\ t_{i+1}}
-		&= \appp \bind {\papp \extendps {\RV{e_i}}} {\fun {X_i} {\PS{t_{i+1}}}} \\
-	\PS{e_a = e_b;\ t_{i+1}}
-		&= \appp \bind {\pappp \condps {\RV{e_a}} {\RV{e_b}}} {\fun \uscore {\PS{t_{i+1}}}} \\
+	\PS{\mathit{X_i := e_i;\ t_{i+1}}}
+		&\ :\equiv\ \appp \bind {\papp \ret {\RV{\mathit{e_i}}}} {\fun {\mathit{X_i}} {\PS{\mathit{t_{i+1}}}}} \\
+	\PS{\mathit{X_i \sim e_i;\ t_{i+1}}}
+		&\ :\equiv\ \appp \bind {\papp \extendps {\RV{\mathit{e_i}}}} {\fun {\mathit{X_i}} {\PS{\mathit{t_{i+1}}}}} \\
+	\PS{\mathit{e_a = e_b;\ t_{i+1}}}
+		&\ :\equiv\ \appp \bind {\pappp \condps {\RV{\mathit{e_a}}} {\RV{\mathit{e_b}}}} {\fun \uscore {\PS{\mathit{t_{i+1}}}}} \\
 	\PS{\epsilon}
-		&= \app \ret {\seq{X_1, \dots, X_n}}
+		&\ :\equiv\ \ret~\mathit{\seq{X_1, \dots, X_n}}
 \end{split}
 \end{equation*}
 \begin{equation*}
 \begin{split}
-	\app {\Dist{e}} m
-		&= \runps \pappp \bind m {\fun {\seq{X_1,\dots,X_n}} {\app \distps {\RV{e}}}} \\
-	\app {\Dist{e_X \given e_Y}} m
-		&= \fun y {\app {\Dist{e_X}} {\pappp \bind m {\fun {\seq{X_1,\dots,X_n}} {\PS{e_Y = y}}}}} \\
-	\app {\Prob{e}} m &= \appp {\Dist{e}} m \true, \;\;\;\;
-	\app {\Prob{e_A \given e_B}} m = \apppp {\Dist{e_A \given e_B}} m \true \true \\
+	\app {\Dist{\mathit{e}}} m
+		&\ :\equiv\ \runps \pappp \bind m {\fun {\mathit{\seq{X_1,\dots,X_n}}} {\app \distps {\RV{\mathit{e}}}}}
+\\
+	\app {\Dist{\mathit{e_X \given e_Y}}} m
+		&\ :\equiv\ \fun y {\app {\Dist{\mathit{e_X}}} {\pappp \bind m {\fun {\mathit{\seq{X_1,\dots,X_n}}} {\PS{\mathit{e_Y} = y}}}}}
+\\
+	\app {\Prob{\mathit{e}}} m
+		&\ :\equiv\ \appp {\Dist{\mathit{e}}} m {true}
+\\
+	\app {\Prob{\mathit{e_A \given e_B}}} m
+		&\ :\equiv\ \apppp {\Dist{\mathit{e_A \given e_B}}} m {true} {true} \\
 \end{split}
 \end{equation*}
 \hrulefill
@@ -472,9 +526,9 @@ Then $(a \in A) \times \papp B a
 \label{fig:ps}
 \end{figure}
 
-Fig.~\ref{fig:ps} defines $\PS\cdot$, which interprets conditional theories containing definition, distribution, and conditioning statements as probability space monad computations. After it exhausts the statements, it returns the random variables. Returning their names as well would be an obfuscating complication, which we avoid by implicitly extracting them from the theory before interpretation. (However, the implementation explicitly extracts and returns names.)
-
-$\Dist{e}$ expands to a distribution-valued computation and runs it with the \mykeyword{empty probability space} $\seq{\Omega_0,P_0} = \seq{\set{\seq{}},\fun \omega 1}$. $\Dist{e_X \given e_Y}$ conditions the probability space and hands off to $\Dist{e_X}$. $\Prob{\cdot}$ is defined in terms of $\Dist{\cdot}$.
+\figref{fig:ps} defines $\PS\cdot$, which interprets conditional theories containing definition, distribution, and conditioning statements as probability space monad computations. After it exhausts the statements, it returns the random variables. Returning their names as well would be an obfuscating complication, which we avoid by implicitly extracting them from the theory before interpretation. (However, the implementation explicitly extracts and returns names.)
+\figref{fig:ps} also defines semantic functions for queries.
+$\Dist{\mathit{e}}$ expands to a distribution-valued computation and runs it with a probability space with the single outcome $\seq{}$. $\Dist{\mathit{e_X} \given \mathit{e_Y}}$ conditions the probability space and hands off to $\Dist{\mathit{e_X}}$. $\Prob{\cdot}$ is defined in terms of $\Dist{\cdot}$.
 
 \subsection{Approximating Models and Queries}
 
@@ -485,7 +539,7 @@ We compute dependent cartesian products of sets represented by lazy lists in a w
 $\PS{\cdot}$'s implementation is \scheme{MDL}. Like \scheme{RV}, it passes random variable identifiers; unlike \scheme{RV}, \scheme{MDL} accumulates them. For example, \scheme{(MDL [] ([X ~ Px]))} expands to
 \begin{center}
 \begin{schemedisplay}
-([X] (bind/s (extend/ps (RV [] Px)) (λ (X) (ret/s (list X)))))
+([X] (bind/ps (extend/ps (RV [] Px)) (λ (X) (ret/ps (list X)))))
 \end{schemedisplay}
 \end{center}
 where \scheme{[X]} is the updated list of identifiers and the rest is a model computation.
@@ -496,7 +550,7 @@ We store theories in transformer bindings so queries can expand them later. For 
 (define-syntax die-roll #'(MDL [] ([L ~ Pl] [E ~ (Pe/l L)])))
 \end{schemedisplay}
 \end{center}
-The macro \scheme{with-model} introduces a scope in which a theory's variables are visible. For example,  \scheme{(with-model die-roll (Dist L E))} looks up \scheme{die-roll} and expands it into its identifiers and computation. Using the identifiers as lambda arguments, \scheme{Dist} (the implementation of $\Dist{\cdot}$) builds a query computation as in Fig.~\ref{fig:ps}, and runs it with \scheme{(mapping (list empty) (lambda (omega) 1))}, the empty probability space.
+The macro \scheme{with-model} introduces a scope in which a theory's variables are visible. For example,  \scheme{(with-model die-roll (Dist L E))} looks up \scheme{die-roll} and expands it into its identifiers and computation. Using the identifiers as lambda arguments, \scheme{Dist} (the implementation of $\Dist{\cdot}$) builds a query computation as in \figref{fig:ps}, and runs it with \scheme{(mapping (list empty) (lambda (omega) 1))}, the empty probability space.
 
 Using these identifiers would break hygiene, except that \scheme{Dist} replaces the lambda arguments' lexical context. This puts the theory's exported identifiers in scope, even when the theory and query are defined in separate modules. Because queries can access only the exported identifiers, it is safe.
 
@@ -532,7 +586,7 @@ we compute the probability that player one wins with
   (Pr (p1-fires? winning-shot)))
 \end{schemedisplay}
 \end{center}
-Nahin computes $0.5239191275550995247919843$---25 decimal digits---with custom MATLAB code. At \scheme{appx-z} $\ge$ \scheme{321}, our solution computes the same digits. (Though it appends the digits $9...$, so Nahin should have rounded up!) Implementing it took about five minutes. But the problem is not Bayesian.
+Nahin computes $0.5239191275550995247919843$---25 decimal digits---with custom MATLAB code. At \scheme{appx-z} $\ge$ \scheme{321}, our solution computes the same digits. (Though it appends the digits $9...$, so Nahin should have rounded up.) Implementing it took about five minutes. But the problem is not Bayesian.
 
 This is: suppose player one slyly suggests a single coin flip to determine whether they spin the chamber before each shot. You do not see the duel, but learn that player two won. What is the probability they spun the chamber?
 
@@ -548,11 +602,9 @@ Suppose that the well-known \scheme{Bernoulli} and discrete \scheme{Uniform} con
 \end{center}
 Then \scheme{(Pr spin? (not (p1-fires? winning-shot)))} converges to about \scheme{0.588}.
 
-Bayesian practitioners would normally create a new first-order conditional distribution \scheme{WinningShot}, and then state \scheme{[winning-shot ~ (WinningShot spin?)]}. Most would \textit{like} to state something more direct---such as the above theory, which plainly shows how \scheme{spin?}'s value affects \scheme{winning-shot}'s distribution. However, without a semantics, they cannot be sure that using the value of a \scheme{cond} (or of any ``if''-like expression) as a distribution is well-defined. That \scheme{winning-shot} has a \textit{different range} for each value of \scheme{spin?} makes things more uncertain.
+Bayesian practitioners would normally create a new first-order conditional distribution \scheme{WinningShot}, and then state \scheme{[winning-shot ~ (WinningShot spin?)]}. Most would \textit{like} to state something more direct---such as the above theory, which plainly shows how \scheme{spin?}'s value affects \scheme{winning-shot}'s distribution. However, without a semantics, they cannot be sure that using the value of a \scheme{cond} (or of any \texttt{if}-like expression) as a distribution is well-defined. That \scheme{winning-shot} has a \textit{different range} for each value of \scheme{spin?} makes things more uncertain.
 
 As specified by $\RV\cdot$, our implementation interprets \scheme{(cond ...)} above as a stochastic transition kernel. As specified by $\PS\cdot$, it builds the probability space using dependent cartesian products. Thus, the direct theory really is well-defined.
-
-The most direct theory has infinitely many statements, one for each possible shot. Supporting such theories is future work.
 
 
 \section{Why Separate Statements and Queries?}
@@ -562,28 +614,28 @@ Whether queries should be allowed inside theories is a decision with subtle effe
 
 Theories are sets of facts. Well-formedness imposes a partial order, but every linearization should be interpreted equivalently. Thus, we can determine whether two kinds of statements can coexist in theories by determining whether they can be exchanged without changing the interpretation. This is equivalent to determining whether the corresponding monad functions commute.
 
-The following definitions suppose a conditional theory $t_1;\dots;t_n$ in which exchanging some $t_i$ and $t_{i+1}$ (where $i < n$) is well-formed. Applying semantic functions in the definitions yields definitions that are independent of syntax but difficult to read, so we give the syntactic versions.
+The following definitions suppose a conditional theory $\mathit{t_1;\dots;t_n}$ in which exchanging some $\mathit{t_i}$ and $\mathit{t_{i+1}}$ (where $\mathit{i < n}$) is well-formed. Applying semantic functions in the definitions yields definitions that are independent of syntax but difficult to read, so we give the syntactic versions.
 
 \begin{definition}[commutativity]
-We say that $t_i$ and $t_{i+1}$ \mykeyword{commute} when \\ $\app {\PS{t_1;\dots;t_i;t_{i+1};\dots;t_n}} {\seq{\Omega_0,P_0}} = \app {\PS{t_1;\dots;t_{i+1};t_i;\dots;t_n}} {\seq{\Omega_0,P_0}}$.
+We say that $\mathit{t_i}$ and $\mathit{t_{i+1}}$ \mykeyword{commute} when \\ $\app {\PS{\mathit{t_1;\dots;t_i;t_{i+1};\dots;t_n}}} {\seq{\Omega_0,p_0}}\ =\ \app {\PS{\mathit{t_1;\dots;t_{i+1};t_i;\dots;t_n}}} {\seq{\Omega_0,p_0}}$.
 \end{definition}
 
-This notion of commutativity is too strong: distribution statements would never commute with each other. We need a weaker test than equality.
+Unfortunately, this notion of commutativity is usually too strong: distribution statements could never commute with each other. We need a weaker test than equality, based on \emph{observable} outcomes.
 
 \begin{definition}[equivalence in distribution]
-Suppose $X_1,\dots,X_k$ are defined in $t_1,\dots,t_n$. Let $m = \PS{t_1,\dots,t_n}$, and $m'$ be a (usually different) probability space monad computation. We write $m \equivdist m'$ and call $m$ and $m'$ \mykeyword{equivalent in distribution} when $\app {\Dist{X_1,\dots,X_k}} m = \app {\Dist{X_1,\dots,X_k}} {m'}$.
+Suppose $\mathit{X_1,\dots,X_k}$ are defined in $\mathit{t_1,\dots,t_n}$. Let $m := \PS{\mathit{t_1,\dots,t_n}}$, and $m'$ be a (usually different) probability space monad computation. We write $m \equivdist m'$ and call $m$ and $m'$ \mykeyword{equivalent in distribution} when $\app {\Dist{\mathit{X_1,\dots,X_k}}} m = \app {\Dist{\mathit{X_1,\dots,X_k}}} {m'}$.
 \end{definition}
 
-The following says $\equivdist$ is like observational equivalence with query contexts:
+The following theorem says $\equivdist$ is like observational equivalence with query contexts:
 
 \begin{theorem}[context]
 \label{thm:context}
-$\app {\Dist{e_X \given e_Y}} m = \app {\Dist{e_X \given e_Y}} {m'}$ for all random variables $\RV{e_X}$ and $\RV{e_Y}$ if and only if $m \equivdist m'$.
+$\app {\Dist{\mathit{e_X \given e_Y}}} m\ =\ \app {\Dist{\mathit{e_X \given e_Y}}} {m'}$ for all random variables $\RV{\mathit{e_X}}$ and $\RV{\mathit{e_Y}}$ if and only if $m \equivdist m'$.
 \end{theorem}
 
 \begin{definition}[commutativity in distribution]
 \label{def:commutativity-in-distribution}
-We say $t_i$ and $t_{i+1}$ commute \mykeyword{in distribution} when $\PS{t_1;\dots;t_i;t_{i+1};\dots;t_n} \equivdist \PS{t_1;\dots;t_{i+1};t_i;\dots;t_n}$.
+We say $\mathit{t_i}$ and $\mathit{t_{i+1}}$ commute \mykeyword{in distribution} when $\PS{\mathit{t_1;\dots;t_i;t_{i+1};\dots;t_n}} \equivdist \PS{\mathit{t_1;\dots;t_{i+1};t_i;\dots;t_n}}$.
 \end{definition}
 
 \begin{theorem}

@@ -4,7 +4,6 @@
 \usepackage{graphicx}
 \usepackage{slatex}
 \usepackage{subfig}
-\usepackage{upgreek}
 \usepackage{varwidth}
 \usepackage{verbatim}
 \usepackage{color}
@@ -177,20 +176,20 @@
 \newcommand{\given}{\,|\,}
 \newcommand{\cond}{cond}
 
-\newcommand{\ret}{return_s}
-\newcommand{\bind}{bind_s}
+\newcommand{\ret}{return_{ps}}
+\newcommand{\bind}{bind_{ps}}
 
 \newcommand{\extendps}{extend_{ps}}
 \newcommand{\condps}{cond_{ps}}
 \newcommand{\distps}{dist_{ps}}
 \newcommand{\runps}{run_{ps}}
 
-\newcommand{\retset}{return_v}
-\newcommand{\bindset}{bind_v}
+\newcommand{\retset}{return_{set}}
+\newcommand{\bindset}{bind_{set}}
 
 \newcommand{\PS}[1]{\mathcal{M}\!\meaningof{#1}}
 
-\newcommand{\objlang}[1]{\mathsf{#1}}
+\newcommand{\objlang}[1]{\mathit{#1}}
 \newcommand{\Pmeas}{\mathbb{P}}
 \newcommand{\Pspec}[1]{\mathrm{Pr}\!\left[{#1}\right]}
 
@@ -315,29 +314,29 @@
 % Language phase 2: lambda_ZFC
 %
 
-\renewcommand{\objlang}[1]{\mathsf{#1}}
-%\newcommand{\objlang}[1]{\mathtt{#1}}
+\newcommand{\mathobjlang}[1]{\mathsf{#1}}
+%\newcommand{\mathobjlang}[1]{\mathtt{#1}}
 
 \renewcommand{\choose}{\mathcal{E}}
 %\newcommand{\Choose}[1]{\choose\,{#1}\ldotp\,}
 \newcommand{\Choose}[1]{\set{#1}\ldotp\,}
 
-\renewcommand{\domain}{\objlang{domain}}
-\renewcommand{\range}{\objlang{range}}
-\renewcommand{\image}{\objlang{image}}
-\newcommand{\filter}{\objlang{select}}
+\renewcommand{\domain}{\mathobjlang{domain}}
+\renewcommand{\range}{\mathobjlang{range}}
+\renewcommand{\image}{\mathobjlang{image}}
+\newcommand{\filter}{\mathobjlang{select}}
 
 \newcommand{\lunion}[1]{{\textstyle\U}\ {#1}}
 \newcommand{\lpowerset}[1]{\powerset\ {#1}}
-\newcommand{\limage}[2]{{\objlang{image}}\ {#1}\ {#2}}
-\newcommand{\lorder}[1]{{\objlang{card}}\ {#1}}
-\newcommand{\ltake}[1]{{\objlang{take}}\ {#1}}
+\newcommand{\limage}[2]{{\mathobjlang{image}}\ {#1}\ {#2}}
+\newcommand{\lorder}[1]{{\mathobjlang{card}}\ {#1}}
+\newcommand{\ltake}[1]{{\mathobjlang{take}}\ {#1}}
 %\newcommand{\lemptyset}{\oldemptyset}
 \newcommand{\lemptyset}{\emptyset}
 \newcommand{\lnat}{\omega}
-\newcommand{\lif}[3]{{\objlang{if}}\ {#1}\ {#2}\ {#3}}
-\newcommand{\ltrue}{\objlang{true}}
-\newcommand{\lfalse}{\objlang{false}}
+\newcommand{\lif}[3]{{\mathobjlang{if}}\ {#1}\ {#2}\ {#3}}
+\newcommand{\ltrue}{\mathobjlang{true}}
+\newcommand{\lfalse}{\mathobjlang{false}}
 \newcommand{\lfun}{\lambda\ldotp\,}
 
 \newcommand{\fun}[1]{\lambda\mspace{2mu}{#1}\ldotp\,}
@@ -483,12 +482,20 @@
 
 
 \DeclareMathVersion{sans}
+
 \SetSymbolFont{operators}{sans}{T1}{\sfdefault}{m}{n}
 \SetSymbolFont{letters}{sans}{T1}{\sfdefault}{m}{n}
 \SetMathAlphabet\mathbf{sans}{T1}{\sfdefault}{bx}{n}
 \SetMathAlphabet\mathsf{sans}{T1}{\sfdefault}{m}{n}
 \SetMathAlphabet\mathit{sans}{T1}{\rmdefault}{m}{it}
+%\SetMathAlphabet\mathrm{sans}{T1}{\rmdefault}{m}{n}
 
+% Fix the uppercase I in sans-serif so it doesn't look like a lowercase L
+\DeclareSymbolFont{rmletters}{T1}{\rmdefault}{m}{it}
+\SetSymbolFont{rmletters}{sans}{T1}{\rmdefault}{m}{n}
+\DeclareMathSymbol{I}{\mathalpha}{rmletters}{`I}
+
+% Fix the uppercase greek letters in sans-serif
 \DeclareSymbolFont{greekletters}{OML}{cmss}{m}{n}
 \DeclareMathSymbol{\Gamma}  {\mathord}{greekletters}{"00}
 \DeclareMathSymbol{\Delta}  {\mathord}{greekletters}{"01}
@@ -502,6 +509,7 @@
 \DeclareMathSymbol{\Psi}    {\mathord}{greekletters}{"09}
 \DeclareMathSymbol{\Omega}  {\mathord}{greekletters}{"0A}
 
+% Fix the lowercase greek letters in sans-serif
 \DeclareMathSymbol{\alpha}{\mathord}{greekletters}{"0B}
 \DeclareMathSymbol{\beta}{\mathord}{greekletters}{"0C}
 \DeclareMathSymbol{\gamma}{\mathord}{greekletters}{"0D}
@@ -531,6 +539,7 @@
 \DeclareMathSymbol{\varrho}{\mathord}{greekletters}{"25}
 \DeclareMathSymbol{\varsigma}{\mathord}{greekletters}{"26}
 
+% Fix the punctuation everywhere else
 \DeclareSymbolFont{fixpunct}{T1}{\rmdefault}{m}{n}
 \DeclareSymbolFont{fixpunctoml}{OML}{\rmdefault}{m}{n}
 \DeclareMathSymbol{,}{\mathpunct}{fixpunct}{`,}
@@ -541,18 +550,19 @@
 \DeclareMathSymbol{\rightharpoonup}{\mathrel}{fixpunctoml}{"2A}
 \DeclareMathSymbol{^}{\mathpunct}{fixpunct}{`!}
 
+% Make numbers always roman, never italicized
 \DeclareSymbolFont{numbers}{T1}{pvh}{m}{n}
-\SetSymbolFont{numbers}{sans}{T1}{\rmdefault}{m}{n}
-\DeclareMathSymbol{0}{\mathalpha}{numbers}{"30}
-\DeclareMathSymbol{1}{\mathalpha}{numbers}{"31}
-\DeclareMathSymbol{2}{\mathalpha}{numbers}{"32}
-\DeclareMathSymbol{3}{\mathalpha}{numbers}{"33}
-\DeclareMathSymbol{4}{\mathalpha}{numbers}{"34}
-\DeclareMathSymbol{5}{\mathalpha}{numbers}{"35}
-\DeclareMathSymbol{6}{\mathalpha}{numbers}{"36}
-\DeclareMathSymbol{7}{\mathalpha}{numbers}{"37}
-\DeclareMathSymbol{8}{\mathalpha}{numbers}{"38}
-\DeclareMathSymbol{9}{\mathalpha}{numbers}{"39}
+%\SetSymbolFont{numbers}{sans}{T1}{\rmdefault}{m}{n}
+\DeclareMathSymbol{0}{\mathord}{numbers}{"30}
+\DeclareMathSymbol{1}{\mathord}{numbers}{"31}
+\DeclareMathSymbol{2}{\mathord}{numbers}{"32}
+\DeclareMathSymbol{3}{\mathord}{numbers}{"33}
+\DeclareMathSymbol{4}{\mathord}{numbers}{"34}
+\DeclareMathSymbol{5}{\mathord}{numbers}{"35}
+\DeclareMathSymbol{6}{\mathord}{numbers}{"36}
+\DeclareMathSymbol{7}{\mathord}{numbers}{"37}
+\DeclareMathSymbol{8}{\mathord}{numbers}{"38}
+\DeclareMathSymbol{9}{\mathord}{numbers}{"39}
 
 \renewcommand{\notin}{\not\in}
 

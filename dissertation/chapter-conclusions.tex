@@ -30,3 +30,9 @@ Other future optimization work includes creating new sampling algorithms, and us
 On the theory side, we intend to explore preimage computation's connection to type checking and type inference, investigate ways to integrate and leverage polymorphic type systems, and find the conditions under which preimage refinement is complete in the limit.
 
 More broadly, we hope to advance Bayesian practice by providing a rich modeling language with an efficient, correct implementation, which allows general recursion and any computable, probabilistic condition.
+
+
+
+We have not entirely given up on the probability space monad.
+It has already been useful in proving that distribution queries and conditioning do not commute.
+We could use it in the future to reason about other \emph{local} program properties; i.e. without referring to a global probability space. [XXX: move to future work]

@@ -1,5 +1,15 @@
 Jay's comments on Background chapter
 
+Chapter 2
+ * Mention that monads impose a total order on computations
+
+Chapter 4
+ * Notation for type constructors, etc.
+ * Notation for referring to infix operator as a function
+ * Prefix operations, precedence rules
+ * Notation for defining vs. equality test
+ * Function arrows are right-associative
+
 Change notation in Chapter 5 (IFL paper) to match the other chapters
 
 Chapter 8
