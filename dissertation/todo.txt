@@ -1,16 +1,16 @@
-Jay's comments on Background chapter
-
-Chapter 2
- * Mention that monads impose a total order on computations
+Chapter 3
+ * Fix restriction syntax
 
 Chapter 4
- * Notation for type constructors, etc.
- * Notation for referring to infix operator as a function
- * Prefix operations, precedence rules
- * Notation for defining vs. equality test
- * Function arrows are right-associative
+ * Add \beta rules, restricted \eta rules, other stuff about reducing inside lambdas
 
-Change notation in Chapter 5 (IFL paper) to match the other chapters
+Chapter 7
+ * Use intertext on lazy preimage mapping proofs
+ * Rename R to \Omega
+ * Pictures of binary indexing scheme
+ * Pictures of lattice operators?
+ * Picture of refinement
+ * Remove non-local conclusions
 
 Chapter 8
  * Write intro to Chapter 8: Implementation ("you are here")
@@ -18,15 +18,11 @@ Chapter 8
  * Write Section 8.3 (primitive implementation)
  * Finish Section 8.4, following the XXX notes in it
  * Move DrBayes implementation section from Chapter 7 to Chapter 8
- 
+
 Add either Section 8.5 or new chapter after Chapter 8 with examples and uses of finished implementation
 
-Remove redundant stuff from chapter intros
+Consolidate Related Work
 
-Consolidate Related Work chapter
-
-Remove non-local conclusions from Chapters 5 and 7
-
-Write Conclusions and Future Work
+Consolidate Conclusions and Future Work
 
 Schedule defense

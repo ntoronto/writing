@@ -446,10 +446,11 @@ Some conditional theories state more than just distributions~\cite{cit:mateescu-
 		p' & mapping~\RV{p \cdot {\papp K X}}~\Omega'
 	}{\seq{\Omega',p',X}}
 \\
+	&empty_{ps}\ :=\ \seq{\set{\seq{}},\fun{\omega \in \set{\seq{}}} 1}
+\\
 	&\app \runps m\ :=\ 
 	\lzfclet{
-		\Omega & \seq{\set{\seq{}}} \\
-		\seq{\Omega',p',x} & m~\seq{\Omega,\fun{\omega \in \Omega} 1}
+		\seq{\Omega,p,x} & m~empty_{ps}
 	}{x}
 \end{aligned}
 \end{equation*}
@@ -556,7 +557,8 @@ Using these identifiers would break hygiene, except that \scheme{Dist} replaces 
 
 Aside from passing identifiers and monkeying with hygiene, the macros are almost transcribed from the semantic functions.
 
-\subsubsection{Examples.}
+\subsection{Examples}
+
 Consider a conditional distribution with the first-order definition
 \begin{center}
 \singlespacing

@@ -6,23 +6,6 @@
 \hfill Georg Cantor
 \end{quote}
 
-\begin{comment}
-\begin{abstract}
-To be useful in Bayesian practice, a probabilistic language must support conditioning: imposing constraints in a way that preserves the relative probabilities of program outputs.
-Every language to date that supports probabilistic conditioning also places seemingly artificial restrictions on legal programs, such as disallowing recursion and restricting conditions to simple equality constraints such as $x = \mathrm{2}$.
-
-We develop a semantics for a first-order language with recursion, probabilistic choice and conditioning.
-Distributions over program outputs are defined by the probabilities of their preimages, a measure-theoretic approach that ensures the language is not artificially limited.
-
-Measurability is a basic property similar to continuity that is often neglected, but critical.
-We prove that all probabilistic programs are measurable regardless of nontermination, if the language's primitives are measurable---which includes real arithmetic, inequalities and limits.
-
-Preimages are generally uncomputable, so we derive an approximating semantics for computing rectangular covers of preimages.
-We implement the approximating semantics in Haskell and Typed Racket, and demonstrate its expressive power using stochastic ray tracing.
-\end{abstract}
-\keywords Probability, Semantics, Domain-Specific Languages
-\end{comment}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -31,23 +14,23 @@ We implement the approximating semantics in Haskell and Typed Racket, and demons
 
 Measure-theoretic probability~\cite{cit:klenke-2006-probability} is widely believed to be able to define every reasonable distribution, including distributions arising from discontinuous transformations and distributions on infinite spaces.
 It mainly does this by \emph{assigning probabilities to sets}.
-Functions that do so are probability \keyword{measures}.
+Functions that do so are \keyword{probability measures}.
 
-If a probability measure $P$ assigns probabilities to subsets of $X$ and $f : X \to Y$, then \keyword{preimage measure} defines the distribution over subsets of $Y$:
+If a probability measure $P$ assigns probabilities to subsets of $X$ and $g : X \to Y$, then \keyword{preimage measure} defines the distribution over subsets of $Y$:
 \begin{equation}
-	\Pr[B] \ = \ P(f^{-1}(B))
+	\Pr[B] \ = \ P~(preimage~g~B)
 \end{equation}
-The preimage $f^{-1}(B) = \setb{a \in X}{f(a) \in B}$ is the subset of $X$ for which $f$ yields a value in $B$, and is well-defined for any $f$.
-In the thermometer example~\eqref{eqn:thermometer-example}, $f$ would be an interpretation of the program as a function, $X$ would be the set of all random sources, and $Y$ would be $\Re$.
+where $preimage~g~B\ =\ \setb{a \in domain~g}{g~a \in B}$ is the subset of $X$ for which $g$ yields a value in $B$.
+It is well-defined for any $g$ and $B$.
 
 Measure-theoretic probability supports any kind of condition.
 If $\Pr[B] > \mathrm{0}$, the probability of $B' \subseteq Y$ given $B \subseteq Y$ is
 \begin{equation}
-	\Pr[B'\,|\,B]\ =\ \Pr[B' \i B]\ /\ \Pr[B]
+	\Pr[B'\,|\,B]\ =\ \Pr[B' \i B]~{/}~\Pr[B]
 \label{eqn:bayes-law-preimage}
 \end{equation}
-If $\Pr[B] = \mathrm{0}$, conditional probabilities can be calculated as the limit of $\Pr[B'\,|\,B_n]$ for positive-probability $B_1 \supseteq B_2 \supseteq B_3 \supseteq \cdots$ whose intersection is $B$.
-For example, if $Y = \Re \times \Re$, the distribution of ``$\pair{x,y} \in Y$ given $x + y = \mathrm{0}$'' can be calculated using the descending sequence $B_n = \setb{\pair{x,y} \in Y}{|x + y| < \mathrm{2}^{-n}}$.
+If $\Pr[B] = \mathrm{0}$, conditional probabilities can be calculated as the limit of $\Pr[B'\,|\,B_n]$ for positive-probability $B_1 \supseteq B_2 \supseteq B_3 \supseteq \cdots$ whose intersection is $B$~[XXX: cite Samuels].
+For example, if $Y = \Re \times \Re$, the distribution of $\pair{x,y} \in Y$ given $x + y = \mathrm{0}$ can be calculated using the descending sequence $B_n = \setb{\pair{x,y} \in Y}{|x + y| < \mathrm{2}^{-n}}$.
 
 Only special families of \keyword{measurable} sets can be assigned probabilities.
 Proving measurability, taking limits, and other complications tend to make measure-theoretic probability less attractive, even though it is strictly more powerful.
@@ -59,14 +42,14 @@ Programmers therefore encode probabilistic programs as functions from random sou
 Monads and other categorical classes such as idioms (i.e. applicative functors) can make doing so easier~\cite{cit:hurd-2002thesis,cit:toronto-2010ifl-bayes}.
 
 It seems this approach should make it easy to interpret probabilistic programs measure-theoretically.
-For a probabilistic program $f : X \to Y$, the probability measure on output sets $B \subseteq Y$ should be defined by preimages of $B$ under $f$ and the probability measure on $X$.
+For a probabilistic program $g : X \to Y$, the probability measure on output sets $B \subseteq Y$ should be defined by preimages of $B$ under $g$ and the probability measure on $X$.
 Unfortunately, it is difficult to turn this simple-sounding idea into a compositional semantics, for the following reasons.
 \begin{enumerate}
-	\item Preimages can be defined only for functions with observable domains, which excludes lambdas.%
+	\item Preimages are definable only for functions with observable domains, which excludes lambdas.%
 \label{problem:observable-domain}
-	\item If subsets of $X$ and $Y$ must be measurable, taking preimages under $f$ must preserve measurability (we say $f$ itself is measurable). Proving the conditions under which this is true is difficult, especially if $f$ may not terminate.%
+	\item If subsets of $X$ and $Y$ must be measurable, taking preimages under $g$ must preserve measurability (we say $g$ itself is measurable). Proving the conditions under which this is true is difficult, especially if $g$ may not terminate.%
 \label{problem:measurability}
-	\item It is very difficult to define probability measures for arbitrary spaces of measurable functions~\cite{cit:aumann-1961ijm-borel}.%
+	\item It is difficult to define useful probability measures for arbitrary spaces of measurable functions~\cite{cit:aumann-1961ijm-borel}.%
 \label{problem:higher-orderness}
 \end{enumerate}
 Implementing a language based on such a semantics is complicated because
@@ -81,11 +64,11 @@ Implementing a language based on such a semantics is complicated because
 We address~\ref{problem:observable-domain} and~\ref{problem:different-language} by developing our semantics in \lzfclang~\cite{cit:toronto-2012flops-lzfc}, a $\lambda$-calculus with infinite sets, and both extensional and intensional functions.
 We address~\ref{problem:backward-efficient} by deriving and implementing a \emph{conservative approximation} of the semantics.
 
-There seems to be no way to simplify difficulty~\ref{problem:measurability}, so we work through it in Section~\ref{sec:measurability}.
-The outcome is worth it: we prove all probabilistic programs are measurable, regardless of the inputs on which they do not terminate.
+There seems to be no way to simplify difficulty~\ref{problem:measurability}, so we work through a proof of measurability.
+The outcome is worth it: all probabilistic programs are measurable, regardless of the inputs on which they do not terminate.
 This includes uncomputable programs; for example, those that contain real equality tests and limits.
 We believe this result is the first of its kind, and is general enough to apply to almost all past and future work on probabilistic programming languages.
-To maintain the flow of this chapter, however, we put it off until Chapter~\ref{ch:measurability}.
+To maintain the flow of this chapter, we put it off until Chapter~\ref{ch:measurability}.
 
 For difficulty~\ref{problem:higher-orderness}, we have discovered that the ``first-orderness'' of arrows~\cite{cit:hughes-2000scp-arrows} is a perfect fit for the ``first-orderness'' of measure theory.
 
@@ -117,13 +100,17 @@ The exact semantics includes
 	\item A semantic function which, like the arrow calculus semantic function~\cite{cit:lindley-2010jfp-arrow-calculus}, transforms first-order programs into the computations of an arbitrary arrow.
 	\item Arrows for evaluating expressions in different ways.
 \end{itemize}
-This commutative diagram describes the relationships among the arrows used to define the exact semantics:
+This commutative diagram describes the relationships among the six arrows used to define the exact semantics:
 \youarehere{eqn:roadmap-diagram1}
-From top-left to top-right, $X \botto Y$ arrow computations are intensional functions that may raise errors, $X \mapto Y$ instances produce extensional functions, and $X \preto Y$ instances compute preimages.
-Instances of arrows in the bottom row are like those in the top, except they thread an infinite store of random values, and can be constructed to always terminate.
-Most of our correctness theorems rely on proofs that every morphism in~\eqref{eqn:roadmap-diagram1} is a homomorphism.
+At the top-left, $X \botto Y$ computations (or ``bottom arrow computations'') are intensional functions that may raise errors (i.e. return $\bot$, which is read ``bottom'').
+From bottom arrow computations, the $\liftmap$ combinator produces $X \mapto Y$ computations, which create equivalent extensional functions, or mappings.
+From mapping arrow computations, the $\liftpre$ combinator produces $X \preto Y$ computations, which compute preimages.
 
-The approximating semantics has the same semantic function, but its arrows $X \preto' Y$ and $X \ppreto' Y$ compute conservative approximations.
+Instances of arrows in the bottom row are like those in the top, except they thread an infinite store of random values, and can be constructed to always terminate.
+
+Most of our correctness theorems rely on proofs that every morphism in~\eqref{eqn:roadmap-diagram1} is a homomorphism; for example, that $\liftmap$ distributes over all bottom arrow combinators.
+
+The approximating semantics uses the same semantic function, but its arrows $X \preto' Y$ and $X \ppreto' Y$ compute conservative approximations.
 Given a library for representing and operating on rectangular sets, it is directly implementable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -136,10 +123,10 @@ Like monads~\cite{cit:wadler-2001-monads} and idioms~\cite{cit:mcbride-2008jfp-i
 But arrow computations are always
 \begin{itemize}
 	\item Function-like: An arrow computation of type $x \arrow y$ must behave like a corresponding function of type $x \tto y$ (in a sense we explain shortly).
-	\item First-order: There is no way to derive a computation $app : \pair{x \arrow y, x} \arrow y$ from an arrow's minimal definition.
+	\item First-order: There is no way to derive a computation $app : \pair{x \arrow y, x} \arrow y$ from an arrow's minimal definition, so it is not possible for an arrow computation to apply another arrow computation.
 \end{itemize}
 The first property makes arrows a good fit for a compositional translation from expressions to pure functions that operate on random sources.
-The second property makes arrows a good fit for a measure-theoretic semantics in particular, as $app$'s corresponding function is generally not measurable~\cite{cit:aumann-1961ijm-borel}.
+The second property makes arrows a good fit for a measure-theoretic semantics in particular, as it is difficult to define measurable sets of functions that make $app$'s corresponding function preserve measurability~\cite{cit:aumann-1961ijm-borel}.
 
 \subsection{Alternative Arrow Definitions and Laws}
 \label{sec:arrow-definitions}
@@ -152,30 +139,50 @@ Again, we define a different combinator, $\arrowif\gen$ (``if-then-else'').
 
 In a nonstrict $\lambda$-calculus, defining a choice combinator allows writing recursive functions using nothing but arrow combinators and lifted, pure functions.
 However, a strict $\lambda$-calculus needs an extra combinator $\arrowlazy$ for deferring conditional branches.
-For example, define the \keyword{function arrow} with choice:
+For example, define the \keyword{function arrow} with choice, in which $x \arrow y\ ::=\ x \tto y$:
 \begin{equation}
 \begin{aligned}
-	\arrowarr~f &\ := \ f \\
-	(f_1~\arrowcomp~f_2)~a &\ := \ f_2~(f_1~a) \\
-	(f_1~\arrowpair~f_2)~a &\ := \ \pair{f_1~a,f_2,a} \\
-	\arrowif~f_1~f_2~f_3~a &\ := \ if~(f_1~a)~(f_2~a)~(f_3~a) \\
-	\arrowlazy~f~a &\ :=\ f~0~a
+	\arrowarr~f &\ := \ f && \text{lift}\\
+	f_1~\arrowcomp~f_2 &\ := \ \fun{a} f_2~(f_1~a) && \text{composition}\\
+	f_1~\arrowpair~f_2 &\ := \ \fun{a} \pair{f_1~a,f_2,a} && \text{pairing} \\
+	\arrowif~f_1~f_2~f_3 &\ := \ \fun{a} if~(f_1~a)~(f_2~a)~(f_3~a) \hspace{0.5in} && \text{if-then-else} \\
+	\arrowlazy~f &\ :=\ \fun{a} f~0~a && \text{laziness}
 \end{aligned}
 \label{eqn:function-arrow}
 \end{equation}
 and try to define the following recursive function:
 \begin{equation}
-	halt!on!true \ := \ \arrowif~(\arrowarr~id)~(\arrowarr~id)~halt!on!true
+\begin{aligned}
+	&\,halt!on!true : Bool \arrow Bool \hspace{0.5in} \text{(i.e. $halt!on!true : Bool \tto Bool$)}
+	\\
+	&\begin{aligned}
+		halt!on!true &\ := \ \arrowif~(\arrowarr~id)~(\arrowarr~id)~halt!on!true
+	\\
+		&\ \equiv\ \arrowif~id~id~(\arrowif~(\arrowarr~id)~(\arrowarr~id)~halt!on!true)
+	\\
+		&\ \equiv\ \arrowif~id~id~(\arrowif~id~id~(\arrowif~(\arrowarr~id)~(\arrowarr~id)~halt!on!true))
+	\end{aligned}
+\end{aligned}
 \end{equation}
 In a strict $\lambda$-calculus, the defining expression does not terminate.
 But the following is well-defined in \lzfclang, and loops only when applied to $false$:
 \begin{equation}
-	halt!on!true \ := \ \arrowif~(\arrowarr~id)~(\arrowarr~id)~(\arrowlazy~\fun{0}{halt!on!true})
+\begin{aligned}
+	halt!on!true &\ := \ \arrowif~(\arrowarr~id)~(\arrowarr~id)~(\arrowlazy~\fun{0}{halt!on!true})
+	\\
+		&\ \equiv\ \arrowif~id~id~(\fun{a} (\fun{0} halt!on!true)~0~a)
+	\\
+		&\ \equiv\ \fun{a} if~(id~a)~(id~a)~((\fun{a} (\fun{0} halt!on!true)~0~a)~a)
+	\\
+		&\ \equiv\ \fun{a} if~a~a~((\fun{a} halt!on!true~a)~a)
+	\\
+		&\ \equiv\ \fun{a} if~a~a~(halt!on!true~a)
+\end{aligned}
 \end{equation}
 
-All of our arrows are arrows with choice, so we simply call them arrows.
+All of our arrows are arrows with choice and $\arrowlazy$, so we simply call them arrows.
 
-\begin{definition}[arrow]Let $1 := \set{0}$. A binary type constructor $(\arrow\gen)$ and
+\begin{definition}[arrow]Let $1 := \set{0}$ (Section~\ref{sec:axiom-of-infinity}). A binary type constructor $(\arrow\gen)$ and
 \begin{displaybreaks}
 \begin{equation}
 \begin{aligned}
@@ -256,7 +263,7 @@ Such a $\lambda$-calculus has no need for $\arrowlazy\gen$, so we could not deri
 We follow Hughes's reasoning~\cite{cit:hughes-2000scp-arrows} for the original arrow laws: it is a function-like property (i.e. it holds for the function arrow), and it cannot not lose, reorder or duplicate effects.
 
 The pair extraction law~\eqref{eqn:pair-extraction}, which \emph{can} be derived from existing arrow laws, is a more problematic, in nonstrict $\lambda$-calculii as well as \lzfclang.
-If $f_1$ can loop, using~\eqref{eqn:pair-extraction} to transform a computation can turn a nonterminating expression into a terminating one, or vice-versa.
+If $f_1$ does not always terminate, using~\eqref{eqn:pair-extraction} to transform a computation can turn a nonterminating expression into a terminating one, or vice-versa.
 We could condition the pair extraction law on $f_1$'s termination.
 Instead, we require every argument to $\arrowarr\gen$ to terminate, which simplifies more proofs.
 
@@ -273,6 +280,7 @@ An arrow homomorphism $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)
 If $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ is an arrow epimorphism and the combinators of $a$ define an arrow, then the combinators of $b$ define an arrow.
 \end{theorem}
 \begin{proof}
+Let $\arrowlift\genb^{-1}$ be $\arrowlift\genb$'s right inverse.
 For the pair extraction law~\eqref{eqn:pair-extraction}, rewrite in terms of $\arrowlift\genb$, apply homomorphism laws, and apply the pair extraction law for arrow $a$:
 \begin{displaybreaks}
 \begin{align*}
@@ -309,7 +317,7 @@ The proofs for every other law are similar.
 \begin{aligned}[t]
 	\meaningof{\mathit{x} := \mathit{e};\ ...\ ; \mathit{e_b}}\gen &\ :\equiv\
 		\mathit{x} := \meaningof{\mathit{e}}\gen;\ ...\ ; \meaningof{\mathit{e_b}}\gen
-\\[3pt]
+\\[6pt]
 	\meaningof{\mathit{x}~\mathit{e}}\gen &\ :\equiv\
 		\meaningof{\pair{\mathit{e},\pair{}}}\gen~\arrowcomp\gen~\mathit{x}
 \\
@@ -387,7 +395,7 @@ It just simplifies statements about expressions, such as the following theorem, 
 \begin{theorem}[homomorphisms distribute over expressions]
 \label{thm:homomorphism-implies-correct}
 Let $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ be an arrow homomorphism.
-For all $\mathit{e}$, $\meaningof{\mathit{e}}\genb \equiv \arrowlift\genb~\meaningof{\mathit{e}}\gen$.%
+For all $\mathit{e}$, $\meaningof{\mathit{e}}\genb\ \equiv\ \arrowlift\genb~\meaningof{\mathit{e}}\gen$.%
 \end{theorem}
 \begin{proof}
 By structural induction.
@@ -497,6 +505,82 @@ The bottom arrow is epimorphic to (in fact, isomorphic to) the Maybe monad's Kle
 
 \section{Deriving the Mapping Arrow}
 
+Theorems about functions in set theory tend to be about mappings, not about lambdas that may raise errors.
+As in intermediate step, then, we need an arrow whose computations produce mappings or are mappings themselves.
+
+It is tempting to try to make the mapping arrow's computations mapping-valued; i.e. $X \mapto Y ::= X \pto Y$.
+Unfortunately, we could not define $\arrmap : (X \tto Y) \tto (X \pto Y)$: to define a mapping, we need a domain, but lambdas' domains are unobservable.
+
+To parameterize mapping arrow computations on a domain, we define the \mykeyword{mapping arrow} computation type as
+\begin{equation}
+	X \mapto Y \ ::= \ Set~X \tto (X \pto Y)
+\end{equation}
+The absence of $\bot$ in $Set~X \tto (X \pto Y)$, and the fact that type parameters $X$ and $Y$ denote sets, will make it easier to apply well-known theorems from measure theory, which know nothing of lambda types and propagating error values.
+
+To use Theorem~\ref{thm:homomorphism-implies-correct} to prove that expressions interpreted using $\meaningof{\cdot}\map$ behave correctly with respect to $\meaningof{\cdot}_\bot$, we need to define correctness using a lift from the bottom arrow to the mapping arrow.
+It is helpful to have a standalone function $domain_\bot$ that computes the subset of $A$ on which $f$ does not return $\bot$.
+We define that first, and then define $\liftmap$ in terms of it:
+\begin{align}
+	&\begin{aligned}
+		&domain_\bot : (X \botto Y) \tto Set~X \tto Set~X \\
+		&domain_\bot~f~A \ := \ \setb{a \in A}{f~a \neq \bot}
+	\end{aligned} \\
+\nonumber\\[-0.5\baselineskip]
+	&\begin{aligned}
+		&\liftmap : (X \botto Y) \tto (X \mapto Y) \\
+		&\liftmap~f~A \ := \ mapping~f~(domain_\bot~f~A)
+	\end{aligned}
+\end{align}
+So $\liftmap~f~A$ is like $mapping~f~A$, except the domain does not contain inputs that produce errors or nontermination---a good notion of correctness.
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{align*}
+\!\!
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&range : (X \pto Y) \tto Set~Y \\
+		&range \ := \ image~snd
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\circ\map) : (Y \pto Z) \tto (X \pto Y) \tto (X \pto Z) \\
+		&g_2 \circ\map g_1 \ := \ 
+			\lzfclet{
+				A & preimage~g_1~(domain~g_2)
+			}{\fun{a \in A}{g_2~(g_1~a)}}
+	\end{aligned}
+\end{aligned}
+&\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\pair{\cdot,\cdot}\map : (X \pto Y_1) \tto (X \pto Y_2) \tto (X \pto Y_1 \times Y_2) \\
+		&\pair{g_1,g_2}\map \ := \ 
+			\lzfclet{
+				A & (domain~g_1) \i (domain~g_2)
+			}{\fun{a \in A}{\pair{g_1~a,g_2~a}}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\uplus\map) : (X \pto Y) \tto (X \pto Y) \tto (X \pto Y) \\
+		&\lzfcsplit{&g_1 \uplus\map g_2 \ := \
+		\lzfclet{
+				A & (domain~g_1) \uplus (domain~g_2)
+			}{\fun{a \in A}{if~(a \in domain~g_1)~(g_1~a)~(g_2~a)}}}
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[ ]{Additional operations on mappings.}
+\label{fig:more-mapping-defs}
+\end{figure*}
+
+If $\liftmap$ is to be a homomorphism, mapping arrow computation equivalence needs to be more extensional.
+
+\begin{definition}[mapping arrow equivalence]
+Two computations $g_1 : X \mapto Y$ and $g_2 : X \mapto Y$ are equivalent, or $g_1 \equiv g_2$, when $g_1~A \equiv g_2~A$ for all $A \subseteq X$.
+\end{definition}
+
 \begin{figure*}[!tb]\centering
 \smallmathfont
 \begin{align*}
@@ -554,43 +638,9 @@ The bottom arrow is epimorphic to (in fact, isomorphic to) the Maybe monad's Kle
 \label{fig:mapping-arrow-defs}
 \end{figure*}
 
-Theorems about functions in set theory tend to be about mappings, not about lambdas that may raise errors.
-As in intermediate step, then, we need an arrow whose computations produce mappings or are mappings themselves.
-
-It is tempting to try to make the mapping arrow's computations mapping-valued; i.e. $X \mapto Y ::= X \pto Y$, with $f_1~\compmap~f_2 := f_2 \circ\map f_1$ and $f_1~\pairmap~f_2 := \pair{f_1,f_2}\map$.
-Unfortunately, we could not define $\arrmap : (X \tto Y) \tto (X \pto Y)$: to define a mapping, we need a domain, but lambdas' domains are unobservable.
-
-To parameterize mapping arrow computations on a domain, we define the \mykeyword{mapping arrow} computation type as
-\begin{equation}
-	X \mapto Y \ ::= \ Set~X \tto (X \pto Y)
-\end{equation}
-The absence of $\bot$ in $Set~X \tto (X \pto Y)$, and the fact that type parameters $X$ and $Y$ denote sets, will make it easier to apply well-known theorems from measure theory, which know nothing of lambda types and propagating error values.
-
-To use Theorem~\ref{thm:homomorphism-implies-correct} to prove that expressions interpreted using $\meaningof{\cdot}\map$ behave correctly with respect to $\meaningof{\cdot}_\bot$, we need to define correctness using a lift from the bottom arrow to the mapping arrow.
-It is helpful to have a standalone function $domain_\bot$ that computes the subset of $A$ on which $f$ does not return $\bot$.
-We define that first, and then define $\liftmap$ in terms of it:
-\begin{align}
-	&\begin{aligned}
-		&domain_\bot : (X \botto Y) \tto Set~X \tto Set~X \\
-		&domain_\bot~f~A \ := \ \setb{a \in A}{f~a \neq \bot}
-	\end{aligned} \\
-\nonumber\\[-0.5\baselineskip]
-	&\begin{aligned}
-		&\liftmap : (X \botto Y) \tto (X \mapto Y) \\
-		&\liftmap~f~A \ := \ mapping~f~(domain_\bot~f~A)
-	\end{aligned}
-\end{align}
-So $\liftmap~f~A$ is like $mapping~f~A$, except the domain does not contain inputs that produce errors or nontermination---a good notion of correctness.
-
-If $\liftmap$ is to be a homomorphism, mapping arrow computation equivalence needs to be more extensional.
-
-\begin{definition}[mapping arrow equivalence]
-Two computations $g_1 : X \mapto Y$ and $g_2 : X \mapto Y$ are equivalent, or $g_1 \equiv g_2$, when $g_1~A \equiv g_2~A$ for all $A \subseteq X$.
-\end{definition}
-
 Clearly $\arrmap := \liftmap \circ \arrbot$ meets the first homomorphism law~\eqref{eqn:lift-distributes-over-arr}.
 The remainder of this section derives $(\pairmap)$, $(\compmap)$, $\ifmap$ and $\lazymap$ from bottom arrow combinators, in a way that ensures $\liftmap$ is an arrow homomorphism.
-\figref{fig:mapping-arrow-defs} contains the resulting definitions.
+\figref{fig:more-mapping-defs} defines the additional necessary mapping operations $range$, composition, pairing, and disjoint union, and \figref{fig:mapping-arrow-defs} contains the resulting mapping arrow combinators.
 
 \subsection{Composition}
 Starting with the left side of~\eqref{eqn:lift-distributes-over-comp}, we expand definitions, simplify $f$ by restricting it to a set for which $f_1~a \neq \bot$, and substitute $f$'s definition:
@@ -728,7 +778,7 @@ Starting with the left side of~\eqref{eqn:lift-distributes-over-lazy}, we expand
 \end{equation}
 It appears we need an $\eta$ rule to continue, which \lzfclang does not have (i.e. $\fun{\mathit{x}}{\mathit{e}~\mathit{x}} \not\equiv \mathit{e}$ because $\mathit{e}$ may not terminate).
 Fortunately, we can use weaker facts.
-If $A \neq \emptyset$, then $domain_\bot~(\fun{a}{f~0~a})~A \equiv domain_\bot~(f~0)~A$.
+If $A \neq \emptyset$, then $domain_\bot~(\fun{a}{f~0~a})~A\ \equiv\ domain_\bot~(f~0)~A$.
 Further, it terminates if and only if $mapping~(f~0)~A'$ terminates.
 Therefore, if $A \neq \emptyset$, we can replace $\fun{a}{f~0~a}$ with $f~0$.
 If $A = \emptyset$, then $\liftmap~(\lazybot~f)~A = \emptyset$ (the empty mapping), so
@@ -1049,7 +1099,7 @@ Starting from the right side, expand definitions, apply Theorem~\ref{thm:pre-lik
 \section{Deriving the Preimage Arrow}
 \label{sec:preimage-arrow}
 
-Now we can define an arrow that runs expressions backward on sets of outputs.
+Now we can define an arrow that runs expressions backwards on sets of outputs.
 Its computations should produce preimage mappings or be preimage mappings.
 
 As with the mapping arrow and mappings, we cannot have $X \preto Y ::= X \prepto Y$: we run into trouble trying to define $\arrpre$ because a preimage mapping needs an observable range.
@@ -1304,7 +1354,7 @@ The following probabilistic function defines the well-known geometric distributi
 \end{equation}
 For any $p > 0$, $geometric~p$ may not terminate, but the probability of never taking the ``else'' branch is $(1-p) \cdot (1-p) \cdot (1-p) \cdot \cdots = 0$. Thus, $geometric~p$ terminates with probability $1$.
 
-Suppose we interpret $geometric~p$ as $h : R \preto \Nat$, a preimage arrow computation from random sources to naturals, and we have a probability measure $P : Set~R \tto [0,1]$.
+Suppose we interpret $geometric~p$ as $h : R \preto \Nat$, a preimage arrow computation from random sources to naturals, and we have a probability measure $P : Set~R \pto [0,1]$.
 The probability of $N \subseteq \Nat$ is $P~(ap\pre~(h~R)~N)$.
 To compute this, we must
 %We have three hurdles to leap:
@@ -1512,7 +1562,7 @@ For both, we need $AStore$ arrow equivalence to be more extensional.
 Two $AStore$ arrow computations $k_1$ and $k_2$ are equivalent, or $k_1 \equiv k_2$, when $k_1~j \equiv k_2~j$ for all $j \in J$.
 \end{definition}
 
-\paragraph{Pure Expressions}
+\subsubsection{Pure Expressions}
 Proving $\arrowtrans\genc$ is a homomorphism proves $\meaningof{\cdot}\genc$ correctly interprets pure expressions.
 Because $AStore$ accepts any arrow type $x \arrow\gen y$, we can do so using only the arrow laws.
 From here on, we assume every $AStore$ arrow's base type's combinators obey the arrow laws listed in Section~\ref{sec:arrow-definitions}.
@@ -1532,7 +1582,7 @@ For~\eqref{eqn:lift-distributes-over-lazy}, additionally $\beta$-expand within t
 For all pure $\mathit{e}$, $\meaningof{\mathit{e}}\genc \equiv \arrowtrans\genc~\meaningof{\mathit{e}}\gen$.
 \end{corollary}
 
-\paragraph{Effectful Expressions}
+\subsubsection{Effectful Expressions}
 To prove all interpretations of effectful expressions correct, we need a lift between $AStore$ arrows.
 Let $x \arrow\genc y ::= AStore~s~(x \arrow\gen y)$ and $x \arrow\gend y ::= AStore~s~(x \arrow\gend y)$.
 Define
@@ -1649,6 +1699,13 @@ It is not too hard to show (but is a bit tedious) that lifting computations pres
 
 To ensure maximal domains exist, we need the domain operations above to have certain properties.
 For the mapping arrow, we must first make the intuition that computations ``act as if they return restricted mappings'' more precise.
+First, mapping restriction is defined by
+\begin{equation}
+\begin{aligned}
+	&restrict : (X \pto Y) \tto Set~X \tto (X \pto Y) \\
+	&restrict~g~A \ := \ \fun{a \in (A \i domain~g)}{g~a}
+\end{aligned}
+\end{equation}
 
 \begin{theorem}[mapping arrow restriction]
 \label{thm:mapping-arrow-restriction}
@@ -1770,9 +1827,9 @@ In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always ter
 \section{Output Probabilities and Measurability}
 \label{sec:measurability}
 
-Typically, for $g \in X \pto Y$, the probability of $B \subseteq Y$ is $P~(preimage~g~B)$, where $P \in \powerset~X \pto [0,1]$ assigns probabilities to subsets of $X$.
+Typically, for $g : X \pto Y$, the probability of $B \subseteq Y$ is $P~(preimage~g~B)$, where $P : Set~X \pto [0,1]$ assigns probabilities to subsets of $X$.
 
-However, a mapping* computation's domain is $(R \times T) \times X$, not $X$.
+A mapping* computation's domain is $(R \times T) \times X$, not $X$.
 We assume each $r \in R$ is randomly chosen, but not each $t \in T$ nor each $x \in X$; therefore, neither $T$ nor $X$ should affect the probabilities of output sets.
 We clearly must measure \emph{projections} of preimage sets, or $P~(image~(fst~\arrowcomp~fst)~A)$ for preimage sets $A \subseteq (R \times T) \times X$. 
 
@@ -1873,7 +1930,7 @@ We focus on a specific method: approximating product sets with covering rectangl
 \label{fig:extra-preimage-arrow-defs}
 \end{figure*}
 
-We would like to be able to compute preimages of uncountable sets, such as real intervals---but $preimage~(g~A)~B$ is uncomputable for most uncountable sets $A$ and $B$ no matter how cleverly they are represented.
+We would like to be able to compute preimages of uncountable sets, such as real intervals---but $preimage~(g~A)~B$ is uncomputable for most mappings $g$ and uncountable sets $A$ and $B$ no matter how cleverly they are represented.
 Further, because $pre$, $\liftpre$ and $\arrpre$ are ultimately defined in terms of $preimage$, we cannot implement them.
 
 Fortunately, we need only certain lifts.
@@ -1894,7 +1951,7 @@ To implement them, we must model sets in a way that makes $A = \emptyset$ is dec
 }
 \label{eqn:exact-rectangle-ops}
 \end{equation}
-We first need to define families of sets under which these operations are closed.
+Before addressing representation and computability, we need to define families of sets under which these operations are closed.
 
 \begin{definition}[rectangular family]
 \label{def:standard-rectangle}

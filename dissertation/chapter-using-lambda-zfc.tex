@@ -1,22 +1,5 @@
 \mathversion{sans}
 
-\begin{comment}
-To this end, we are concurrently developing \targetlang: an untyped, call-by-value $\lambda$-calculus extended with sets as values, and primitive set operators that correspond with the Zermelo-Fraenkel axioms and Choice. Mixing lambdas and sets has been done in automated theorem proving \cite{cit:paulson-1993-settheory-i,cit:paulson-1995-settheory-ii,cit:gordon-1996-holst}; it is possible to define exact real arithmetic, and easy to express infinite set operations and infinite sums.  For this paper, we assume those operations are already defined.  We freely use syntactic sugar like infix, summation, set comprehensions, and pattern-matching definitions. In short, we intend \targetlang to be contemporary mathematics with well-defined lambdas, or a practical $\lambda$-calculus with infinite sets.
-
-For example, $image$ is a \texttt{map}-like primitive set operator corresponding to the replacement axiom schema. If $f$ is a lambda and $A$ is a set, $\appp \image f A\ =\ \setb{\app f x}{x \in A}$ applies $f$ to every element of $A$ and returns the set of results.
-
-Besides lambdas, \targetlang has an another class of applicable values: set-theoretic functions, or \keyword{mappings}. A mapping is just a set of pairs $\seq{x,y}$ where each $x$ is unique. If $g$ is a mapping and $x$ is in its domain, $\app g x$ returns the $y$ for which $\seq{x,y} \in g$. Restricting a lambda $f$ to a domain $A$ returns a mapping:
-\begin{equation}
-	{f}\restrict{A}
-		\ =\ \setb{\seq{x,\app f x}}{x \in A}
-		\ =\ \appp \image {(\fun x {\seq{x,\app f x}})} A
-\label{eqn:restrict}
-\end{equation}
-Mappings can also be restricted using \eqref{eqn:restrict}. We often write mappings as $\fun{x \in A} e$ instead of ${(\fun x e)}\restrict{A}$. We think of $\seq{A, f}$ as a \textit{lazy} mapping.
-
-Though \targetlang has no formal type system, we find it helpful to reason about types informally. When we do, $A \tto B$ is a lambda or mapping type, $A \to B$ is the set of total mappings from $A$ to $B$, and a set is a membership proposition.
-\end{comment}
-
 The previous chapter defined \lzfclang, an untyped, call-by-value, operational $\lambda$-calculus.
 It is designed for deriving implementable programs from programs that carry out infinite computations.
 We will mostly use it as a target language for categorical semantics.
@@ -77,14 +60,29 @@ When we use a type system, we use a manually checked, polymorphic one characteri
 Because the type $Set~X$ denotes the same values as the set $\powerset~X$ (i.e. subsets of the set $X$) we regard them as equivalent.
 Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
 
-Examples of types are those of the \lzfclang primitives membership $(\in) : x \tto Set~x \tto Bool$, powerset $\powerset : Set~x \tto Set~(Set~x)$, big union $\U : Set~(Set~x) \tto Set~x$, and the \texttt{map}-like $image : (x \tto y) \tto Set~x \tto Set~y$.
+All function arrows are right-associative.
+Recall that in a $\lambda$-calculus, application is left-associative.
+This duality makes writing multi-argument function types easy.
+For example, $f : \Nat \tto (\Nat \tto \Nat)$ denotes that function $f$ returns a $\Nat \tto \Nat$ function.
+If $m : \Nat$ and $n : \Nat$ (equivalently $m \in \Nat$ and $n \in \Nat$), it can be applied twice using $(f~m)~n$.
+Alternatively, it can be applied using $f~m~n$, and its type may be written $f : \Nat \tto \Nat \tto \Nat$.
+
+Other examples of types are those of the \lzfclang primitives powerset $\powerset : Set~x \tto Set~(Set~x)$, big union $\U : Set~(Set~x) \tto Set~x$, and the \texttt{map}-like $image : (x \tto y) \tto Set~x \tto Set~y$.
+
+It is often helpful to create type aliases.
+For example, to avoid repeatedly writing ``$\u \set{\bot}$'' we might define
+\begin{equation}
+	X \arrow_\bot Y\ ::=\ X \tto Y \u \set{\bot}
+\end{equation}
+so that $f : X \arrow_\bot Y$ and $f : X \tto Y \u \set{\bot}$ denote the same thing.
+
 
 \section{Using ZFC Values and Theorems}
 
 Almost everything definable in ZFC can be defined by a finite \lzfclang program.
 The previous chapter, for example, defined the real numbers, arithmetic, and limits.
 The only values that cannot are those that \emph{must} be defined \keyword{nonconstructively}: by proving existence and uniqueness, without giving a bound (no matter how loose) on the length or cardinality of the value.
-Mathematicians avoid such nonconstructive definitions, and most would consider that definition of ``nonconstructive'' too liberal.\footnote{Constructivists would object to allowing the law of excluded middle, which is derivable from \lzfclang's $if$, and most everyone else would object to allowing choice functions.}
+Mathematicians avoid such nonconstructive definitions, and most would consider that definition of ``nonconstructive'' too liberal.\footnote{Constructivists would object to allowing the law of excluded middle, which is derivable from \lzfclang's $if$, and almost everyone else would object to allowing choice functions.}
 
 Almost all known ZFC theorems apply to \lzfclang's set values without alteration.\footnote{The only exceptions are theorems that rely critically on the existence of an inaccessible cardinal.}
 Proofs about \lzfclang's set values apply directly to ZFC sets.\footnote{Assuming the existence of an inaccessible cardinal, which is a modest assumption, as ZFC+$\kappa$ is a smaller theory than Coq's~\cite{cit:barras-2010-sets-coq}.}
@@ -161,6 +159,10 @@ A less typical set operation we use is disjoint union:
 \end{equation}
 The primitive $take : Set~x \tto x$ returns the element in a singleton set, and does not terminate when applied to a non-singleton set.
 Thus, $A \uplus B$ terminates only when $A$ and $B$ are disjoint.
+
+Operator precedence is the same as in ordinary mathematics; e.g. $x + y \cdot z\ =\ x + (y \cdot z)$.
+Application has the highest precedence, so $f~x + g~y\ =\ (f~x) + (g~y)$.
+
 
 \section{Extensional Functions}
 

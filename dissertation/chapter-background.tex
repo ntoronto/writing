@@ -200,13 +200,13 @@ If $X$ has a standard normal distribution, then the probability that $X \in (0,1
 \end{equation}
 Figure~\ref{fig:density-integrate} plots this density and illustrates integrating under it to compute $\Pspec{X \in (0,1)}$.
 
-When probabilities are computed by integrating density functions, sets of outcomes may have positive probability, but every single outcome has zero probability.
-For any random variable $X \in \Re$, value $x \in \Re$, and density function $f_X : \Re \to [0,+\infty)$,
+When probabilities are computed by integrating density functions, sets of outcomes may have positive probability, but every \emph{single} outcome has zero probability.
+For any random variable $X \in \Re$, outcome $x \in \Re$, and density function $f_X : \Re \to [0,+\infty)$,
 \begin{equation}
 	\Pspec{X = x}\ =\ \int_x^x f_X(x)\, dx\ =\ (f_X(x) - 0) \cdot (x - x)\ =\ f_X(x) \cdot 0\ =\ 0
 \end{equation}
 As a consequence, interval endpoints do not matter; i.e. $\Pspec{X \in [a,b]}\ =\ \Pspec{X \in (a,b)}$.
-We demonstrate other, more difficult consequences further on.
+We discuss other, more difficult consequences further on.
 
 The normal distribution can be extended to a \keyword{distribution family} by parameterizing it on a \emph{location} $\mu$ and a \emph{scale} $\sigma$:
 \begin{equation}
@@ -328,16 +328,15 @@ Second, because the resulting model integrates to zero and therefore all answers
 Third, because the total probability is now less than $1$, we renormalize the restricted, projected model by dividing its output by its area, and obtain a probability density (\figref{fig:bayes-densities:4}).
 
 Using Bayes' law for densities is not only often technically challenging, but in general there are no closed-form solutions.
-In such cases, practitioners turn to Monte Carlo techniques, or sampling, to answer conditional probability queries.
+In such cases, practitioners turn to Monte Carlo integration, or sampling, to answer conditional probability queries.
 
-XXX: restricted sampling?
 
 \subsection{Motivating Measure-Theoretic Models}
 
 It is easy to define a random variable whose distribution cannot be characterized by a density.
 Suppose we have a thermometer whose output is not quite correct, but is usually within $1$ degree.
-We could model this with a normal distribution with standard deviation $1$.
-If we want to model the fact that the thermometer cannot show a number greater than $100$, assuming the correct temperature is $99$, we could write a theory about it like this:
+We could model the error with a normal distribution with standard deviation $1$.
+If the thermometer cannot show a number greater than $100$ and we want to model that fact, assuming the correct temperature is $99$, we could write a theory about it like this:
 \begin{equation}
 \begin{aligned}
 	T'&\ \sim\ \mathrm{Normal}(99,1) \\
@@ -367,12 +366,16 @@ which restricts the model to a unit circle.
 To do so with a density, we need $f_{X,Y|\sqrt{X^2+Y^2}}(x,y \given z)$.
 But for any $z$, a joint density for $X,Y$ restricted to $\sqrt{X^2+Y^2} = z$ cannot exist because the area of that circular set is zero.
 
-In both examples, on a part of the distribution's domain that has length or area $0$ (i.e. the single outcome $100$ or the set $\setb{x \in \Re, y \in \Re}{\sqrt{x^2+x^2} = z}$), the probability of that set is nonzero.
+In the preceeding examples, on a part of the distribution's domain that has length or area $0$ (i.e. the single outcome $100$ or the set $\setb{x \in \Re, y \in \Re}{\sqrt{x^2+x^2} = z}$), the probability of that set is nonzero.
 Integrating on such a set can yield only $0$, so the distributions cannot be defined by densities.
 
-Measure theory's answer is to define probability distributions using \keyword{probability measures}, which map \emph{sets to probabilities} instead of \emph{values to instantaneous changes} in probability.
+There are many more sensible distributions that cannot be defined by densities, such as the distribution of a random variable $X \in \Re \u \Re^2$ or $X \in \Re^\Nat$.
+Not only do sets of outcomes have sensible probabilities, but as in the thermometer example, \emph{it is easy to define random variables with these distributions}.
+
+Measure theory's answer to this shocking lack of densities is to define probability distributions using \keyword{probability measures}, which map \emph{sets to probabilities} instead of \emph{values to instantaneous changes} in probability.
 The measure defining $T$'s distribution directly answers queries such as $\Pspec{T \in (a,b)}$.
 There is also a measure defined on sets of $\Re \times \Re$ that directly answers queries such as $\Pspec{X \in (a,b),Y \in (c,d) \given \sqrt{X^2 + Y^2} = 1}$.
+Probability measures exist on spaces with varying and infinite dimension.
 
 Chapter~\ref{ch:countable-models} introduces measure theory by using it to interpret discrete Bayesian theories mechanically.
 Chapter~\ref{ch:preimage1} gives a measure-theoretic interpretation of probabilistic programs, which can encode Bayesian theories that do not have density models.
@@ -418,15 +421,14 @@ Here, $e_1~e_2$ returns a function, which is applied to $e_3$.
 This duality makes it easy to write two-argument functions using nested lambdas, and apply them using sequences of arguments.
 For example, $(\fun{x} \fun{y} e)~e_x~e_y$ defines a function of two arguments and applies it to $e_x$ and $e_y$.
 
-Like Turing machines, the pure $\lambda$-calculus is a minimal universal model of computation.
-Also like Turing machines, it would be quite painful to program with it.
-Unlike Turing machines, it is easy to get something practical by extending the pure $\lambda$-calculus with values such as pairs and numbers, and a few primitive functions to operate on them.
+Like its younger brother the Turing machine, the pure $\lambda$-calculus is a universal model of computation.
+Also like the Turing machine, it would be quite painful to program with it.
+Unlike the Turing machine, it is easy to get something practical with a few extensions such as pairs and numbers, and a few primitive functions to operate on them.
 
-In most programming languages, the language implementation defines the meaning of function calls.
-Typically, the implementation pushes arguments onto a stack, copies them to a heap, or copies them to registers.
-It then stores a return address, jumps to a function address, executes the function body, and jumps back to the return address.
+In most programming languages, implementation details define the meaning of function application.
+It typically involves a jump from one machine address to another, and if the function returns, a jump back.
 
-In the pure $\lambda$-calculus and most of its extensions, there are no stacks, heaps, registers, addresses or jumps.
+In the pure $\lambda$-calculus and its extensions, there are no jumps or machine addresses.
 Function application is defined entirely in terms of substitution, as in algebra.
 For example, suppose  $\mathit{hypot}$ is a term in a $\lambda$-calculus extended with real numbers, defined by
 \begin{equation}
@@ -446,7 +448,7 @@ Applying $\mathit{hypot}$ eliminates lambdas by substituting their formal argume
 The two equivalences at the end of~\eqref{eqn:lambda-calculus-reduce1} are called \keyword{$\beta$-reductions}, or just \keyword{reductions}.
 We would expect $\sqrt{3^2 + 4^2}$ to further reduce to $5$.
 
-Computer implementations of an extended $\lambda$-calculus, such as the programming language Racket, necessarily use stacks, heaps, registers, addresses and jumps.
+Computer implementations of an extended $\lambda$-calculus, such as the programming language Racket, necessarily use jumps and machine addresses to implement function application.
 However, the meanings of their programs are defined mathematically as the results of carrying out reductions.
 It is therefore possible to reason about programs algebraically and inductively, without having to consider complicating machine details.
 
@@ -624,6 +626,7 @@ In either case, if its derivation trees are finite, it can be implemented as a r
 \end{figure*}
 
 \figref{fig:add-language-impl} gives a Racket implementation of ``$\dto$'' in \figref{fig:add-language:reduction}.
+(We say Racket is the implementation's \keyword{host language}.)
 The implementation defines a structure type \scheme{add} to model $\mathsf{add}$ expressions, and uses Racket's built-in big integers to model $V$.
 Computation recursively interprets expressions, and proceeds similarly to the derivation tree construction in~\eqref{eqn:add-to-99-start} through~\eqref{eqn:add-to-99-conclusion}.
 As an example of use, at DrRacket's Read-Eval-Print Loop (REPL), we get
@@ -649,10 +652,10 @@ as expected.
 \hrule
 \end{varwidth}
 }
-\tab\tab
+\tab
 \subfloat[Inference rules to define $\dto \subseteq E \times V$]{
 \label{fig:add-choose-language:reduction}
-\begin{varwidth}[b]{3.5in}
+\begin{varwidth}[b]{3.7in}
 \begin{equation*}
 	\dfrac{}{v \dto v}
 	\ \text{(val)}
@@ -662,9 +665,10 @@ as expected.
 \end{equation*}
 \begin{equation*}
 	\dfrac{e_1 \dto v_1}{(\mathsf{choose}~e_1~e_2) \dto v_1}
+	\ \text{(left)}
 	\jand
 	\dfrac{e_2 \dto v_2}{(\mathsf{choose}~e_1~e_2) \dto v_2}
-	\ \text{(choose)}
+	\ \text{(right)}
 	\\[6pt]
 \end{equation*}
 \hrule
@@ -675,7 +679,7 @@ as expected.
 \end{figure*}
 
 \figref{fig:add-choose-language} extends the present example language with nondeterministic choice, which results in a reduction relation that is \emph{not} a function.
-The culprit is the new rule (choose), with which we can match a single term to multiple conclusions.
+The culprits are the new rules (left) and (right), which can both match the same conclusion.
 For example, suppose we want to use the reduction rules in \figref{fig:add-choose-language:reduction} to compute the value of $\mathsf{add}~(\mathsf{choose}~4~5)~90$.
 We start as before, by writing it as a conclusion without premises:
 \begin{equation}
@@ -690,7 +694,7 @@ We match the conclusion to the (add) rule and add its premises:
 	}{(\mathsf{add}~(\mathsf{choose}~4~5)~90) \dto v_1}
 \end{equation}
 Again, there is only one rule (val) matching the conclusion $90 \dto v_3$, and it has no premises.
-For the conclusion $(\mathsf{choose}~4~5) \dto v_2$, however, we have a choice of premises, leading to two different derivation trees:
+For the conclusion $(\mathsf{choose}~4~5) \dto v_2$, however, we may choose either (left) or (right), leading to two different derivation trees:
 \begin{equation}
 	\dfrac{
 		\dfrac{
@@ -723,7 +727,7 @@ However, we are saving that example for the next section.
 \subsection{Denotational Semantics}
 
 A \keyword{denotational semantics} is defined by a deterministic \keyword{semantic function} from language terms to values \emph{in another language}.
-The other language is called the \keyword{metalanguage} or \keyword{target language}, and is often an axiomatic logic such as first-order set theory (i.e. mathematics).
+The other language is called the \keyword{metalanguage} or \keyword{target language}, and is often an axiomatic logic such as first-order set theory (i.e. ordinary mathematics).
 
 \newsavebox{\compileonebox}
 
@@ -782,12 +786,11 @@ For example, the meaning of $\mathsf{add}~(\mathsf{add}~4~5)~90$ is
 	&\ =\ 99
 \end{aligned}
 \end{equation}
-The recursion in a semantic function precisely follows the grammar of a language, and gives meaning to terms \emph{independently of their context}.
-To describe these properties in one word, we say semantic functions are \keyword{compositional}.
+The semantic function is \keyword{compositional}: it gives meaning to terms \emph{by combining the meanings of subterms}.
 Constraining semantic functions be compositional allows most proofs of program properties to be done by structural induction, as we will demonstrate shortly.
 
 When the results of applying $\meaningof{\cdot}$ are computable, because it is compositional, it is often easy to implement it as local syntax transformation or compilation.
-\figref{fig:add-denotational:implementation} shows a Racket implementation of $\meaningof{\cdot}$ as a transformation from meaningless Racket syntax (an \scheme{add} function does not exist) to runnable Racket syntax.
+\figref{fig:add-denotational:implementation} shows a Racket implementation of $\meaningof{\cdot}$ as a transformation from meaningless parenthetical syntax (an \scheme{add} function does not exist) to runnable Racket syntax.
 The syntax transformer is more or less a transcription of the semantic function, with a little extra code to signal to Racket that it is to be applied to the syntax of expressions before compiling or evaluating them (i.e. \scheme{define-syntax} instead of \scheme{define}) and to identify the symbol \scheme{add} as terminal.
 
 The results of compilation seem to be equivalent to the results of interpretation:
@@ -804,10 +807,9 @@ Fortunately, \scheme{expand-syntax} can show it:
 \singlespacing
 \begin{schemedisplay}
 > (expand-syntax #'(add (add 4 5) 90))
-#'(%app + (%app + '4 '5) '90))
+#'(+ (+ 4 5) 90))
 \end{schemedisplay}
 \end{center}
-The \scheme{%app} in the result is Racket's application operator, which is usually implicit.
 
 \newsavebox{\compiletwobox}
 
@@ -868,11 +870,11 @@ For example, the meaning of $4$ is $\set{4}$, the meaning of $\mathsf{choose}~4~
 	&\ =\ \set{94,95}
 \end{aligned}
 \end{equation}
-We know that $\mathsf{add}~(\mathsf{choose}~4~5)~90 \dto 94$ and $\mathsf{add}~(\mathsf{choose}~4~5)~90 \dto 95$, so it appears that $\meaningof{\cdot}$ is correct.
+We know that under ``$\dto$,'' $\mathsf{add}~(\mathsf{choose}~4~5)~90$ reduces to both $94$ and $95$, so it appears $\meaningof{\cdot}$ is correct.
 It would be nice to know whether it is \emph{always} correct.
 The following theorem states correctness precisely in terms of ``$\dto$,'' and critically uses $\meaningof{\cdot}$'s compositionality in a proof by induction on the structure of $e$.
 
-\begin{theorem}[semantic correctness]
+\begin{theorem}[correctness]
 For all $v \in V$ and $e \in E$, $v \in \meaningof{e} \iff e \dto v$.
 \end{theorem}
 \begin{proof}
@@ -895,7 +897,7 @@ by (add), there exist $v_1,v_2$ such that $e_1 \dto v_1$, $e_2 \dto v_2$ and $v 
 By hypothesis, $v_1 \in \meaningof{e_1}$ and $v_2 \in \meaningof{e_2}$.
 By definition of $\meaningof{\cdot}$, $v \in \meaningof{\mathsf{add}~e_1~e_2}$.
 
-Proof of the inductive case $e = \mathsf{choose}~e_1~e_2$ is similar to the preceeding (though each ``${\Longleftrightarrow}$'' direction has in inner case for nondeterministic choice) and is left as an exercise.
+Proof of the inductive case $e = \mathsf{choose}~e_1~e_2$ is similar to the preceeding, though each ``${\Longleftrightarrow}$'' direction has in inner case for nondeterministic choice.
 \end{proof}
 
 Now that we know $\meaningof{\cdot}$ is correct, we can regard any implementation of it as an implementation of ``$\dto$''  as well.
@@ -913,7 +915,6 @@ This characterizes modular, object-oriented, functional, and even semantic abstr
 To abstract a denotational semantics, we parameterize its semantic function on the meaning it produces.
 The parameter takes the form of a \keyword{category}.\footnote{The word ``category'' comes from category theory, an alternative axiomatization of mathematics. Fortunately, little knowledge of category theory is necesary to define or understand categorical semantics.}
 In semantics, the category is comprised of a collection of objects called \keyword{computations} (i.e. possible program meanings) and operations on them called \keyword{combinators}.
-A category may seem like an object-oriented concept, but there is not necessarily any encapsulation, data hiding or inheritance.
 
 The appropriate category for the addition language with $\mathsf{choose}$ contains sets of numbers as computations, or $\powerset~\Nat$, and operations on them.
 While there are many possible collections of combinators, one kind of collection that functional programmers and theorists have found very useful are \keyword{monads}.\footnote{Strictly speaking, in category theory, they are \emph{strong} monads.}
@@ -1046,7 +1047,7 @@ It also includes monads that combine nondeterminism with other effects, such as 
 
 As evidenced by the long derivations in~\eqref{eqn:list-monad-derivation1} and~\eqref{eqn:list-monad-derivation2}, like most other abstractions, semantic abstraction increases complexity in return for its flexibility and generalization.
 There are many ways to deal with this, including inferring the behavior of effects from computation types, and classifying effectful behaviors as belonging to different categories.
-The programming language Haskell benefits greatly from categorical semantics by using them to hide the encodings of effects, which, being an implementation of an effect-free $\lambda$-calculus, it cannot compute directly by design.
+The programming language Haskell benefits greatly from categorical semantics by using them to hide the encodings of effects, which, being an implementation of an effect-free $\lambda$-calculus, it cannot compute directly, by design.
 Its primary way to deal with the increase in complexity is to use just one built-in, standard semantic function that targets any monad, which transforms syntax that many Haskell programmers find (or learn to find) intuitive.
 
 Besides increasing complexity, abstraction affects the semantics in another way that we have only hinted at by using ``$\equiv$'' instead of ``$=$'' in some of our equations: \emph{it no longer targets first-order set theory}.
@@ -1055,45 +1056,68 @@ Instead, the semantic function $\meaningof{\cdot}_a$ targets a $\lambda$-calculu
 Targeting a $\lambda$-calculus restricts a denotational semantics to be \emph{directly implementable} as a syntax transformer.
 This restriction is generally regarded as good, because it makes the proof of the direct implementation's correctness trivial.
 However, we want to define semantic functions for Bayesian notation, which often denotes uncountable things such as probability distributions over $\Re$.
-The entire reason for the work in Chapter~\ref{ch:lambda-zfc} is to define a $\lambda$-calculus with a semantics that gives meaning to operations on infinite values of any size, so that we can define such semantics categorically in Chapter~\ref{ch:countable-models} and Chapter~\ref{ch:preimage1}.
+The entire reason for the work in Chapter~\ref{ch:lambda-zfc} is to define a $\lambda$-calculus with a semantics that gives meaning to operations on infinite values of any size, so that we can define categorical semantics for probabilistic languages in Chapter~\ref{ch:countable-models} and Chapter~\ref{ch:preimage1}.
+
+Categorical abstraction has affected the semantics in a third way.
+Compare the rule for $\mathsf{add}$ in \figref{fig:add-denotational:semantic-function} with the corresponding rule in \figref{fig:add-choose-categorical}:
+\begin{equation}
+\begin{aligned}
+	&\meaningof{\mathsf{add}~e_1~e_2} &&\!\!\!\!=\ \setb{v_1 + v_2}{v_1 \in \meaningof{e_1}, v_2 \in \meaningof{e_2}}
+\\
+	&\meaningof{\mathsf{add}~e_1~e_2}_a &&\!\!\!\!=\ \mathit{bind_a}~\meaningof{e_1}_a~(\fun{v_1} \mathit{bind_a}~\meaningof{e_2}_a~(\fun{v_2} \mathit{return_a}~(v_1 + v_2)))
+\end{aligned}
+\end{equation}
+Because $\meaningof{\mathsf{add}~e_1~e_2}$ does not specify the order of evaluating $\meaningof{e_1}$ and $\meaningof{e_2}$, an implementation is free to choose the order, evaluate them in parallel, or let the host language decide.
+On the other hand, $\meaningof{e_1}_\mathit{list}$ \emph{must} be evaluated first, because changing the evaluation order changes the results:
+\begin{equation}
+\begin{aligned}
+	\mathit{bind_{list}}~[4,5]~(\fun{v_1} \mathit{bind_{list}}~[1,2,3]~(\fun{v_2} \mathit{return_{list}}~(v_1 + v_2)))&\ \equiv\ [5,6,7,6,7,8]
+\\
+	\mathit{bind_{list}}~[1,2,3]~(\fun{v_1} \mathit{bind_{list}}~[4,5]~(\fun{v_2} \mathit{return_{list}}~(v_1 + v_2)))&\ \equiv\ [5,6,6,7,7,8]
+\end{aligned}
+\end{equation}
+In general, parameterizing a semantics on a monad allows certain monads to impose a total order on computation, regardless of the host language's evaluation order.
 
 The combinators in a category must obey certain laws.
 For example, to define a monad, $\mathit{return_a}$ and $\mathit{bind_a}$ most obey these laws:
 \begin{equation}
 \begin{aligned}
 	\mathit{bind_a}~(\mathit{return_a}~x)~f&\ \equiv\ f~x
-		&\text{left identity}
+		&&\text{left identity}
 \\
 	\mathit{bind_a}~m~\mathit{return_a}&\ \equiv\ m
-		&\text{right identity}
+		&&\text{right identity}
 \\
 	\mathit{bind_a}~(\mathit{bind_a}~m~f)~g&\ \equiv\ \mathit{bind_a}~m~(\fun{x} \mathit{bind_a}~(f~x)~g)
-		\hspace{0.5in}&\text{associativity}
+		\hspace{0.5in}&&\text{associativity}
 \end{aligned}
 \end{equation}
 It is not necessary for readers to understand these laws deeply, just that they exist, are expected to hold, are occasionally useful, and that we interpret them a little more broadly than is typical.
-In particular, ``$\equiv$'' is almost always understood to be the default equivalence relation for the $\lambda$-calculus in which the combinators are defined.
-When programming in Haskell, this helpfully implies that using the laws to transform programs maintains program equivalence.
-When defining categorical semantics, however, there is no reason for ``$\equiv$'' to be defined so narrowly.
-In fact, it is often useful to define equivalence differently for each category.
+In particular, ``$\equiv$'' is almost always understood to be the default equivalence for the $\lambda$-calculus in which the combinators are defined.
+When programming in Haskell, this helpfully ensures that using the laws to transform programs maintains program equivalence.
 
-Lastly, there are other kinds of categories besides monads that are useful targets for categorical semantics, particularly \keyword{idioms} and \keyword{arrows}.
-Each has its own combinators and laws.
-We do not review them here because they are obscure enough that the chapters that use them necessarily review and explain them.
+When defining categorical semantics, however, there is no reason for ``$\equiv$'' to be defined so narrowly.
+In fact, it is often useful to define equivalence per-category.
+For example, we might say that two lists are equivalent when the sets of their elements are equal.
+In Chapter~\ref{ch:lambda-zfc}'s \mykeyword{limit monad}, computations are infinite sequences, and are equivalent when they converge to the same value.
+
+Two other kinds of categories besides monads are useful targets for categorical semantics: \keyword{idioms} and \keyword{arrows}.
+Each kind of category has its own combinators, orderings, and laws.
+We do not review them here because they are not as well-known in functional programming theory as monads, so the chapters that use them also review them.
 
 
 \subsection{Abstract Interpretation}
 
-When we want to discover something about programs without actually evaluating them, it is often helpful to define an \keyword{abstract interpretation}: an evaluation method that operates on just a few properties of terms instead of their actual values.
-Equivalently, we can think of an abstract interpretation as operating on sets of values for which those properties hold.
-In either view, the properties or sets of values are thought of as \keyword{abstract values}.
+When we want to discover something about \emph{every} evaluation of a program, we might do it with \keyword{abstract interpretation}: evaluating by operating on just the properties of terms instead of their actual values. Equivalently, we can think of an abstract interpretation as operating on sets of values for which those properties hold.
+The properties or sets of values are called \keyword{abstract values}.
+The actual values are called \keyword{concrete values}.
 
 Perhaps the most common example of abstract interpretation is type checking.
 In this case, the abstract values are types, which represent properties such as ``is a number'' or ``is a function from lists to natural numbers.''
-During abstract interpretation, expressions are not evaluated on concrete values, but are checked to determine whether they preserve the properties that values should have.
-Equivalently, they are evaluated on abstract values.
+During abstract interpretation, expressions are not evaluated on concrete values, but are checked to determine whether they preserve the properties that concrete values should have.
 
-As with concrete semantics, any of a language's abstract semantics can be specified using rules or semantic functions.
+As with concrete interpretation, abstract interpretation is specified by a semantics.
+As with concrete semantics, any of a language's abstract semantics can be defined using rules or semantic functions.
 Type systems and type checkers are typically defined by rules with premises and conclusions similar to reduction rules.
 Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a semantic function, we give a small example of that approach here.
 
@@ -1118,8 +1142,8 @@ Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a se
 
 \figref{fig:add-choose-abstract} defines $\Count{\cdot}$, which defines an abstract semantics for the addition language with $\mathsf{choose}$.
 (The prefix $\mathcal{L}$ means nothing mathematically; it simply differentiates this semantic function from the others we have defined.)
-The abstract meaning of a term is a bound on the number of nondeterministic values computed.
 The abstract values are the lengths of lists or cardinalities of sets; i.e. natural numbers.
+The abstract meaning of a term is a \emph{bound} on the number of nondeterministic values computed.
 For example, the abstract meaning of $\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)$ is
 \begin{equation}
 \begin{aligned}
@@ -1135,12 +1159,12 @@ For example, the abstract meaning of $\mathsf{add}~(\mathsf{choose}~4~5)~(\maths
 \end{equation}
 Indeed, $\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)}_\mathit{set} \equiv \set{8,9,10}$, which is no more than $4$ values.
 
-This example demonstrates a pervasive fact about abstract semantics: almost every abstract semantics trades precision to get efficiency or tractability.
+This example demonstrates a pervasive fact about abstract semantics: almost every abstract semantics trades precision to get efficiency, tractability, or even computability.
 Certainly $\left|\set{8,9,10}\right| \neq 4$.
 
-Usually, we need the abstraction to be \keyword{sound}, which roughly means that the abstract values are always a kind of overapproximation.
+Usually, we need abstract interpretations to be \keyword{sound}, which roughly means that the abstract values are always a kind of overapproximation.
 (There is a way to formalize this notion using Galois connections, but that brings in more complexity than we need.)
-To be useful, an abstraction must come with a theorem such as the following soundness theorem, relating it to a concrete semantics.
+When abstraction interpretations must be sound, the abstract semantics must have a soundness theorem relating it to a concrete semantics, such as the following.
 
 \begin{theorem}[$\Count{\cdot}$ soundness]
 \label{thm:add-choose-abstract-soundness}
@@ -1150,7 +1174,7 @@ For all $e \in E$, $\left|\meaningof{e}_\mathit{set}\right| \leq \Count{e}$.
 By structural induction on $e$.
 \end{proof}
 
-A soundness theorem sometimes suggests how the abstraction might be used.
+A soundness theorem sometimes suggests how abstraction interpretations might be used.
 For a type system, soundness implies that accepted programs never compute concrete values with the wrong type, and that operations on them may be specialized in ways that would otherwise be unsafe or incorrect.
 (A child class's methods may be inlined, for example.)
 By Theorem~\ref{thm:add-choose-abstract-soundness}, we can use $\Count{\cdot}$ to determine how much space to preallocate for results in a less direct but faster implementation of $\meaningof{\cdot}_\mathit{set}$, and we will never allocate too little.
@@ -1164,4 +1188,11 @@ For all $e \in E$, $\mathit{length}~\meaningof{e}_\mathit{list} = \Count{e}$.
 By structural induction on $e$.
 \end{proof}
 
-XXX: segue: abstract interpretation embraces infinities and infinite computation in the concrete semantics; in this case the objective is to define the abstract semantics as a computable, sound approximation of the concrete; learn something about programs by running them approximately on infinite sets of inputs (e.g. type checking); to make the concrete semantics a categorical semantics, we need a powerful $\lambda$-calculus
+Abstract interpretation is often used for program analysis in which determining precise properties is only semidecidable or is undecidable.
+An example is determining which functions are applied at every application site in a program written in a $\lambda$-calculus.
+In these cases, another concrete semantics is created, whose concrete interpretations---if they could be evaluated on a computer---would collect the necessary information.
+An abstract semantics is then created, whose abstract interpretations are computable, and which overapproximate the necessary information.
+
+Such analyses are sometimes said to ``embrace the infinite.''
+In this work, we must do the same to interpret Bayesian notation---but instead embrace the \emph{uncountably} infinite.
+Doing so with a concrete categorical semantics requires a powerful $\lambda$-calculus.
