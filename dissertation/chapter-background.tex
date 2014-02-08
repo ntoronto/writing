@@ -185,7 +185,7 @@ Probability mass functions cannot quantify the likelihoods of uncountably many o
 In these cases, the distributions, conditional distributions, and joint distributions are specified using \keyword{probability density functions}: functions over outcomes that \emph{integrate} to $1$ instead of sum to $1$.\footnote{For readers familiar with measure theory: we use the word \emph{density} for densities with respect to Lebesgue measure, and \emph{mass} for densities with respect to counting measure. We call all other densities \emph{derivatives}.}
 
 \begin{figure*}[tb]\centering
-\includegraphics[width=4in]{density-integrate}
+\includegraphics[width=4in]{figures/density-integrate}
 \caption[Computing probabilities using the standard normal density function]{Integrating under the standard normal density to compute $\Pspec{X \in (0,1)} \approx 0.34$.}
 \label{fig:density-integrate}
 \end{figure*}
@@ -215,7 +215,7 @@ The normal distribution can be extended to a \keyword{distribution family} by pa
 A normal distribution's location $\mu$ and scale $\sigma$ are also known as its \emph{mean} and \emph{standard deviation}, respectively.
 
 \begin{figure*}[tb]\centering
-\includegraphics[width=4in]{2d-density-integrate}
+\includegraphics[width=4in]{figures/2d-density-integrate}
 \caption[Joint density model plot]{The joint density model $f_{X,Y}$ constructed from the density $f_X$ and the conditional density $f_{Y|X}$. Integrating under $f_{X,Y}$ on the set $(-2,0) \times (-2,-1)$ computes $\Pspec{X \in (-2,0), Y \in (-2,-1)}$.}
 \label{fig:joint-density-model}
 \end{figure*}
@@ -298,23 +298,23 @@ We can answer conditional probability queries by integrating $f_{X|Y}(x \given 2
 \begin{figure*}[tbp]\centering
 \subfloat[The original joint density model.]{
 \label{fig:bayes-densities:1}
-\includegraphics[width=3in]{bayes-densities-1}
+\includegraphics[width=3in]{figures/bayes-densities-1}
 }
 \tab
 \subfloat[Restricting the model to the subset of its domain where $y = 2$. The probability of the subset is zero.]{
 \label{fig:bayes-densities:2}
-\includegraphics[width=3in]{bayes-densities-2}
+\includegraphics[width=3in]{figures/bayes-densities-2}
 }
 \vspace{\baselineskip}
 
 \subfloat[Projecting the restricted model onto the $x$ axis results in a density that integrates to a nonzero constant that is less than $1$.]{
 \label{fig:bayes-densities:3}
-\includegraphics[width=3in]{bayes-densities-3}
+\includegraphics[width=3in]{figures/bayes-densities-3}
 }
 \tab
 \subfloat[Normalizing the restricted, projected model results in a probability density that characterizes the distribution of $X$ given $Y = 2$.]{
 \label{fig:bayes-densities:4}
-\includegraphics[width=3in]{bayes-densities-4}
+\includegraphics[width=3in]{figures/bayes-densities-4}
 }
 \caption[Bayes' law for densities, in pictures]{Bayes' law for densities, in pictures.}
 \label{fig:bayes-densities}
