@@ -6,14 +6,14 @@ Further on, we introduce, explain and use parts as we need them.
 
 It is difficult to find two areas in computer science as different as Bayesian practice and functional programming theory.
 In Bayesian practice, we find deeply held belief that unknowns can and should be \emph{quantified} (by probabilities), reasoning by probabilistic inference, willingness to accept many kinds of approximations, and common notation that is---to put it kindly---flexible.
-In functional programming theory, we find deeply held belief that unknowns should be \emph{qualified} (usually universally), reasoning by logical inference, little tolerance for unsound approximations even if they converge, and common notation that is---to put it kindly---almost precise enough to feed to a compiler.
+In functional programming theory, we find deeply held belief that unknowns should be \emph{qualified} (usually universally), reasoning by logical inference, little tolerance for unsound approximations even if they converge, and common notation that is---to put it kindly---almost precise enough to feed a compiler.
 
 There is one common trait that makes bridging both areas even conceivable.
 While Bayesians model processes and functional programming researchers model languages, both approach their tasks methodically, and both create theories in which every entity they want to reason about is represented explicitly.
 If something important is going on behind the scenes---whether a hidden Markov process or mutating the program's store---it is brought to the fore and fully characterized.
 In both areas, the extra time and cognitive burden are considered worthwhile payment for reliable artifacts and repeatable results.
 
-It is this trait---explicit representation---that makes it possible to automate Bayesian inference, and again this trait that makes it possible to prove the automation correct.
+It is this trait, explicit representation, that makes it possible to automate Bayesian inference, and again this trait that makes it possible to prove the automation correct.
 
 
 \section{Bayesian Practice}
@@ -23,11 +23,11 @@ We assume readers know arithmetic, some set theory, functions, and the basic ide
 
 \subsection{Discrete Probability and Joint Distribution Models}
 
-In a probabilistic model of a real-world process, there are distinguished identifiers that denote random values, called \keyword{random variables}.
-These are regarded as free variables, but with additional information that quantifies the likelihoods of the values they may take on.
+In a probabilistic model of a real-world process, distinguished identifiers called \keyword{random variables} denote random values.
+These are regarded as free variables, but with additional information that quantifies the likelihoods of every \emph{combination} of their values, or \keyword{observable outcomes}.
 The additional information is completely characterized by a function called a \keyword{joint distribution}.
 
-For example, suppose $X,Y \in \set{h,t}$ are random variables that represent the \emph{observable} outcomes of coin tosses.
+For example, suppose $X,Y \in \set{h,t}$ are random variables that each represent the outcome of a coin toss.
 Further, let the joint distribution $p_{X,Y} : \set{h,t} \times \set{h,t} \to [0,1]$ quantify the likelihood of every possible combination of observable outcomes by defining
 \begin{equation}
 	p_{X,Y}\ =\ \left[(h,h) \mapsto \frac{1}{4},
@@ -44,8 +44,8 @@ Another way to write ``the probability that $X = t$ and $Y = h$'' is with a \key
 	\Pspec{X = t \band Y = h}\ =\ p_{X,Y}(t,h)
 \end{equation}
 A probability query always implicitly refers to some ambient joint distribution.
-In general, the result of a probability query $\Pspec{e}$ is the sum of probabilities of observable outcomes for which $e$ is true.
-Conjunctions are often separated by a comma; e.g. $\Pspec{X = x, Y = y} = \Pspec{X = x \band Y = y}$.
+In general, the result of a probability query $\Pspec{e}$ is the sum of probabilities of observable outcomes for which the proposition $e$ is true.
+Conjunctions are often separated by a comma; e.g. $\Pspec{X = x, Y = y}$ means $\Pspec{X = x \band Y = y}$.
 
 Probability queries have manipulation rules.
 One is that random variables may be ``summed out'' to consider the probabilities of the values of others independently.
@@ -67,7 +67,7 @@ For example, if $x$ is fixed and $\Pspec{X = x} > 0$, then the probability that 
 \begin{equation}
 	\Pspec{Y = y \given X = x}\ =\ \frac{\Pspec{X = x,Y = y}}{\Pspec{X = x}}
 \end{equation}
-This \keyword{conditional probability} query is read ``the probability that $Y = y$ \emph{given} $X = x$.''
+This \keyword{conditional probability} query is read ``the probability that $Y = y$ given $X = x$.''
 Using this rule, we can determine that, if $X$ is known to be $t$, then $Y$ represents a coin toss that is not fair:
 \begin{equation}
 \begin{aligned}
@@ -208,18 +208,17 @@ For any random variable $X \in \Re$, outcome $x \in \Re$, and density function $
 As a consequence, interval endpoints do not matter; i.e. $\Pspec{X \in [a,b]}\ =\ \Pspec{X \in (a,b)}$.
 We discuss other, more difficult consequences further on.
 
-The normal distribution can be extended to a \keyword{distribution family} by parameterizing it on a \emph{location} $\mu$ and a \emph{scale} $\sigma$:
-\begin{equation}
-	f_N(x \given \mu,\sigma)\ =\ \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
-\end{equation}
-A normal distribution's location $\mu$ and scale $\sigma$ are also known as its \emph{mean} and \emph{standard deviation}, respectively.
-
 \begin{figure*}[tb]\centering
 \includegraphics[width=4in]{figures/2d-density-integrate}
 \caption[Joint density model plot]{The joint density model $f_{X,Y}$ constructed from the density $f_X$ and the conditional density $f_{Y|X}$. Integrating under $f_{X,Y}$ on the set $(-2,0) \times (-2,-1)$ computes $\Pspec{X \in (-2,0), Y \in (-2,-1)}$.}
 \label{fig:joint-density-model}
 \end{figure*}
 
+The normal distribution can be extended to a \keyword{distribution family} by parameterizing it on a \emph{mean} $\mu$ and a \emph{standard deviation} $\sigma$:
+\begin{equation}
+	f_N(x \given \mu,\sigma)\ =\ \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+\end{equation}
+(Again, the application syntax $(x \given \mu, \sigma)$ simply means $(x,\mu,\sigma)$.)
 Using parameterized distributions, we can define a \keyword{joint density model} of a probabilistic process involving two random variables $X,Y \in \Re$:
 \begin{equation}
 \begin{aligned}
@@ -290,7 +289,7 @@ A quite lengthy derivation finally results in
 	&\ =\ f_N(x \given 1, \sqrt{\tfrac{1}{2}})
 \end{aligned}
 \end{equation}
-We can answer conditional probability queries by integrating $f_{X|Y}(x \given 2)\ =\ f_N(x \given 1, \sqrt{\tfrac{1}{2}})$:
+We can answer conditional probability queries such as ``the probability that $X \in (a,b)$ given $Y = 2$'' by integrating $f_{X|Y}(x \given 2)\ =\ f_N(x \given 1, \sqrt{\tfrac{1}{2}})$:
 \begin{equation}
 	\Pspec{X \in (a,b) \given Y = 2}\ =\ \int_a^b f_N(x \given 1, \sqrt{\tfrac{1}{2}})\,dx
 \end{equation}
@@ -321,7 +320,7 @@ We can answer conditional probability queries by integrating $f_{X|Y}(x \given 2
 \end{figure*}
 
 While using Bayes' law for densities is difficult, it is easy to visualize, at least in two dimensions.
-We may think of its application as happening in three steps: restrict, project, then renormalize.
+We may think of using it as happening in three steps: restrict, project, then renormalize.
 \figref{fig:bayes-densities} illustrates them.
 First, we restrict the joint density model (\figref{fig:bayes-densities:1}) to the subset of $\Re \times \Re$ where $y = 2$ (\figref{fig:bayes-densities:2}).
 Second, because the resulting model integrates to zero and therefore all answers to probability queries using it would be zero, we project it onto the $x$ axis (\figref{fig:bayes-densities:3}), on which it integrates to a positive value.
@@ -343,22 +342,22 @@ If the thermometer cannot show a number greater than $100$ and we want to model 
 	T&\ =\ \min(T',100)
 \end{aligned}
 \end{equation}
-$T' \ge 100$ if and only if $T = 100$.
-Therefore, $\Pspec{T' \ge 100} = \Pspec{T = 100} > 0$.
+so that $T$ represents the thermometer's output.
+Because $T' \ge 100$ if and only if $T = 100$, $\Pspec{T' \ge 100} = \Pspec{T = 100} > 0$.
 But we know that if $T$ has a density, $\Pspec{T = 100} = 0$.
 
 Even though $T$ has no density, it must have a distribution, because $T \in (a,b)$ for any interval $(a,b)$ has a sensible probability, which we can compute by integrating the density of $T'$ up to $100$ and adding $\Pspec{T' \ge 100}$ if the interval happens to contain $100$:
 \begin{equation}
 	\Pspec{T \in (a,b)}\ =\ \int_{\min(a,100)}^{\min(b,100)} f_N(x \given 99,1)\,dx +
 	\begin{cases}
-		100 \in (a,b) & \Pspec{T' \ge 100} \\
-		100 \notin (a,b) & 0
+		\Pspec{T' \ge 100} & \text{if $100 \in (a,b)$} \\
+		0 & \text{if $100 \notin (a,b)$}
 	\end{cases}
 \end{equation}
-Further, it is easy to write a program that samples $T$ values, and we expect the outputs of such programs to have well-defined probability distributions.
+Further, it is easy to write a program that samples $T$ values, and we expect the outputs of programs with probabilistic choice to have well-defined probability distributions.
 
 Another way to define a distribution that cannot be characterized by a density is to restrict a joint density model with a non-axial condition.
-For example, with the present theory and model for $X,Y \in \Re$, suppose we want to answer questions like
+For example, with the present theory and density model for $X,Y \in \Re$, suppose we want to answer questions like
 \begin{equation}
 	\Pspec{X \in (a,b),Y \in (c,d) \given \sqrt{X^2 + Y^2} = 1}
 \end{equation}
@@ -369,8 +368,8 @@ But for any $z$, a joint density for $X,Y$ restricted to $\sqrt{X^2+Y^2} = z$ ca
 In the preceeding examples, on a part of the distribution's domain that has length or area $0$ (i.e. the single outcome $100$ or the set $\setb{x \in \Re, y \in \Re}{\sqrt{x^2+x^2} = z}$), the probability of that set is nonzero.
 Integrating on such a set can yield only $0$, so the distributions cannot be defined by densities.
 
-There are many more sensible distributions that cannot be defined by densities, such as the distribution of a random variable $X \in \Re \u \Re^2$ or $X \in \Re^\Nat$.
-Not only do sets of outcomes have sensible probabilities, but as in the thermometer example, \emph{it is easy to define random variables with these distributions}.
+There are many more sensible distributions that cannot be defined by densities, such as the distribution of a random variable with outcomes in $\Re \u \Re^2$ or $\Re^\Nat$.
+Not only can sets of such outcomes have sensible probabilities, but as in the thermometer example, \emph{it is easy to define random variables with these distributions}.
 
 Measure theory's answer to this shocking lack of densities is to define probability distributions using \keyword{probability measures}, which map \emph{sets to probabilities} instead of \emph{values to instantaneous changes} in probability.
 The measure defining $T$'s distribution directly answers queries such as $\Pspec{T \in (a,b)}$.
@@ -427,8 +426,7 @@ Unlike the Turing machine, it is easy to get something practical with a few exte
 
 In most programming languages, implementation details define the meaning of function application.
 It typically involves a jump from one machine address to another, and if the function returns, a jump back.
-
-In the pure $\lambda$-calculus and its extensions, there are no jumps or machine addresses.
+However, in the pure $\lambda$-calculus and its extensions, there are no jumps or machine addresses.
 Function application is defined entirely in terms of substitution, as in algebra.
 For example, suppose  $\mathit{hypot}$ is a term in a $\lambda$-calculus extended with real numbers, defined by
 \begin{equation}
@@ -539,7 +537,7 @@ However, as Chapter~\ref{ch:lambda-zfc} contains the only operational semantics 
 \end{minipage}
 }
 \tab\tab
-\subfloat[Inference rules to define $\dto \subseteq E \times V$]{
+\subfloat[Reduction rules to define $\dto \subseteq E \times V$]{
 \label{fig:add-language:reduction}
 \begin{minipage}[b]{3in}
 \begin{equation*}
@@ -572,7 +570,7 @@ The reduction relation ``$\dto$'' is defined as the \emph{smallest} subset of $E
 Defining it as the smallest subset precludes unintended conclusions such as $4 \dto 5$, which are not otherwise precluded by interpreting the rules as implications.
 Equivalently, it restricts ``$\dto$'' to conclusions that are provable from the reduction rules.
 
-Inference rules can be used directly to build \keyword{derivation trees}, which represent both computation steps and proofs of conclusions.
+Reduction rules can be used directly to build \keyword{derivation trees}, which represent both computation steps and proofs of conclusions.
 For example, suppose we want to use the reduction rules in \figref{fig:add-language:reduction} to compute the value of $\mathsf{add}~(\mathsf{add}~4~5)~90$.
 We start by writing it as a conclusion without premises:
 \begin{equation}
@@ -653,7 +651,7 @@ as expected.
 \end{varwidth}
 }
 \tab
-\subfloat[Inference rules to define $\dto \subseteq E \times V$]{
+\subfloat[Reduction rules to define $\dto \subseteq E \times V$]{
 \label{fig:add-choose-language:reduction}
 \begin{varwidth}[b]{3.7in}
 \begin{equation*}
@@ -786,12 +784,12 @@ For example, the meaning of $\mathsf{add}~(\mathsf{add}~4~5)~90$ is
 	&\ =\ 99
 \end{aligned}
 \end{equation}
-The semantic function is \keyword{compositional}: it gives meaning to terms \emph{by combining the meanings of subterms}.
-Constraining semantic functions be compositional allows most proofs of program properties to be done by structural induction, as we will demonstrate shortly.
+The semantic function is \keyword{compositional}: it gives meaning to terms \emph{by combining the meanings of their direct subterms}.
+Compositionality allows most proofs of program properties to be done by structural induction, as we will demonstrate shortly.
 
 When the results of applying $\meaningof{\cdot}$ are computable, because it is compositional, it is often easy to implement it as local syntax transformation or compilation.
 \figref{fig:add-denotational:implementation} shows a Racket implementation of $\meaningof{\cdot}$ as a transformation from meaningless parenthetical syntax (an \scheme{add} function does not exist) to runnable Racket syntax.
-The syntax transformer is more or less a transcription of the semantic function, with a little extra code to signal to Racket that it is to be applied to the syntax of expressions before compiling or evaluating them (i.e. \scheme{define-syntax} instead of \scheme{define}) and to identify the symbol \scheme{add} as terminal.
+The syntax transformer is barely more than a transcription of the semantic function's definition, with a little extra code to signal to Racket that it is to be applied to the syntax of expressions before compiling or evaluating them (i.e. \scheme{define-syntax} instead of \scheme{define}) and to identify the symbol \scheme{add} as terminal symbol.
 
 The results of compilation seem to be equivalent to the results of interpretation:
 \begin{center}
@@ -901,7 +899,7 @@ Proof of the inductive case $e = \mathsf{choose}~e_1~e_2$ is similar to the prec
 \end{proof}
 
 Now that we know $\meaningof{\cdot}$ is correct, we can regard any implementation of it as an implementation of ``$\dto$''  as well.
-In general, it is easy to transfer theorems about ``$\dto$'' to $\meaningof{\cdot}$.
+In general, it is easy to transfer theorems about ``$\dto$'' to a correct $\meaningof{\cdot}$, and vice-versa.
 
 What if we wanted to represent nondeterministic choices using lists instead of sets, or model a different computational effect, such as mutation or probabilitistic choice?
 We could define a different semantic function for each model, but there is a more elegant way.
@@ -925,10 +923,10 @@ The \keyword{set monad} operates on set-valued computations and is defined by th
 	\mathit{bind_{set}}~A~f&\ =\ \bigcup_{v \in A} f~v
 \end{aligned}
 \end{equation}
-Evidently, we should expect $\meaningof{v}_\mathit{set} = \mathit{return_{set}}~v = \set{v}$.
+Evidently, from a semantic function $\meaningof{\cdot}_a$ parameterized on a monad $a$ we should expect $\meaningof{v}_\mathit{set} = \mathit{return_{set}}~v = \set{v}$.
 How to use $\mathit{bind_{set}}$ is less clear, however.
 It apparently applies $f$ to the objects in set $A$ to yield a set for each, and collects these sets' members in a big union.
-Turning the set comprehension in the definition of $\meaningof{\mathsf{add}~e_1~e_2}$ into an indexed union (as in $\mathit{bind_{set}}$) makes its use clear:
+Turning the set comprehension in the definition of $\meaningof{\mathsf{add}~e_1~e_2}$ into an indexed union (as in $\mathit{bind_{set}}$) makes its use clearer:
 \begin{equation}
 \begin{aligned}
 	\meaningof{\mathsf{add}~e_1~e_2}
@@ -1044,6 +1042,7 @@ In contrast, $\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5
 The semantic function $\meaningof{\cdot}_a$ can be parameterized not just on the set and list monads, but any monad $a$ for which $\mathit{merge_a}$ can be sensibly defined.
 This includes monads for any kind of nondeterminism (e.g. all possibilities, angelic/demonic, random, probabilistic) with any kind of encoding for nondeterministic values (e.g. sets, lists, worst/best choices, execution paths, random values, probability distributions).
 It also includes monads that combine nondeterminism with other effects, such as input/output or backtracking search.
+Abstracting has granted the desired flexibility.
 
 As evidenced by the long derivations in~\eqref{eqn:list-monad-derivation1} and~\eqref{eqn:list-monad-derivation2}, like most other abstractions, semantic abstraction increases complexity in return for its flexibility and generalization.
 There are many ways to deal with this, including inferring the behavior of effects from computation types, and classifying effectful behaviors as belonging to different categories.
@@ -1076,7 +1075,7 @@ On the other hand, $\meaningof{e_1}_\mathit{list}$ \emph{must} be evaluated firs
 	\mathit{bind_{list}}~[1,2,3]~(\fun{v_1} \mathit{bind_{list}}~[4,5]~(\fun{v_2} \mathit{return_{list}}~(v_1 + v_2)))&\ \equiv\ [5,6,6,7,7,8]
 \end{aligned}
 \end{equation}
-In general, parameterizing a semantics on a monad allows certain monads to impose a total order on computation, regardless of the host language's evaluation order.
+In general, parameterizing a semantics on a monad allows certain monads to impose a total order on evaluation, regardless of the host language's evaluation order.
 
 The combinators in a category must obey certain laws.
 For example, to define a monad, $\mathit{return_a}$ and $\mathit{bind_a}$ most obey these laws:
@@ -1100,6 +1099,7 @@ When defining categorical semantics, however, there is no reason for ``$\equiv$'
 In fact, it is often useful to define equivalence per-category.
 For example, we might say that two lists are equivalent when the sets of their elements are equal.
 In Chapter~\ref{ch:lambda-zfc}'s \mykeyword{limit monad}, computations are infinite sequences, and are equivalent when they converge to the same value.
+Chapter~\ref{ch:preimage1} defines a notion of equivalence for each of the categories it uses to interpret probabilistic programs.
 
 Two other kinds of categories besides monads are useful targets for categorical semantics: \keyword{idioms} and \keyword{arrows}.
 Each kind of category has its own combinators, orderings, and laws.
@@ -1175,7 +1175,7 @@ By structural induction on $e$.
 \end{proof}
 
 A soundness theorem sometimes suggests how abstraction interpretations might be used.
-For a type system, soundness implies that accepted programs never compute concrete values with the wrong type, and that operations on them may be specialized in ways that would otherwise be unsafe or incorrect.
+For a type system, soundness implies that accepted programs never compute concrete values with the wrong type, so operations on concrete values may be specialized in ways that would otherwise be unsafe or incorrect.
 (A child class's methods may be inlined, for example.)
 By Theorem~\ref{thm:add-choose-abstract-soundness}, we can use $\Count{\cdot}$ to determine how much space to preallocate for results in a less direct but faster implementation of $\meaningof{\cdot}_\mathit{set}$, and we will never allocate too little.
 
@@ -1187,6 +1187,8 @@ For all $e \in E$, $\mathit{length}~\meaningof{e}_\mathit{list} = \Count{e}$.
 \begin{proof}
 By structural induction on $e$.
 \end{proof}
+
+Having both soundness and precision is unusual, however.
 
 Abstract interpretation is often used for program analysis in which determining precise properties is only semidecidable or is undecidable.
 An example is determining which functions are applied at every application site in a program written in a $\lambda$-calculus.

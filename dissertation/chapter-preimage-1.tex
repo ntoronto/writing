@@ -29,7 +29,7 @@ If $\Pr[B] > \mathrm{0}$, the probability of $B' \subseteq Y$ given $B \subseteq
 	\Pr[B'\,|\,B]\ =\ \Pr[B' \i B]~{/}~\Pr[B]
 \label{eqn:bayes-law-preimage}
 \end{equation}
-If $\Pr[B] = \mathrm{0}$, conditional probabilities can be calculated as the limit of $\Pr[B'\,|\,B_n]$ for positive-probability $B_1 \supseteq B_2 \supseteq B_3 \supseteq \cdots$ whose intersection is $B$~[XXX: cite Samuels].
+If $\Pr[B] = \mathrm{0}$, conditional probabilities can be calculated as the limit of $\Pr[B'\,|\,B_n]$ for certain positive-probability $B_1 \supseteq B_2 \supseteq B_3 \supseteq \cdots$ whose intersection is $B$~\cite{cit:samuels-1978amm-radnik}.
 For example, if $Y = \Re \times \Re$, the distribution of $\pair{x,y} \in Y$ given $x + y = \mathrm{0}$ can be calculated using the descending sequence $B_n = \setb{\pair{x,y} \in Y}{|x + y| < \mathrm{2}^{-n}}$.
 
 Only special families of \keyword{measurable} sets can be assigned probabilities.
@@ -108,7 +108,7 @@ From mapping arrow computations, the $\liftpre$ combinator produces $X \preto Y$
 
 Instances of arrows in the bottom row are like those in the top, except they thread an infinite store of random values, and can be constructed to always terminate.
 
-Most of our correctness theorems rely on proofs that every morphism in~\eqref{eqn:roadmap-diagram1} is a homomorphism; for example, that $\liftmap$ distributes over all bottom arrow combinators.
+Most of our correctness theorems rely on proofs that every combinator in~\eqref{eqn:roadmap-diagram1} is a homomorphism; for example, that $\liftmap$ distributes over all bottom arrow combinators.
 
 The approximating semantics uses the same semantic function, but its arrows $X \preto' Y$ and $X \ppreto' Y$ compute conservative approximations.
 Given a library for representing and operating on rectangular sets, it is directly implementable.
@@ -122,11 +122,11 @@ Given a library for representing and operating on rectangular sets, it is direct
 Like monads~\cite{cit:wadler-2001-monads} and idioms~\cite{cit:mcbride-2008jfp-idiom}, arrows~\cite{cit:hughes-2000scp-arrows} thread effects through computations in a way that imposes structure.
 But arrow computations are always
 \begin{itemize}
-	\item Function-like: An arrow computation of type $x \arrow y$ must behave like a corresponding function of type $x \tto y$ (in a sense we explain shortly).
-	\item First-order: There is no way to derive a computation $app : \pair{x \arrow y, x} \arrow y$ from an arrow's minimal definition, so it is not possible for an arrow computation to apply another arrow computation.
+	\item Function-like: An arrow computation of type $x \arrow\gen y$ must behave like a corresponding function of type $x \tto y$ (in a sense we explain shortly).
+	\item First-order: There is no way to derive a computation $app\gen : \pair{x \arrow\gen y, x} \arrow\gen y$ from the arrow $a$'s minimal definition, so it is not possible for an arrow computation to apply another arrow computation.
 \end{itemize}
 The first property makes arrows a good fit for a compositional translation from expressions to pure functions that operate on random sources.
-The second property makes arrows a good fit for a measure-theoretic semantics in particular, as it is difficult to define measurable sets of functions that make $app$'s corresponding function preserve measurability~\cite{cit:aumann-1961ijm-borel}.
+The second property makes arrows a good fit for a measure-theoretic semantics in particular, as it is difficult to define useful measurable sets of functions that make $app$'s corresponding function measurable~\cite{cit:aumann-1961ijm-borel}.
 
 \subsection{Alternative Arrow Definitions and Laws}
 \label{sec:arrow-definitions}
@@ -142,11 +142,11 @@ However, a strict $\lambda$-calculus needs an extra combinator $\arrowlazy$ for 
 For example, define the \keyword{function arrow} with choice, in which $x \arrow y\ ::=\ x \tto y$:
 \begin{equation}
 \begin{aligned}
-	\arrowarr~f &\ := \ f && \text{lift}\\
-	f_1~\arrowcomp~f_2 &\ := \ \fun{a} f_2~(f_1~a) && \text{composition}\\
-	f_1~\arrowpair~f_2 &\ := \ \fun{a} \pair{f_1~a,f_2,a} && \text{pairing} \\
-	\arrowif~f_1~f_2~f_3 &\ := \ \fun{a} if~(f_1~a)~(f_2~a)~(f_3~a) \hspace{0.5in} && \text{if-then-else} \\
-	\arrowlazy~f &\ :=\ \fun{a} f~0~a && \text{laziness}
+	\arrowarr~f &\ := \ f &&\text{lift}\\
+	f_1~\arrowcomp~f_2 &\ := \ \fun{a} f_2~(f_1~a) &&\text{composition}\\
+	f_1~\arrowpair~f_2 &\ := \ \fun{a} \pair{f_1~a,f_2,a} &&\text{pairing} \\
+	\arrowif~f_1~f_2~f_3 &\ := \ \fun{a} if~(f_1~a)~(f_2~a)~(f_3~a) \hspace{0.5in} &&\text{if-then-else} \\
+	\arrowlazy~f &\ :=\ \fun{a} f~0~a &&\text{laziness}
 \end{aligned}
 \label{eqn:function-arrow}
 \end{equation}
@@ -187,14 +187,19 @@ All of our arrows are arrows with choice and $\arrowlazy$, so we simply call the
 \begin{equation}
 \begin{aligned}
 	\arrowarr\gen &: (x \tto y) \tto (x \arrow\gen y)
-\nobreak\\
+	&&\text{lift}
+\\*
 	(\arrowcomp\gen) &: (x \arrow\gen y) \tto (y \arrow\gen z) \tto (x \arrow\gen z)
+	&&\text{composition}
 \\
 	(\arrowpair\gen) &: (x \arrow\gen y) \tto (x \arrow\gen z) \tto (x \arrow\gen \pair{y,z})
+	&&\text{pairing}
 \\
 	\arrowif\gen &: (x \arrow\gen Bool) \tto (x \arrow\gen y) \tto (x \arrow\gen y) \tto (x \arrow\gen y)
-\nobreak\\
+	\hspace{0.5in}&&\text{if-then-else}
+\\*
 	\arrowlazy\gen &: (1 \tto (x \arrow\gen y)) \tto (x \arrow\gen y)
+	&&\text{laziness}
 \label{eqn:arrow-combinators}
 \end{aligned}
 \end{equation}
@@ -232,7 +237,7 @@ Roughly, arrow computations that do not use additional combinators can be transf
 They must be \emph{function-like}.
 
 Only a few of the other arrow laws play a role in our semantics and its correctness.
-We need associativity of $(\arrowcomp\gen)$, a pair extraction law, and distribution of pure computations over effectful:
+We need associativity of $(\arrowcomp\gen)$ and a pair extraction law:
 \begin{displaybreaks}
 \begin{align}
 	(f_1~\arrowcomp\gen~f_2)~\arrowcomp\gen~f_3 &\ \equiv \ f_1~\arrowcomp\gen~(f_2~\arrowcomp\gen~f_3)
@@ -240,7 +245,11 @@ We need associativity of $(\arrowcomp\gen)$, a pair extraction law, and distribu
 \\
 	(\arrowarr\gen~f_1~\arrowpair\gen~f_2)~\arrowcomp\gen~\arrowarr\gen~snd &\ \equiv \ f_2
 \label{eqn:pair-extraction}
-\\
+\end{align}
+\end{displaybreaks}
+and distribution of pure computations over effectful:
+\begin{displaybreaks}
+\begin{align}
 	\!\!\!\arrowarr\gen~f_1~\arrowcomp\gen~(f_2~\arrowpair\gen~f_3) &\ \equiv \ 
 		(\arrowarr\gen~f_1~\arrowcomp\gen~f_2)~\arrowpair\gen~(\arrowarr\gen~f_1~\arrowcomp\gen~f_3)
 \label{eqn:pure-distributes-over-pair}
@@ -264,7 +273,7 @@ We follow Hughes's reasoning~\cite{cit:hughes-2000scp-arrows} for the original a
 
 The pair extraction law~\eqref{eqn:pair-extraction}, which \emph{can} be derived from existing arrow laws, is a more problematic, in nonstrict $\lambda$-calculii as well as \lzfclang.
 If $f_1$ does not always terminate, using~\eqref{eqn:pair-extraction} to transform a computation can turn a nonterminating expression into a terminating one, or vice-versa.
-We could condition the pair extraction law on $f_1$'s termination.
+We could require $f_1$ in the pair extraction law to always terminate.
 Instead, we require every argument to $\arrowarr\gen$ to terminate, which simplifies more proofs.
 
 Rather than prove each arrow law for each arrow, we prove arrows are \emph{epimorphic} to arrows for which the laws are known to hold.
@@ -281,21 +290,26 @@ If $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$ is an arrow epimo
 \end{theorem}
 \begin{proof}
 Let $\arrowlift\genb^{-1}$ be $\arrowlift\genb$'s right inverse.
-For the pair extraction law~\eqref{eqn:pair-extraction}, rewrite in terms of $\arrowlift\genb$, apply homomorphism laws, and apply the pair extraction law for arrow $a$:
+For the pair extraction law~\eqref{eqn:pair-extraction},
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
 	&(\arrowarr\genb~f_1~\arrowpair\genb~f_2)~\arrowcomp\genb~\arrowarr\genb~snd
 \\*
-	&\tab\equiv\ (\arrowlift\genb~(\arrowarr\gen~f_1)~\arrowpair\genb~(\arrowlift\genb~(\arrowlift\genb^{-1}~f_2)))~\arrowcomp\genb~\arrowarr\genb~snd
+	&\tab\equiv\ (\arrowlift\genb~(\arrowarr\gen~f_1)~\arrowpair\genb~(\arrowlift\genb~(\arrowlift\genb^{-1}~f_2)))~\arrowcomp\genb~\arrowlift\genb~(\arrowarr\gen~snd)
+	&&\text{Rewrite with $\arrowlift\genb$}
 \\
 	&\tab\equiv\ \arrowlift\genb~(\arrowarr\gen~f_1~\arrowpair\gen~\arrowlift\genb^{-1}~f_2)~\arrowcomp\genb~\arrowlift\genb~(\arrowarr\gen~snd)
+	&&\text{Homomorphism \eqref{eqn:lift-distributes-over-pair}}
 \\
-	&\tab\equiv\ \arrowlift\genb~((\arrowarr\gen~f_1~\arrowpair\gen~\arrowlift\genb^{-1}~f_2)~\arrowcomp\genb~\arrowarr\gen~snd)
+	&\tab\equiv\ \arrowlift\genb~((\arrowarr\gen~f_1~\arrowpair\gen~\arrowlift\genb^{-1}~f_2)~\arrowcomp\gen~\arrowarr\gen~snd)
+	&&\text{Homomorphism \eqref{eqn:lift-distributes-over-comp}}
 \\
 	&\tab\equiv\ \arrowlift\genb~(\arrowlift\genb^{-1}~f_2)
+	&&\text{Pair extraction \eqref{eqn:pair-extraction}}
 \\*
 	&\tab\equiv\ f_2
+	&&\text{Right inverse}
 \end{align*}
 \end{displaybreaks}
 The proofs for every other law are similar.
@@ -399,15 +413,19 @@ For all $\mathit{e}$, $\meaningof{\mathit{e}}\genb\ \equiv\ \arrowlift\genb~\mea
 \end{theorem}
 \begin{proof}
 By structural induction.
-Bases cases proceed by expansion and using $\arrowarr\genb \equiv \arrowlift\genb \circ \arrowarr\gen$~\eqref{eqn:lift-distributes-over-arr}. For example, for constants:
+Base cases proceed by expansion and using $\arrowarr\genb \equiv \arrowlift\genb \circ \arrowarr\gen$~\eqref{eqn:lift-distributes-over-arr}.
+For example, for constants:
 \begin{align*}
 \numberthis
 	\meaningof{\mathit{v}}\genb
 		&\ \equiv\ \arrowarr\genb~(const~\mathit{v})
+		&&\text{Def of $\meaningof{\cdot}\genb$}
 \\
 		&\ \equiv\ \arrowlift\genb~(\arrowarr\gen~(const~\mathit{v}))
+		&&\text{Homomorphism \eqref{eqn:lift-distributes-over-arr}}
 \\
 		&\ \equiv\ \arrowlift\genb~\meaningof{\mathit{v}}\gen
+		&&\text{Def of $\meaningof{\cdot}\gen$}
 \end{align*}
 Inductive cases proceed by expansion, applying the inductive hypothesis on subterms, and applying distributive laws~\eqref{eqn:lift-distributes-over-comp}--\eqref{eqn:lift-distributes-over-lazy}.
 For example, for pairing:
@@ -416,12 +434,16 @@ For example, for pairing:
 \numberthis
 	\meaningof{\pair{\mathit{e}_1,\mathit{e}_2}}\genb
 		&\ \equiv\ \meaningof{\mathit{e}_1}\genb~\arrowpair\genb~\meaningof{\mathit{e}_2}\genb
+		&&\text{Def of $\meaningof{\cdot}\genb$}
 \\*
 		&\ \equiv\ (\arrowlift\genb~\meaningof{\mathit{e}_1}\gen)~\arrowpair\genb~(\arrowlift\genb~\meaningof{\mathit{e}_2}\gen)
+		&&\text{Ind hypothesis}
 \\
 		&\ \equiv\ \arrowlift\genb~(\meaningof{\mathit{e}_1}\gen~\arrowpair\gen~\meaningof{\mathit{e}_2}\gen)
+		&&\text{Homomorphism \eqref{eqn:lift-distributes-over-pair}}
 \\
 		&\ \equiv\ \arrowlift\genb~\meaningof{\pair{\mathit{e}_1,\mathit{e}_2}}\gen
+		&&\text{Def of $\meaningof{\cdot}\gen$}
 \end{align*}
 \end{displaybreaks}
 It is not hard to check the remaining cases.
@@ -456,7 +478,11 @@ If we assume $\arrowlift\genb$ defines correct behavior for arrow $b$ in terms o
 \\[-6pt]
 	&\begin{aligned}[t]
 		&(\pairbot) : (X \botto {Y_1}) \tto (X \botto {Y_2}) \tto (X \botto \pair{Y_1,Y_2}) \\
-		&(f_1~\pairbot~f_2)~a \ := \ if~(f_1~a = \bot~or~f_2~a = \bot)~\bot~{\pair{f_1~a,f_2~a}}
+		&(f_1~\pairbot~f_2)~a \ := \ 
+		\lzfclet{
+			b_1 & f_1~a \\
+			b_2 & f_2~a
+		}{if~(b_1 = \bot~or~b_2 = \bot)~\bot~{\pair{b_1,b_2}}}
 	\end{aligned}
 \end{aligned}
 &\tab
@@ -500,12 +526,13 @@ Two computations $f_1 : X \botto Y$ and $f_2 : X \botto Y$ are equivalent, or $f
 $\arrbot$, $(\pairbot)$, $(\compbot)$, $\ifbot$ and $\lazybot$ define an arrow.
 \end{theorem}
 \begin{proof}
-The bottom arrow is epimorphic to (in fact, isomorphic to) the Maybe monad's Kleisli arrow.
+The bottom arrow is epimorphic to (in fact, isomorphic to) the maybe monad's Kleisli arrow.
 \end{proof}
 
 \section{Deriving the Mapping Arrow}
 
-Theorems about functions in set theory tend to be about mappings, not about lambdas that may raise errors.
+Computing preimages requires an observable domain, which lambdas do not have.
+Further, theorems about functions in set theory tend to be about mappings, not about lambdas that may raise errors.
 As in intermediate step, then, we need an arrow whose computations produce mappings or are mappings themselves.
 
 It is tempting to try to make the mapping arrow's computations mapping-valued; i.e. $X \mapto Y ::= X \pto Y$.
@@ -531,7 +558,7 @@ We define that first, and then define $\liftmap$ in terms of it:
 		&\liftmap~f~A \ := \ mapping~f~(domain_\bot~f~A)
 	\end{aligned}
 \end{align}
-So $\liftmap~f~A$ is like $mapping~f~A$, except the domain does not contain inputs that produce errors or nontermination---a good notion of correctness.
+So $\liftmap~f~A$ is like $mapping~f~A$, except the domain does not contain inputs that produce errors---a good notion of correctness.
 
 \begin{figure*}[!tb]\centering
 \smallmathfont
@@ -540,7 +567,7 @@ So $\liftmap~f~A$ is like $mapping~f~A$, except the domain does not contain inpu
 \begin{aligned}[t]
 	&\begin{aligned}[t]
 		&range : (X \pto Y) \tto Set~Y \\
-		&range \ := \ image~snd
+		&range~g \ := \ image~snd~g
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
@@ -557,7 +584,7 @@ So $\liftmap~f~A$ is like $mapping~f~A$, except the domain does not contain inpu
 		&\pair{\cdot,\cdot}\map : (X \pto Y_1) \tto (X \pto Y_2) \tto (X \pto Y_1 \times Y_2) \\
 		&\pair{g_1,g_2}\map \ := \ 
 			\lzfclet{
-				A & (domain~g_1) \i (domain~g_2)
+				A & domain~g_1 \i domain~g_2
 			}{\fun{a \in A}{\pair{g_1~a,g_2~a}}}
 	\end{aligned} \\
 \\[-6pt]
@@ -565,13 +592,13 @@ So $\liftmap~f~A$ is like $mapping~f~A$, except the domain does not contain inpu
 		&(\uplus\map) : (X \pto Y) \tto (X \pto Y) \tto (X \pto Y) \\
 		&\lzfcsplit{&g_1 \uplus\map g_2 \ := \
 		\lzfclet{
-				A & (domain~g_1) \uplus (domain~g_2)
+				A & domain~g_1 \uplus domain~g_2
 			}{\fun{a \in A}{if~(a \in domain~g_1)~(g_1~a)~(g_2~a)}}}
 	\end{aligned}
 \end{aligned}
 \end{align*}
 \bottomhrule
-\caption[ ]{Additional operations on mappings.}
+\caption[Additional mapping operations]{Additional operations on partial mappings.}
 \label{fig:more-mapping-defs}
 \end{figure*}
 
@@ -643,84 +670,99 @@ The remainder of this section derives $(\pairmap)$, $(\compmap)$, $\ifmap$ and $
 \figref{fig:more-mapping-defs} defines the additional necessary mapping operations $range$, composition, pairing, and disjoint union, and \figref{fig:mapping-arrow-defs} contains the resulting mapping arrow combinators.
 
 \subsection{Composition}
-Starting with the left side of~\eqref{eqn:lift-distributes-over-comp}, we expand definitions, simplify $f$ by restricting it to a set for which $f_1~a \neq \bot$, and substitute $f$'s definition:
+Starting with the left side of~\eqref{eqn:lift-distributes-over-comp}, we expand definitions, simplify $f$ by restricting it to a set for which $f_1~a \neq \bot$:
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
-	\liftmap~(f_1~\arrowcomp~f_2)~A
-	&\ \equiv \ 
+	&\liftmap~(f_1~\compbot~f_2)~A
+\\*
+	&\tab\equiv \ 
 		\lzfclet{
 			f & \fun{a}{if~(f_1~a = \bot)~\bot~(f_2~(f_1~a))} \\
 			A' & domain_\bot~f~A
 		}{mapping~f~A'}
-\\*
-	&\ \equiv \ 
+	&&\text{Def of $\liftmap$, $(\compbot)$}
+\\
+	&\tab\equiv \ 
 		\lzfclet{
 			f & \fun{a}{f_2~(f_1~a)} \\
 			A' & domain_\bot~f~(domain_\bot~f_1~A)
 		}{mapping~f~A'}
+	&&\text{Simplify $f$}
 \\
-	&\ \equiv \ 
+	&\tab\equiv \ 
 		\lzfclet{
 			A' & \setb{a \in domain_\bot~f_1~A}{f_2~(f_1~a) \neq \bot}
 		}{\fun{a \in A'}{f_2~(f_1~a)}}
-\end{align*}
-\end{displaybreaks}
-We finish by converting bottom arrow computations to the mapping arrow and rewriting in terms of $(\circ\map)$:
-\begin{displaybreaks}
-\begin{align*}
-\numberthis
-	\liftmap~(f_1~\arrowcomp~f_2)~A
-	&\ \equiv \ 
+	&&\text{Def of $domain_\bot$, $mapping$}
+\\
+\intertext{We finish by converting bottom arrow computations to the mapping arrow and rewriting in terms of mapping composition $(\circ\map)$:}
+	&\tab\equiv \ 
 		\lzfclet{
 			g_1 & \liftmap~f_1~A \\
 			A' & preimage~g_1~(domain_\bot~f_2~(range~g_1))
 		}{\fun{a \in A'}{f_2~(g_1~a)}}
-\\*
-	&\ \equiv \ 
+	&&\text{Rewrite with $\liftmap$}
+\\
+	&\tab\equiv \ 
 		\lzfclet{
 			g_1 & \liftmap~f_1~A \\
 			g_2 & \liftmap~f_2~(range~g_1) \\
 			A' & preimage~g_1~(domain~g_2)
 		}{\fun{a \in A'}{g_2~(g_1~a)}}
+	&&\text{Rewrite with $\liftmap$}
 \\
-	&\ \equiv \ 
+	&\tab\equiv \ 
 		\lzfclet{
 			g_1 & \liftmap~f_1~A \\
 			g_2 & \liftmap~f_2~(range~g_1)
 		}{g_2 \circ\map g_1}
+	&&\text{Rewrite with $(\circ\map)$}
 \end{align*}
 \end{displaybreaks}
 Substituting $g_1$ for $\liftmap~f_1$ and $g_2$ for $\liftmap~f_2$ gives a definition for $(\compmap)$ (\figref{fig:mapping-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-comp} holds.
 
 \subsection{Pairing}
-Starting with the left side of~\eqref{eqn:lift-distributes-over-pair}, we expand definitions and replace the definition of $A'$ with one that does not depend on $f$:
+Starting with the left side of~\eqref{eqn:lift-distributes-over-pair}, we expand definitions, and simplify $f$ by restricting it to a set for which $f_1~a \neq \bot$ and $f_2~a \neq \bot$:
 \begin{align*}
-	\liftmap~(f_1~\pairbot~f_2)~A
-	&\ \equiv \ 
+\numberthis
+	&\liftmap~(f_1~\pairbot~f_2)~A
+\\*
+	&\tab\equiv \ 
 		\lzfclet{
-			f & \fun{a}{if~(f_1~a = \bot~or~f_2~a = \bot)~\bot~{\pair{f_1~a,f_2~a}}} \\
+			f & \fun{a} \lzfclet{
+				b_1 & f_1~a \\
+				b_2 & f_2~a
+			}{if~(b_1 = \bot~or~b_2 = \bot)~\bot~{\pair{b_1,b_2}}}
+		\\
 			A' & domain_\bot~f~A
 		}{mapping~f~A'}
+	&&\text{Def of $\liftmap$, $(\pairbot)$}
 \\
-	&\ \equiv \ 
+	&\tab\equiv \ 
+		\lzfclet{
+			f & \fun{a} \pair{f_1~a,f_2~a} \\
+			A' & domain_\bot~f_1~A \i domain_\bot~f_2~A
+		}{mapping~f~A'}
+	&&\text{Simplify $f$}
+\\
+	&\tab\equiv \ 
 		\lzfclet{
 			A' & domain_\bot~f_1~A \i domain_\bot~f_2~A
 		}{\fun{a \in A'}\pair{f_1~a,f_2~a}}
-\numberthis
-\end{align*}
-We finish by converting bottom arrow computations to the mapping arrow and rewriting in terms of $\pair{\cdot,\cdot}\map$:
-\begin{align*}
-\numberthis
-	\liftmap~(f_1~\pairbot~f_2)~A
-	&\ \equiv \ 
+	&&\text{Def of $mapping$}
+\\
+\intertext{We finish by converting bottom arrow computations to the mapping arrow and rewriting in terms of $\pair{\cdot,\cdot}\map$:}
+	&\tab\equiv \ 
 		\lzfclet{
 			g_1 & \liftmap~f_1~A \\
 			g_2 & \liftmap~f_2~A \\
 			A' & domain~g_1 \i domain~g_2
 		}{\fun{a \in A'}{\pair{g_1~a,g_2~a}}}
+	&&\text{Rewrite with $\liftmap$}
 \\
-	&\ \equiv \ \pair{\liftmap~f_1~A, \liftmap~f_2~A}\map
+	&\tab\equiv \ \pair{\liftmap~f_1~A, \liftmap~f_2~A}\map
+	&&\text{Rewrite with $\pair{\cdot,\cdot}\map$}
 \end{align*}
 Substituting $g_1$ for $\liftmap~f_1$ and $g_2$ for $\liftmap~f_2$ gives a definition for $(\pairmap)$ (\figref{fig:mapping-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-pair} holds.
 
@@ -729,33 +771,43 @@ Starting with the left side of~\eqref{eqn:lift-distributes-over-if}, we expand d
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
-	\liftmap~(\ifbot~f_1~f_2~f_3)~A
-	&\ \equiv \ 
+	&\liftmap~(\ifbot~f_1~f_2~f_3)~A
+\\*
+	&\tab\equiv\ 
 		\lzfclet{
-			f & \fun{a}{\lzfccase{f_1~a}{true & f_2~a \\ false & f_3~a \\ \bot & \bot}}
-		}{mapping~f~(domain_\bot~f~A)}
+			f & \fun{a}{\lzfccase{f_1~a}{true & f_2~a \\ false & f_3~a \\ \bot & \bot}} \\
+			A' & domain_\bot~f~A
+		}{mapping~f~A'}
+	&&\text{Def of $\liftmap$, $\ifbot$}
 \\
-	&\ \equiv \ 
+	&\tab\equiv\ 
 		\lzfclet{
-			g_1 & mapping~f~A \\
+			f & \fun{a}{if~(f_1~a)~(f_2~a)~(f_3~a)} \\
+			g_1 & mapping~f_1~(domain_\bot~f_1~A) \\
 			A_2 & preimage~g_1~\set{true} \\
 			A_3 & preimage~g_1~\set{false} \\
-			f & \fun{a}{if~(f_1~a)~(f_2~a)~(f_3~a)}
-		}{mapping~f~(domain_\bot~f~(A_2 \uplus A_3))}
-\end{align*}
-\end{displaybreaks}
-We finish by converting bottom arrow computations to the mapping arrow and rewriting in terms of $(\uplus\map)$:
-\begin{displaybreaks}
-\begin{align*}
-\numberthis
-	\liftmap~(\ifbot~f_1~f_2~f_3)~A
-	&\ \equiv \ 
+			A' & domain_\bot~f_2~A_2 \uplus domain_\bot~f_3~A_3
+		}{mapping~f~A'}
+	&&\text{Simplify $f$}
+\\
+	&\tab\equiv\ 
+		\lzfclet{
+			g_1 & mapping~f_1~(domain_\bot~f_1~A) \\
+			A_2 & preimage~g_1~\set{true} \\
+			A_3 & preimage~g_1~\set{false} \\
+			A' & domain_\bot~f_2~A_2 \uplus domain_\bot~f_3~A_3
+		}{\fun{a \in A'} if~(f_1~a)~(f_2~a)~(f_3~a)}
+	&&\text{Def of $mapping$}
+\\
+\intertext{We finish by converting bottom arrow computations to the mapping arrow and rewriting in terms of $(\uplus\map)$:}
+	&\tab\equiv \ 
 	\lzfclet{
 		g_1 & \liftmap~f_1~A \\
 		g_2 & \liftmap~f_2~(preimage~g_1~\set{true}) \\
 		g_3 & \liftmap~f_3~(preimage~g_1~\set{false}) \\
 		A' & domain~g_2 \uplus domain~g_3
 	}{\fun{a \in A'}{if~(a \in domain~g_2)~(g_2~a)~(g_3~a)}}
+	&&\text{Rewrite with $\liftmap$}
 \\
 	&\ \equiv \
 	\lzfclet{
@@ -763,6 +815,7 @@ We finish by converting bottom arrow computations to the mapping arrow and rewri
 		g_2 & \liftmap~f_2~(preimage~g_1~\set{true}) \\
 		g_3 & \liftmap~f_3~(preimage~g_1~\set{false})
 	}{g_2 \uplus\map g_3}
+	&&\text{Rewrite with $(\uplus\map)$}
 \end{align*}
 \end{displaybreaks}
 Substituting $g_1$ for $\liftmap~f_1$, $g_2$ for $\liftmap~f_2$, and $g_3$ for $\liftmap~f_3$ gives a definition for $\ifmap$ (\figref{fig:mapping-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-if} holds.
@@ -812,7 +865,7 @@ For example, the following computation is well-typed, but returns the identity m
 \begin{equation}
 \begin{aligned}
 	&nonmonotone : Bool \mapto Bool \\
-	&nonmonotone~A \ := \ if~(A = \emptyset)~(mapping~id~Bool)~\emptyset
+	&nonmonotone~A \ := \ if~(A = \emptyset)~(\fun{a \in Bool} a)~\emptyset
 \end{aligned}
 \end{equation}
 It would be nice if we could be sure that every $X \mapto Y$ is not only monotone, but acts as if it returned restricted mappings.
@@ -880,7 +933,7 @@ $\arrmap$, $(\pairmap)$, $(\compmap)$, $\ifmap$ and $\lazymap$ define an arrow.
 		&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\pre \ := \
 		\lzfclet{
 			Y' & Y_1' \times Y_2' \\
-			p & \fun{B}{\U\limits_{\pair{b_1,b_2} \in B}(p_1~\set{b_1}) \i (p_2~\set{b_2})} \\
+			p & \fun{B}{\U\limits_{\pair{b_1,b_2} \in B} p_1~\set{b_1} \i p_2~\set{b_2}} \\
 		}{\pair{Y',p}}
 	\end{aligned} \\
 \\[-6pt]
@@ -893,8 +946,8 @@ $\arrmap$, $(\pairmap)$, $(\compmap)$, $\ifmap$ and $\lazymap$ define an arrow.
 		&(\uplus\pre) : (X \prepto Y) \tto (X \prepto Y) \tto (X \prepto Y) \\
 		&h_1 \uplus\pre h_2 \ := \ 
 			\lzfclet{
-					Y' & (range\pre~h_1) \u (range\pre~h_2) \\
-					p & \fun{B}{(ap\pre~h_1~B) \uplus (ap\pre~h_2~B)}
+					Y' & range\pre~h_1 \u range\pre~h_2 \\
+					p & \fun{B}{ap\pre~h_1~B \uplus ap\pre~h_2~B}
 				}{\pair{Y',p}}
 	\end{aligned}
 \end{aligned}
@@ -912,6 +965,7 @@ Therefore, in the preimage arrow, we confine computation on points to instances 
 \begin{equation}
 	X \prepto Y \ ::= \ \pair{Set~Y, Set~Y \tto Set~X}
 \end{equation}
+with the intention to replace $X \prepto Y$ instances with an approximation further on.
 Like a mapping, an $X \prepto Y$ has an observable domain---but computing the input-output pairs is delayed.
 We therefore call these \mykeyword{lazy preimage mappings}.
 
@@ -934,19 +988,19 @@ Preimage arrow correctness depends on this fact: that using $ap\pre$ to compute 
 
 \begin{lemma}
 \label{lem:preimage-restricted-range}
-Let $g \in X \pto Y$.
+Let $g : X \pto Y$.
 For all $B \subseteq Y$ and $Y'$ such that $range~g \subseteq Y' \subseteq Y$, $preimage~g~(B \i Y') = preimage~g~B$.%
 \end{lemma}
 
 \begin{theorem}[$ap\pre$ computes preimages]
 \label{thm:pre-like-preimage}
-Let $g \in X \pto Y$. For all $B \subseteq Y$, $ap\pre~(pre~g)~B = preimage~g~B$.%
+Let $g : X \pto Y$. For all $B \subseteq Y$, $ap\pre~(pre~g)~B = preimage~g~B$.%
 \end{theorem}
 \begin{proof}
 Expand definitions and apply Lemma~\ref{lem:preimage-restricted-range} with $Y' = range~g$.
 \end{proof}
 
-\figref{fig:preimage-mapping-defs} defines more operations on preimage mappings, including pairing, composition, and disjoint union operations corresponding to the mapping operations in \figref{fig:mapping-defs}.
+\figref{fig:preimage-mapping-defs} defines more operations on preimage mappings, including pairing, composition, and disjoint union operations corresponding to the mapping operations in \figref{fig:more-mapping-defs}.
 To prove them correct, we need preimage mappings to be equivalent when they compute the same preimages.
 
 \begin{definition}[preimage mapping equivalence]
@@ -963,18 +1017,18 @@ To prove $pre$ distributes over mapping composition, we can make more or less di
 
 \begin{lemma}[$preimage$ distributes over $(\circ\map)$]
 \label{lem:preimage-under-composition}
-Let $g_1 \in X \pto Y$ and $g_2 \in Y \pto Z$.
+Let $g_1 : X \pto Y$ and $g_2 : Y \pto Z$.
 For all $C \subseteq Z$, $preimage~(g_2 \circ\map g_1)~C = preimage~g_1~(preimage~g_2~C)$.%
 \end{lemma}
 
 \begin{theorem}[$pre$ distributes over $(\circ\map)$]
 \label{thm:preimage-mapping-composition}
-Let $g_1 \in X \pto Y$ and $g_2 \in Y \pto Z$.
+Let $g_1 : X \pto Y$ and $g_2 : Y \pto Z$.
 Then $pre~(g_2 \circ\map g_1) \equiv (pre~g_2) \circ\pre (pre~g_1)$.%
 \end{theorem}
 \begin{proof}
 Let $\pair{Z',p_2} := pre~g_2$ and $C \subseteq Z$.
-Starting from the right side, expand definitions, apply Theorem~\ref{thm:pre-like-preimage}, apply Lemma~\ref{lem:preimage-under-composition}, and apply Theorem~\ref{thm:pre-like-preimage} again:
+Starting from the right-hand side of the equivalence,
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
@@ -982,19 +1036,25 @@ Starting from the right side, expand definitions, apply Theorem~\ref{thm:pre-lik
 \\*
 	&\tab\equiv\ 
 		\lzfclet{
-			h & \fun{C}{ap\pre~(pre~g_1)~(p_2~C)} \\
-			}{h~(C \i Z')}
+			p & \fun{C}{ap\pre~(pre~g_1)~(p_2~C)} \\
+			}{p~(C \i Z')}
+	&&\text{Def of $ap\pre$, $(\circ\pre)$}
 \\
 	&\tab\equiv\ ap\pre~(pre~g_1)~(p_2~(C \i Z'))
+	&&\text{Def of $p$}
 \\
 	&\tab\equiv\ ap\pre~(pre~g_1)~(ap\pre~(pre~g_2)~C)
+	&&\text{Rewrite with $ap\pre$}
 \\
 	&\tab\equiv\ preimage~g_1~(preimage~g_2~C)
+	&&\text{Theorem~\ref{thm:pre-like-preimage}}
 \\
 	&\tab\equiv\ preimage~(g_2 \circ\map g_1)~C
+	&&\text{Lemma~\ref{lem:preimage-under-composition}}
 \\*
 	&\tab\equiv\ ap\pre~(pre~(g_2 \circ\map g_1))~C
-\\[-2.25\baselineskip]
+	&&\text{Theorem~\ref{thm:pre-like-preimage}}
+\\[-2.4\baselineskip]
 \end{align*}
 \end{displaybreaks}
 \qedhere
@@ -1003,21 +1063,31 @@ Starting from the right side, expand definitions, apply Theorem~\ref{thm:pre-lik
 \subsection{Pairing}
 
 We have less luck with pairing than with composition, because $preimage$ does not distribute over pairing.
-Fortunately, it distributes over pairing and cartesian product together.
+Fortunately, $preimage$ distributes over unions, and over pairing and cartesian product together.
 
 \begin{lemma}[$preimage$ distributes over $\pair{\cdot,\cdot}\map$ and $(\times)$]
 \label{lem:preimage-under-pairing}
-Let $g_1 \in X \pto Y_1$ and $g_2 \in X \pto Y_2$.
+Let $g_1 : X \pto Y_1$ and $g_2 : X \pto Y_2$.
 For all $B_1 \subseteq Y_1$ and $B_2 \subseteq Y_2$, $preimage~\pair{g_1,g_2}\map~(B_1 \times B_2) = (preimage~g_1~B_1) \i (preimage~g_2~B_2)$.%
+\end{lemma}
+
+\begin{lemma}[$preimage$ distributes over union]
+\label{lem:preimage-distributes-over-union}
+Let $g : X \pto Y$ and $B : J \tto Set~Y$ be an indexed collection of subsets of $Y$.
+Then
+\begin{equation}
+	\bigcup_{j \in J} preimage~g~(B~j)\ =\ preimage~g~\bigcup_{j \in J} B~j
+\end{equation}
 \end{lemma}
 
 \begin{theorem}[$pre$ distributes over $\pair{\cdot,\cdot}\map$]
 \label{thm:preimage-mapping-pairing}
-Let $g_1 \in X \pto Y_1$ and $g_2 \in X \pto Y_2$. Then $pre~\pair{g_1,g_2}\map \equiv \pair{pre~g_1,pre~g_2}\pre$.%
+Let $g_1 : X \pto Y_1$ and $g_2 : X \pto Y_2$. Then $pre~\pair{g_1,g_2}\map \equiv \pair{pre~g_1,pre~g_2}\pre$.%
 \end{theorem}
 \begin{proof}
-Let $\pair{Y_1',p_1} := pre~g_1$, $\pair{Y_2',p_2} := pre~g_2$ and $B \in Y_1 \times Y_2$.
-Starting from the right side, expand definitions, apply Theorem~\ref{thm:pre-like-preimage}, apply Lemma~\ref{lem:preimage-under-pairing}, note that a product of singletons is a singleton pair, distribute $preimage$ over the union, apply Lemma~\ref{lem:preimage-restricted-range}, and apply Theorem~\ref{thm:pre-like-preimage} again:
+Let $\pair{Y_1',p_1} := pre~g_1$, $\pair{Y_2',p_2} := pre~g_2$ and $B \subseteq Y_1 \times Y_2$.
+Starting from the right-hand side of the equivalence,
+%expand definitions, apply Theorem~\ref{thm:pre-like-preimage}, apply Lemma~\ref{lem:preimage-under-pairing}, note that a product of singletons is a singleton pair, distribute $preimage$ over the union, apply Lemma~\ref{lem:preimage-restricted-range}, and apply Theorem~\ref{thm:pre-like-preimage} again:
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
@@ -1025,26 +1095,41 @@ Starting from the right side, expand definitions, apply Theorem~\ref{thm:pre-lik
 \\*
 	&\tab\equiv \ 
 		\lzfclet{
-			Y' & Y_1' \times Y_2' \\
-			p & \fun{B}{\U\limits_{\pair{y_1,y_2} \in B}(p_1~\set{y_1}) \i (p_2~\set{y_2})} \\
-		}{p~(B \i Y')}
+			p & \fun{B}{\U\limits_{\pair{y_1,y_2} \in B} p_1~\set{y_1} \i p_2~\set{y_2}} \\
+		}{p~(B \i (Y_1' \times Y_2'))}
+	&&\text{Def of $ap\pre$, $\pair{\cdot,\cdot}\pre$}
 \\
-	&\tab\equiv \U\limits_{\pair{y_1,y_2} \in B \i (Y_1' \times Y_2')} (p_1~\set{y_1}) \i (p_2~\set{y_2})
+	&\tab\equiv \U\limits_{\pair{y_1,y_2} \in B \i (Y_1' \times Y_2')} p_1~\set{y_1} \i p_2~\set{y_2}
+	&&\text{Def of $p$}
 \\
-	&\tab\equiv \U\limits_{\pair{y_1,y_2} \in B \i (Y_1' \times Y_2')} (preimage~g_1~\set{y_1}) \i (preimage~g_2~\set{y_2})
+	&\tab\equiv \U\limits_{\pair{y_1,y_2} \in B \i (Y_1' \times Y_2')} preimage~g_1~\set{y_1} \i preimage~g_2~\set{y_2}
+	&&\text{Theorem~\ref{thm:pre-like-preimage}}
 \\
-	&\tab\equiv \U\limits_{\pair{y_1,y_2} \in B \i (Y_1' \times Y_2')} (preimage~\pair{g_1,g_2}\map~(\set{y_1} \times \set{y_2}))
+	&\tab\equiv \U\limits_{\pair{y_1,y_2} \in B \i (Y_1' \times Y_2')} preimage~\pair{g_1,g_2}\map~(\set{y_1} \times \set{y_2})
+	&&\text{Lemma~\ref{lem:preimage-under-pairing}}
 \\
-	&\tab\equiv \U\limits_{\pair{y_1,y_2} \in B \i (Y_1' \times Y_2')} (preimage~\pair{g_1,g_2}\map~\set{\pair{y_1,y_2}})
+	&\tab\equiv \U\limits_{\pair{y_1,y_2} \in B \i (Y_1' \times Y_2')} preimage~\pair{g_1,g_2}\map~\set{\pair{y_1,y_2}}
+	&&\text{Def of $(\times)$}
 \\
 	&\tab\equiv \ preimage~\pair{g_1,g_2}\map~(B \i (Y_1' \times Y_2'))
+	&&\text{Lemma~\ref{lem:preimage-distributes-over-union}}
 \\
 	&\tab\equiv \ preimage~\pair{g_1,g_2}\map~B
+	&&\text{Lemma~\ref{lem:preimage-restricted-range}}
 \\*
 	&\tab\equiv \ ap\pre~(pre~\pair{g_1,g_2}\map)~B
-\\[-2.25\baselineskip]
+	&&\text{Theorem~\ref{thm:pre-like-preimage}}
 \end{align*}
 \end{displaybreaks}
+We have an unmet proof obligation from using Lemma~\ref{lem:preimage-restricted-range}: that $range~\pair{g_1,g_2}\map \subseteq Y_1' \times Y_2'$.
+
+Let $b \in range~\pair{g_1,g_2}\map$.
+By definition of $\pair{\cdot,\cdot}\map$, there exists $a \in domain~g_1 \i domain~g_2$ such that $b = \pair{g_1~a,g_2~a}$.
+Thus, $b \in Y_1' \times Y_2'$ if and only if $g_1~a \in Y_1'$ and $g_2~a \in Y_2'$.
+
+By definition of $pre$, $Y_1' = range~g_1$ and $Y_2' = range~g_2$.
+Because $a \in domain~g_1$, $g_1~a \in range~g_1 = Y_1'$.
+Because $a \in domain~g_2$, $g_2~a \in range~g_2 = Y_2'$.
 \qedhere
 \end{proof}
 
@@ -1054,18 +1139,18 @@ Like proving $pre$ distributes over composition, the proof that it distributes o
 
 \begin{lemma}[$preimage$ distributes over $(\uplus\map)$]
 \label{lem:preimage-under-piecewise}
-Let $g_1 \in X \pto Y$ and $g_2 \in X \pto Y$ have disjoint domains.
+Let $g_1 : X \pto Y$ and $g_2 : X \pto Y$ have disjoint domains.
 For all $B \subseteq Y$, $preimage~(g_1 \uplus\map g_2)~B = (preimage~g_1~B) \uplus (preimage~g_2~B)$.%
 \end{lemma}
 
 \begin{theorem}[$pre$ distributes over $(\uplus\map)$]
 \label{thm:piecewise-preimage-mappings}
-Let $g_1 \in X \pto Y$ and $g_2 \in X \pto Y$ have disjoint domains.
+Let $g_1 : X \pto Y$ and $g_2 : X \pto Y$ have disjoint domains.
 Then $pre~(g_1 \uplus\map g_2) \equiv (pre~g_1) \uplus\pre (pre~g_2)$.%
 \end{theorem}
 \begin{proof}
 Let $Y_1' := range~g_1$, $Y_2' := range~g_2$ and $B \subseteq Y$.
-Starting from the right side, expand definitions, apply Theorem~\ref{thm:pre-like-preimage}, apply Lemma~\ref{lem:preimage-under-piecewise}, appy Lemma~\ref{lem:preimage-restricted-range}, and apply Theorem~\ref{thm:pre-like-preimage} again:
+Starting from the right-hand side of the equivalence,
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
@@ -1073,22 +1158,31 @@ Starting from the right side, expand definitions, apply Theorem~\ref{thm:pre-lik
 \\*
 	&\tab\equiv\ 
 		\lzfclet{
-			\! Y' & Y_1' \u Y_2' \\
-			h & \fun{B}{(ap\pre~(pre~g_1)~B) \uplus (ap\pre~(pre~g_2)~B)}
-		}{h~(B \i Y')}
+			p & \fun{B} ap\pre~(pre~g_1)~B \uplus ap\pre~(pre~g_2)~B
+		}{p~(B \i (Y_1' \u Y_2'))}
+	&&\text{Def of $ap\pre$, $(\uplus\pre)$}
 \\
-	&\tab\equiv\ (ap\pre~(pre~g_1)~(B \i (Y_1' \u Y_2'))) \uplus (ap\pre~(pre~g_2)~(B \i (Y_1' \u Y_2')))
+	&\tab\equiv\ ap\pre~(pre~g_1)~(B \i (Y_1' \u Y_2')) \uplus ap\pre~(pre~g_2)~(B \i (Y_1' \u Y_2'))
+	&&\text{Def of $p$}
 \\
-	&\tab\equiv\ (preimage~g_1~(B \i (Y_1' \u Y_2'))) \uplus (preimage~g_2~(B \i (Y_1' \u Y_2')))
+	&\tab\equiv\ preimage~g_1~(B \i (Y_1' \u Y_2')) \uplus preimage~g_2~(B \i (Y_1' \u Y_2'))
+	&&\text{Theorem~\ref{thm:pre-like-preimage}}
 \\
 	&\tab\equiv\ preimage~(g_1 \uplus\map g_2)~(B \i (Y_1' \u Y_2'))
+	&&\text{Lemma~\ref{lem:preimage-under-piecewise}}
 \\
 	&\tab\equiv\ preimage~(g_1 \uplus\map g_2)~B
+	&&\text{Lemma~\ref{lem:preimage-restricted-range}}
 \\*
 	&\tab\equiv\ ap\pre~(pre~(g_1 \uplus\map g_2))~B
-\\[-2.25\baselineskip]
+	&&\text{Theorem~\ref{thm:pre-like-preimage}}
 \end{align*}
 \end{displaybreaks}
+We have an unmet proof obligation from using Lemma~\ref{lem:preimage-restricted-range}: that $range~(g_1 \uplus\map g_2) \subseteq Y_1' \u Y_2'$.
+
+Let $b \in range~(g_1 \uplus\map g_2)$.
+By definition of $(\uplus\map)$, there exists $a \in domain~g_1 \uplus domain~g_2$ such that if $a \in domain~g_1$ then $b = g_1~a$ so $b \in range~g_1 = Y_1'$, and if $a \in domain~g_2$ then $b = g_2~a$ so $b \in range~g_2 = Y_2'$.
+Thus $b \in Y_1' \u Y_2'$.
 \qedhere
 \end{proof}
 
@@ -1109,6 +1203,13 @@ To get one, it is easiest to parameterize preimage computations on a $Set~X$; th
 \end{equation}
 or $Set~X \tto \pair{Set~Y, Set~Y \tto Set~X}$.
 To deconstruct the type, a preimage arrow computation computes a range first, and returns the range and a lambda that computes preimages.
+\figref{fig:arrow-diagram} illustrates this as a circuit diagram.
+
+\begin{figure*}[tb!]\centering
+\includegraphics[width=5.5in]{figures/preimage-arrow-diagram}
+\caption[Comparison of arrows used as target categories]{Comparison of arrows used as target categories. Computations $f : X \botto Y$ may return an error value $\bot$. Computations $g : X \mapto Y$ produce partial mappings on a given $A \subseteq X$, leaving out inputs for which $f$ would return an error. Computations $h : X \preto Y$ produce lazy preimage mappings; i.e. $h~A$ computes preimages under $g~A$.}
+\label{fig:arrow-diagram}
+\end{figure*}
 
 To use Theorem~\ref{thm:homomorphism-implies-correct}, we need to define correctness using a lift from the mapping arrow to the preimage arrow.
 A simple candidate with the right type is
@@ -1118,7 +1219,7 @@ A simple candidate with the right type is
 	&\liftpre~g~A \ := \ pre~(g~A)
 \end{aligned}
 \end{equation}
-By $\liftpre$'s definition and Theorem~\ref{thm:pre-like-preimage}, for all $g : X \mapto Y$, $A \subseteq X$ and $B \subseteq Y$,
+By definition of $\liftpre$ and Theorem~\ref{thm:pre-like-preimage}, for all $g : X \mapto Y$, and $A \subseteq X$ and $B \subseteq Y$,
 \begin{equation}
 \begin{aligned}
 	ap\pre~(\liftpre~g~A)~B
@@ -1196,100 +1297,124 @@ The remainder of this section derives $(\pairpre)$, $(\comppre)$, $\ifpre$ and $
 \label{fig:preimage-arrow-defs}
 \end{figure*}
 
-\subsection{Pairing}
-
-Starting with the left side of~\eqref{eqn:lift-distributes-over-pair}, we expand definitions, apply Theorem~\ref{thm:preimage-mapping-pairing}, and rewrite in terms of $\liftpre$:
-\begin{align*}
-\numberthis
-	ap\pre~(\liftpre~(g_1~\pairmap~g_2)~A)~B
-	&\ \equiv \ ap\pre~(pre~\pair{g_1~A, g_2~A}\map)~B
-\\
-	&\ \equiv \ ap\pre~\pair{pre~(g_1~A), pre~(g_2~A)}\pre~B
-\\
-	&\ \equiv \ ap\pre~\pair{\liftpre~g_1~A, \liftpre~g_2~A}\pre~B
-\end{align*}
-Substituting $h_1$ for $\liftpre~g_1$ and $h_2$ for $\liftpre~g_2$, and removing the application of $ap\pre$ from both sides of the equivalence gives a definition of $(\pairpre)$ (\figref{fig:preimage-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-pair} holds.
-
 \subsection{Composition}
 
-Starting with the left side of~\eqref{eqn:lift-distributes-over-comp}, we expand definitions, apply Theorem~\ref{thm:preimage-mapping-composition} and rewrite in terms of $\liftpre$:
+Starting with the left-hand side of~\eqref{eqn:lift-distributes-over-comp},
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
-	ap\pre~(\liftpre~(g_1~\compmap~g_2)~A)~C
-	&\ \equiv \ 
+	&ap\pre~(\liftpre~(g_1~\compmap~g_2)~A)~C
+\\*
+	&\tab\equiv \ 
 		\lzfclet{
 			g_1' & g_1~A \\
 			g_2' & g_2~(range~g_1')
 		}{ap\pre~(pre~(g_2' \circ\map g_1'))~C}
+	&&\text{Def of $\liftpre$, $(\compmap)$}
 \\
-	&\ \equiv \ 
+	&\tab\equiv \ 
 		\lzfclet{
 			g_1' & g_1~A \\
 			g_2' & g_2~(range~g_1')
 		}{ap\pre~((pre~g_1') \circ\pre (pre~g_2'))~C}
+	&&\text{Theorem~\ref{thm:preimage-mapping-composition}}
 \\
-	&\ \equiv \
+	&\tab\equiv \
 		\lzfclet{
 			h_1 & \liftpre~g_1~A \\
 			h_2 & \liftpre~g_2~(range\pre~h_1)
 		}{ap\pre~(h_2 \circ\pre h_1)~C}
+	&&\text{Rewrite with $\liftpre$}
 \end{align*}
 \end{displaybreaks}
 Substituting $h_1$ for $\liftpre~g_1$ and $h_2$ for $\liftpre~g_2$, and removing the application of $ap\pre$ from both sides of the equivalence gives a definition of $(\comppre)$ (\figref{fig:preimage-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-comp} holds.
 
+\subsection{Pairing}
+
+Starting with the left-hand side of~\eqref{eqn:lift-distributes-over-pair},
+\begin{align*}
+\numberthis
+	&ap\pre~(\liftpre~(g_1~\pairmap~g_2)~A)~B
+\\*
+	&\tab\equiv \ ap\pre~(pre~\pair{g_1~A, g_2~A}\map)~B
+	&&\text{Def of $\liftpre$, $(\pairmap)$}
+\\
+	&\tab\equiv \ ap\pre~\pair{pre~(g_1~A), pre~(g_2~A)}\pre~B
+	&&\text{Theorem~\ref{thm:preimage-mapping-pairing}}
+\\
+	&\tab\equiv \ ap\pre~\pair{\liftpre~g_1~A, \liftpre~g_2~A}\pre~B
+	&&\text{Rewrite with $\liftpre$}
+\end{align*}
+Substituting $h_1$ for $\liftpre~g_1$ and $h_2$ for $\liftpre~g_2$, and removing the application of $ap\pre$ from both sides of the equivalence gives a definition of $(\pairpre)$ (\figref{fig:preimage-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-pair} holds.
+
 \subsection{Conditional}
 
-Starting with the left side of~\eqref{eqn:lift-distributes-over-if}, we expand terms, apply Theorem~\ref{thm:piecewise-preimage-mappings}, rewrite in terms of $\liftpre$, and apply Theorem~\ref{thm:pre-like-preimage} in $h_2$ and $h_3$:
+Starting with the left-hand side of~\eqref{eqn:lift-distributes-over-if},
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
-	ap\pre~(\liftpre~(\ifmap~g_1~g_2~g_3)~A)~B
-	&\ \equiv \ 
+	&ap\pre~(\liftpre~(\ifmap~g_1~g_2~g_3)~A)~B
+\\*
+	&\tab\equiv \ 
 		\lzfclet{
 			g_1' & g_1~A \\
 			g_2' & g_2~(preimage~g_1'~\set{true}) \\
 			g_3' & g_3~(preimage~g_1'~\set{false})
 		}{ap\pre~(pre~(g_2' \uplus\map g_3'))~B}
+	&&\text{Def of $\liftpre$, $\ifmap$}
 \\
-	&\ \equiv \ 
+	&\tab\equiv \ 
 		\lzfclet{
 			g_1' & g_1~A \\
 			g_2' & g_2~(preimage~g_1'~\set{true}) \\
 			g_3' & g_3~(preimage~g_1'~\set{false})
 		}{ap\pre~((pre~g_2') \uplus\pre (pre~g_3'))~B}
+	&&\text{Theorem~\ref{thm:piecewise-preimage-mappings}}
 \\
-	&\ \equiv \ 
+	&\tab\equiv \ 
+		\lzfclet{
+			g_1' & g_1~A \\
+			g_2' & g_2~(ap\pre~(pre~g_1')~\set{true}) \\
+			g_3' & g_3~(ap\pre~(pre~g_1')~\set{false})
+		}{ap\pre~((pre~g_2') \uplus\pre (pre~g_3'))~B}
+	&&\text{Theorem~\ref{thm:pre-like-preimage}}
+\\
+	&\tab\equiv \ 
 		\lzfclet{
 			h_1 & \liftpre~g_1~A \\
 			h_2 & \liftpre~g_2~(ap\pre~h_1~\set{true}) \\
 			h_3 & \liftpre~g_3~(ap\pre~h_1~\set{false})
 		}{ap\pre~(h_2 \uplus\pre h_3)~B}
+	&&\text{Rewrite with $\liftpre$}
 \end{align*}
 \end{displaybreaks}
-Substituting $h_1$ for $\liftpre~g_1$, $h_2$ for $\liftpre~g_2$ and $h_3$ for $\liftpre~g_3$, and removing the application of $ap\pre$ from both sides of the equivalence gives a definition of $\ifpre$ (\figref{fig:preimage-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-if} holds.
+Substituting $h_1$, $h_2$ and $h_3$ for $\liftpre~g_1$, $\liftpre~g_2$ and $\liftpre~g_3$, and removing the application of $ap\pre$ from both sides of the equivalence gives a definition of $\ifpre$ (\figref{fig:preimage-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-if} holds.
 
 \subsection{Laziness}
 
-Starting with the left side of~\eqref{eqn:lift-distributes-over-lazy}, expand definitions, distribute $pre$ over the branches of $if$, and rewrite in terms of $\liftpre~(g~0)$:
+Starting with the left-hand side of~\eqref{eqn:lift-distributes-over-lazy},
 \begin{displaybreaks}
 \begin{align*}
 \numberthis
-	ap\pre~(\liftpre~(\lazymap~g)~A)~B
-	&\ \equiv \
+	&ap\pre~(\liftpre~(\lazymap~g)~A)~B
+\\*
+	&\tab\equiv \
 		\lzfclet{
 			g' & if~(A = \emptyset)~\emptyset~(g~0~A)
 		}{ap\pre~(pre~g')~B}
+	&&\text{Def of $\liftpre$, $\lazymap$}
 \\
-	&\ \equiv \
+	&\tab\equiv \
 		\lzfclet{
 			h & if~(A = \emptyset)~(pre~\emptyset)~(pre~(g~0~A))
 		}{ap\pre~h~B}
+	&&\text{Dist $pre$ over $if$}
 \\
-	&\ \equiv \
+	&\tab\equiv \
 		\lzfclet{
 			h & if~(A = \emptyset)~(pre~\emptyset)~(\liftpre~(g~0)~A)
 		}{ap\pre~h~B}
+	&&\text{Rewrite with $\liftpre$}
 \end{align*}
 \end{displaybreaks}
 Substituting $h~0$ for $\liftpre~(g~0)$ and removing the application of $ap\pre$ from both sides of the equivalence gives a definition for $\lazypre$ (\figref{fig:preimage-arrow-defs}) for which~\eqref{eqn:lift-distributes-over-lazy} holds.
@@ -1341,7 +1466,19 @@ $\arrpre$, $(\pairpre)$, $(\comppre)$, $\ifpre$ and $\lazypre$ define an arrow.
 We have defined everything on the top of our roadmap:
 \youarehere{eqn:roadmap-diagram3}
 and proved that $\liftmap$ and $\liftpre$ are homomorphisms.
-Now we move down from all three top arrows simultaneously, and prove every morphism in~\eqref{eqn:roadmap-diagram3} is an arrow homomorphism.
+At this point, we can interpret an expression $\mathit{e}$ in three ways using the same semantic function for first-order programs:
+\begin{enumerate}
+	\item As $\meaningof{\mathit{e}}_\bot : X \botto Y$, an intensional function that may raise errors.
+	\item As $\meaningof{\mathit{e}}\map : X \mapto Y$, which produces mappings, or extensional functions, on a restricted domain (correct by homomorphism of $\liftmap$).
+	\item As $\meaningof{\mathit{e}}\pre : X \preto Y$, which computes preimages under mappings produced by $\meaningof{\mathit{e}}\map$ (correct by homomorphism of $\liftpre$).
+\end{enumerate}
+These interpretations have two shortcomings:
+\begin{enumerate}
+	\item They do not pass an implicit random source through $\mathit{e}$'s subexpressions.
+	\item Using them requires knowing the set of inputs on which $\mathit{e}$ terminates. If $\meaningof{\mathit{e}}_\bot$ does not terminate on just one input in $A \subseteq X$, neither $\meaningof{\mathit{e}}\map~A$ nor $\meaningof{\mathit{e}}\pre~A$ terminates.
+\end{enumerate}
+In this section, we define the arrows on the bottom of the roadmap~\eqref{eqn:roadmap-diagram3} by transforming the arrows on the top into arrows that pass an implicit random source and always terminate.
+Their correctness again comes down to proving that the combinators between them are homomorphisms, though guaranteed termination needs special treatment.
 
 \subsection{Motivation}
 
@@ -1354,29 +1491,34 @@ The following probabilistic function defines the well-known geometric distributi
 \end{equation}
 For any $p > 0$, $geometric~p$ may not terminate, but the probability of never taking the ``else'' branch is $(1-p) \cdot (1-p) \cdot (1-p) \cdot \cdots = 0$. Thus, $geometric~p$ terminates with probability $1$.
 
-Suppose we interpret $geometric~p$ as $h : R \preto \Nat$, a preimage arrow computation from random sources to naturals, and we have a probability measure $P : Set~R \pto [0,1]$.
-The probability of $N \subseteq \Nat$ is $P~(ap\pre~(h~R)~N)$.
+Suppose we interpret $geometric~p$ as $h : \Omega \preto \Nat$, a preimage arrow computation from random sources $\omega \in \Omega$ to naturals, and we have a probability measure $P : Set~\Omega \pto [0,1]$.
+The probability of $N \subseteq \Nat$ is then $P~(ap\pre~(h~\Omega)~N)$.
 To compute this, we must
-%We have three hurdles to leap:
 \begin{itemize}
-	\item Ensure $ap\pre~(h~R)~N$ terminates.
-	\item Ensure each $r \in R$ contains enough random numbers.
-	\item Determine how $random$ indexes numbers in $r$.
+	\item Ensure $ap\pre~(h~\Omega)~N$ terminates.
+	\item Ensure each $\omega \in \Omega$ contains enough random numbers.
+	\item Determine how $random$ indexes numbers in $\omega$.
 \end{itemize}
-Ensuring $ap\pre~(h~R)~N$ terminates is the most difficult, but doing the other two will provide structure that makes it much easier.
+Ensuring $ap\pre~(h~\Omega)~N$ terminates is the most difficult, but doing the other two will provide structure that makes it much easier.
 
 \subsection{Threading and Indexing}
 \label{sec:threading-and-indexing}
 
-We clearly need to transform bottom, mapping, and preimage arrows so that they thread random sources.
 To ensure random sources contain enough numbers, they should be infinite.
 
-In a pure $\lambda$-calculus, random sources are typically infinite streams, threaded monadically: each computation receives and produces a random source.
-A little-used alternative is for the random source to be a tree, threaded applicatively: each computation receives, but does not produce, a random source.
-Combinators split the tree and pass subtrees to subcomputations.
+Typically, to thread a random source $\omega \in \Omega$ through computations, $\omega$ is made an infinite stream.
+Each computation receives and returns an $\omega$.
+The interpretation of $random$ as a computation takes $\omega$'s head and returns its tail.
+Combinators pass $\omega$ unchanged to one subcomputation, and pass the resulting $\omega'$ unchanged to the next.
+This is typically done with a monad, and it imposes a total order on evaluation.
 
-With either alternative, for arrows, the resulting definitions are large, conceptually difficult, and hard to manipulate.
-Fortunately, it is relatively easy to assign each subcomputation a unique index into a tree-shaped random source and pass the random source unchanged.
+A little-used alternative that imposes only a partial order makes $\omega$ an infinite binary tree.
+Each computation receives an $\omega$ but does not return one.
+The interpretation of $random$ as a computation simply returns $\omega$'s root value.
+Combinators ignore the root, split $\omega$ into a left subtree $\omega_{left}$ and a right subtree $\omega_{right}$, and pass each to their subcomputations.
+
+Arrows can thread a stream or a tree in the same manner, but the resulting combinators have large definitions, and are conceptually difficult and hard to manipulate.
+Fortunately, it is relatively easy to assign each arrow computation a unique index into a tree-shaped random source and pass the random source unchanged.
 To do this, we need an indexing scheme.
 
 \begin{definition}[binary indexing scheme]
@@ -1395,7 +1537,7 @@ Alternatively, let $J$ be the set of dyadic rationals in $(0,1)$ (i.e. those wit
 With this alternative, left-to-right evaluation order can be made to correspond with the natural order $(<)$ over $J$.
 
 In any case, $J$ is countable, and can be thought of as a set of indexes into an infinite binary tree.
-Values of type $J \to A$ encode an infinite binary tree of $A$ values as an infinite vector (i.e. total mapping).
+Values of type $J \to A$ encode such trees of values in $A$ as total mappings (i.e. infinite vectors).
 
 \subsection{Applicative, Associative Store Transformer}
 
@@ -1465,7 +1607,7 @@ Lifting extracts the $x$ from the input pair and sends it on to the original com
 
 \figref{fig:astore-arrow-defs} defines the remaining combinators.
 Each subcomputation receives $left~j$, $right~j$, or some other unique binary index.
-We thus think of programs interpreted as $AStore$ arrows as being completely unrolled into an infinite binary tree, with each expression labeled with its tree index.
+We thus think of programs interpreted as $AStore$ arrows as being completely unrolled into an infinite binary tree, with each subcomputation labeled with its tree index.
 
 \subsection{Partial, Probabilistic Programs}
 \label{sec:probabilistic-programs}
@@ -1473,20 +1615,28 @@ We thus think of programs interpreted as $AStore$ arrows as being completely unr
 To interpret probabilistic programs, we put an infinite random tree in the store.
 
 \begin{definition}[random source]
-Let $R := J \to [0,1]$.
-A \keyword{random source} is any infinite binary tree $r \in R$.
+Let $\Omega := J \to [0,1]$.
+A \keyword{random source} is any infinite binary tree $\omega \in \Omega$.
 \end{definition}
+
+\begin{figure*}[!tb]\centering
+\includegraphics[width=5in]{figures/random-tree}
+\caption[A random source $\omega \in \Omega$]{An $\omega \in \Omega$ is an infinite binary tree of random values encoded as a total mapping from tree indexes in $J$ to real numbers in $[0,1]$.}
+\label{fig:omega-tree}
+\end{figure*}
+
+\figref{fig:omega-tree} illustrates a single $\omega \in \Omega$.
 
 To interpret partial programs, we need to ensure termination.
 One ultimately implementable way is to have the store dictate which branch of each conditional, if any, is taken.
 
 \begin{definition}[branch trace]
-A \mykeyword{branch trace} is any $t \in J \to Bool_\bot$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
+A \mykeyword{branch trace} is any $t : J \to Bool_\bot$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
 
 Let $T \subset J \to Bool_\bot$ be the largest set of branch traces.
 \end{definition}
 
-Let $X \arrow\genc Y ::= AStore~(R \times T)~(X \arrow\gen Y)$ be an $AStore$ arrow type that threads both random stores and branch traces.
+Now $X \arrow\genc Y\ ::=\ AStore~(\Omega \times T)~(X \arrow\gen Y)$ is an $AStore$ arrow type whose computations thread both random stores and branch traces.
 
 For probabilistic programs, we define a combinator $random\genc$ that returns the number at its tree index in the random source, and extend $\meaningof{\cdot}\genc$ for arrows $a^*$ for which $random\genc$ is defined:
 \begin{equation}
@@ -1538,16 +1688,16 @@ We define a new semantic function $\meaningofconv{\cdot}\genc$ by replacing the 
 \end{aligned}
 \end{equation}
 
-For an $AStore$ computation $k$, we obviously must run $k$ on every branch trace in $T$ and filter out $\bot$, or somehow find inputs $\pair{\pair{r,t},a}$ for which $agrees$ never returns $\bot$.
+For an $AStore$ computation $k$, we obviously must run $k$ on every branch trace in $T$ and filter out $\bot$, or somehow find inputs $\pair{\pair{\omega,t},a}$ for which $agrees$ never returns $\bot$.
 Preimage $AStore$ arrows do the former by first computing an image, and the latter by computing preimages of sets that cannot contain $\bot$.
 
 \begin{definition}[terminating, probabilistic arrows]
 Define
 \begin{equation}
 \begin{aligned}
-	X \pbotto Y &\ ::=\ AStore~(R \times T)~(X \botto Y) \\
-	X \pmapto Y &\ ::=\ AStore~(R \times T)~(X \mapto Y) \\
-	X \ppreto Y &\ ::=\ AStore~(R \times T)~(X \preto Y) \\
+	X \pbotto Y &\ ::=\ AStore~(\Omega \times T)~(X \botto Y) \\
+	X \pmapto Y &\ ::=\ AStore~(\Omega \times T)~(X \mapto Y) \\
+	X \ppreto Y &\ ::=\ AStore~(\Omega \times T)~(X \preto Y) \\
 \end{aligned}
 \end{equation}
 as the type constructors for the \mykeyword{bottom*}, \mykeyword{mapping*} and \mykeyword{preimage* arrows}.
@@ -1574,7 +1724,7 @@ $\arrowtrans\genc$ is a homomorphism.
 Defining $\arrowarr\genc$ as a composition clearly meets the first homomorphism law~\eqref{eqn:lift-distributes-over-arr}.
 For homomorphism laws~\eqref{eqn:lift-distributes-over-comp}--\eqref{eqn:lift-distributes-over-if}, start from the right side, expand definitions, and use arrow laws~\eqref{eqn:pair-extraction}--\eqref{eqn:pure-distributes-over-if} to factor out $\arrowarr\gen~snd$.
 
-For~\eqref{eqn:lift-distributes-over-lazy}, additionally $\beta$-expand within the outer thunk, then use the lazy distributive law~\eqref{eqn:pure-distributes-over-lazy} to extract $\arrowarr\gen~snd$.
+For~\eqref{eqn:lift-distributes-over-lazy}, additionally $\beta$-reduce within the outer thunk, then use the lazy distributive law~\eqref{eqn:pure-distributes-over-lazy} to extract $\arrowarr\gen~snd$.
 \end{proof}
 
 \begin{corollary}[pure semantic correctness]
@@ -1593,7 +1743,7 @@ Define
 \end{aligned}
 \end{equation}
 where $\arrowlift\genb : (x \arrow\gen y) \tto (x \arrow\genb y)$.
-This shows the relationships more clearly:
+A commutative diagram shows the relationships more clearly:
 \begin{equation}
 \begin{CD}
 	x \arrow\gen y @>{\arrowlift\genb}>> x \arrow\genb y \\
@@ -1620,7 +1770,7 @@ Expand definitions and apply homomorphism laws~\eqref{eqn:lift-distributes-over-
 	&\ \equiv\ \fun{j}{\arrowarr\genb~snd~\arrowcomp\genb~\arrowlift\genb~f}
 \\*
 	&\ \equiv\ \arrowtrans\gend~(\arrowlift\genb~f)
-\\[-2.25\baselineskip]
+\\[-2.4\baselineskip]
 \end{align*}
 \end{displaybreaks}
 \qedhere
@@ -1667,6 +1817,8 @@ X \pbotto Y  @>>\liftpmap>  X \pmapto Y  @>>\liftppre>  X \ppreto Y
 Further, $\liftpmap$ and $\liftppre$ are arrow homomorphisms.
 \end{corollary}
 
+As with the correctness of interpretations using the mapping and preimage arrows, the correctness of interpretations using the mapping* and preimage* arrows follows from $\liftpmap$ and $\liftppre$ being arrow homomorphisms, and Theorem~\ref{thm:homomorphism-implies-correct}.
+
 \begin{corollary}[effectful semantic correctness]
 For all expressions $\mathit{e}$,
 \begin{equation}
@@ -1677,6 +1829,10 @@ For all expressions $\mathit{e}$,
 \end{aligned}
 \end{equation}
 \end{corollary}
+
+Unfortunately, because a statement such as ``$k_1 \equiv k_2$'' implies $k_1$ terminates if and only if $k_2$ terminates, we cannot use the same tactics to prove an asymmetric statement such as ``$k_2$ terminates with the correct answer whenever $k_1$ terminates; otherwise returns $\bot$.''
+For these kinds of termination theorems, we need to reason about the interaction of programs with their supplied branch traces.
+
 
 \subsection{Termination}
 
@@ -1728,7 +1884,7 @@ Thus,
 	&\ \equiv\ \liftmap~f~A
 \\
 	&\ \equiv\ g~A
-\\[-2.25\baselineskip]
+\\[-2.4\baselineskip]
 \end{align*}
 \end{displaybreaks}
 \qedhere
@@ -1747,21 +1903,21 @@ First, for any input for which $\meaningof{\mathit{e}}_\pbot$ terminates, there 
 
 \begin{theorem}
 Let $f := \meaningof{\mathit{e}}_\pbot : X \pbotto Y$ with maximal domain $A^*$, and $f' := \meaningofconv{\mathit{e}}_\pbot$.
-For all $\pair{\pair{r,t},a} \in A^*$, there exists a $T' \subseteq T$ such that
+For all $\pair{\pair{\omega,t},a} \in A^*$, there exists a $T' \subseteq T$ such that
 \begin{itemize}
-	\item If $t' \in T'$ then $f'~j_0~\pair{\pair{r,t'},a} = f~j_0~\pair{\pair{r,t},a}$.
-	\item If $t' \in T \w T'$ then $f'~j_0~\pair{\pair{r,t'},a} = \bot$.
+	\item If $t' \in T'$ then $f'~j_0~\pair{\pair{\omega,t'},a} = f~j_0~\pair{\pair{\omega,t},a}$.
+	\item If $t' \in T \w T'$ then $f'~j_0~\pair{\pair{\omega,t'},a} = \bot$.
 \end{itemize}
 \end{theorem}
 \begin{proof}
 Define $T'$ as the set of all $t' \in J \to Bool_\bot$ such that $t'~j = z$ if the subcomputation with index $j$ is an $if$ whose test returns $z$.
-Because $f~j_0~\pair{\pair{r,t},a}$ terminates, $t'~j \neq \bot$ for at most finitely many $j$, so each $t' \in T$.
+Because $f~j_0~\pair{\pair{\omega,t},a}$ terminates, $t'~j \neq \bot$ for at most finitely many $j$, so each $t' \in T$.
 
 Let $t' \in T'$.
-Because the test of every $if$ subcomputation at index $j$ agrees with $t'~j$ and $f$ ignores branch traces, $f'~j_0~\pair{\pair{r,t'},a} = f~j_0~\pair{\pair{r,t},a}$.
+Because the test of every $if$ subcomputation at index $j$ agrees with $t'~j$ and $f$ ignores branch traces, $f'~j_0~\pair{\pair{\omega,t'},a} = f~j_0~\pair{\pair{\omega,t},a}$.
 
 Let $t' \in T \w T'$.
-There exists an $if$ subexpression with a test that does not agree with $t'$; therefore $f'~j_0~\pair{\pair{r,t'},a} = \bot$.
+There exists an $if$ subexpression with a test that does not agree with $t'$; therefore $f'~j_0~\pair{\pair{\omega,t'},a} = \bot$.
 \end{proof}
 
 Next, for any input for which $\meaningof{\mathit{e}}_\pbot$ does not terminate or returns $\bot$, $\meaningofconv{\mathit{e}}_\pbot$ should return $\bot$.
@@ -1780,7 +1936,7 @@ Applying $left$ and/or $right$ repeatedly to any $j \in J'$ eventually yields a 
 
 \begin{theorem}
 Let $f := \meaningof{\mathit{e}}_\pbot : X \pbotto Y$ with maximal domain $A^*$, and $f' := \meaningofconv{\mathit{e}}_\pbot$.
-For all $a \in ((R \times T) \times X) \w A^*$, $f'~j_0~a = \bot$.
+For all $a \in ((\Omega \times T) \times X) \w A^*$, $f'~j_0~a = \bot$.
 \end{theorem}
 \begin{proof}
 Let $t := snd~(fst~a)$ be the branch trace element of $a$.
@@ -1807,7 +1963,7 @@ For all $a \in A^*$, $f'~j_0~a = f~j_0~a$.
 
 \begin{corollary}[correct computation everywhere]
 \label{cor:correct-convergence}
-Let $\meaningofconv{\mathit{e}}_\pbot : X \pbotto Y$ have maximal domain $A^*$, and $X' := (R \times T) \times X$.
+Let $\meaningofconv{\mathit{e}}_\pbot : X \pbotto Y$ have maximal domain $A^*$, and $X' := (\Omega \times T) \times X$.
 For all $a \in X'$, $A \subseteq X'$ and $B \subseteq Y$,
 \begin{equation}
 \begin{aligned}
@@ -1827,27 +1983,29 @@ In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always ter
 \section{Output Probabilities and Measurability}
 \label{sec:measurability}
 
-Typically, for $g : X \pto Y$, the probability of $B \subseteq Y$ is $P~(preimage~g~B)$, where $P : Set~X \pto [0,1]$ assigns probabilities to subsets of $X$.
+Typically, for $g : \Omega \pto Y$, the probability of $B \subseteq Y$ is $P~(preimage~g~B)$, where $P : Set~\Omega \pto [0,1]$ assigns probabilities to subsets of $\Omega$.
 
-A mapping* computation's domain is $(R \times T) \times X$, not $X$.
-We assume each $r \in R$ is randomly chosen, but not each $t \in T$ nor each $x \in X$; therefore, neither $T$ nor $X$ should affect the probabilities of output sets.
-We clearly must measure \emph{projections} of preimage sets, or $P~(image~(fst~\arrowcomp~fst)~A)$ for preimage sets $A \subseteq (R \times T) \times X$. 
+A mapping* computation's domain is $(\Omega \times T) \times X$, not $\Omega$.
+We assume each $\omega \in \Omega$ is randomly chosen, but not each $t \in T$ nor each $x \in X$; therefore, neither $T$ nor $X$ should affect the probabilities of output sets.
+We clearly must measure \emph{projections} of preimage sets, or $P~(image~(fst~\arrowcomp~fst)~A)$ for preimage sets $A \subseteq (\Omega \times T) \times X$. 
 
 Not all preimage sets have sensible measures.
 Sets that do are called \keyword{measurable}.
-Computing preimages and projecting them onto $R$ must preserve measurability.
+Computing preimages and projecting them onto $\Omega$ must preserve measurability.
 
 Our main results are the best we could hope for.
-First, the interpretations of all expressions preserve measurability, regardless of nontermination.
+First, the interpretations of all expressions are measurable, regardless of nontermination.
 
 \begin{theorem}
-For all expressions $\mathit{e}$, $\meaningofconv{\mathit{e}}\pmap$ preserves measurability.
+\label{thm:proto-all-programs-measurable}
+For all expressions $\mathit{e}$, $\meaningofconv{\mathit{e}}\pmap$ is measurable.
 \end{theorem}
 
-Second, projecting a program's preimages onto $R$ results in a measurable set.
+Second, projecting a program's preimages onto $\Omega$ results in a measurable set.
 
 \begin{theorem}
-If $A \subseteq (R \times T) \times \set{\pair{}}$ is measurable, then $image~(fst~\arrowcomp~fst)~A$ is measurable.
+\label{thm:proto-all-projections-measurable}
+If $A \subseteq (\Omega \times T) \times \set{\pair{}}$ is measurable, then $image~(fst~\arrowcomp~fst)~A$ is measurable.
 \end{theorem}
 
 The proofs of these theorems are in Chapter~\ref{ch:measurability}.
@@ -1933,10 +2091,10 @@ We focus on a specific method: approximating product sets with covering rectangl
 We would like to be able to compute preimages of uncountable sets, such as real intervals---but $preimage~(g~A)~B$ is uncomputable for most mappings $g$ and uncountable sets $A$ and $B$ no matter how cleverly they are represented.
 Further, because $pre$, $\liftpre$ and $\arrpre$ are ultimately defined in terms of $preimage$, we cannot implement them.
 
-Fortunately, we need only certain lifts.
+Fortunately, we need to apply $\arrpre$ only to certain functions.
 \figref{fig:semantic-function} (which defines $\meaningof{\cdot}\gen$) lifts $id$, $const~b$, $fst$ and $snd$.
 Section~\ref{sec:probabilistic-programs}, which defines the combinators used to interpret partial, probabilistic programs, lifts $\pi~j$ and $agrees$.
-Measurable functions made available as language primitives of course must be lifted to the preimage arrow.
+Measurable functions made available as language primitives, such as arithmetic, must be lifted to the preimage arrow---though to maintain generality, we put off lifting arithmetic functions until Chapter~\ref{ch:preimage2}.
 
 \figref{fig:extra-preimage-arrow-defs} gives explicit definitions for $\arrpre~id$, $\arrpre~fst$, $\arrpre~snd$, $\arrpre~(const~b)$ and $\arrpre~(\pi~j)$.
 (We will deal with $agrees$ separately.)
@@ -1980,9 +2138,15 @@ where the following operations lift cartesian products to sets of sets:
 We additionally define $Rect~Bool ::= \powerset~Bool$.
 It is easy to show the collection of all rectangular families is closed under products, projections, and $unproj$.
 
+\begin{figure*}[tb!]\centering
+\includegraphics[width=4.5in]{figures/random-tree-rect}
+\caption[A finite model of a rectangular subset of $\Omega$]{A finite binary tree model of $unproj~(left~j_0)~(unproj~j_0~\Omega~[0,\frac{1}{4}))~(\frac{3}{4},1]$. Because of $\Omega$'s self-similarity, and because rectangles of $J \to [0,1]$ are defined so that only finitely many projections are not $[0,1]$, every rectangular subset of $\Omega$ has a finite binary tree model.}
+\label{fig:omega-rect-tree}
+\end{figure*}
+
 Further, all of the operations in~\eqref{eqn:exact-rectangle-ops} can be exactly implemented if finite sets are modeled directly, sets in ordered spaces (such as $\Re$) are modeled by intervals, and sets in $Rect~\pair{X_1,X_2}$ are modeled by pairs of type $\pair{Rect~X_1,Rect~X_2}$.
 By~\eqref{eqn:rectangular-product}, sets in $Rect~(J \to X)$ have no more than finitely many projections that are proper subsets of $X$.
-They can be modeled by \emph{finite} binary trees, where unrepresented projections are implicitly $X$.
+They can be modeled by \emph{finite} binary trees, where unrepresented projections are implicitly $X$. \figref{fig:omega-rect-tree} illustrates a model of a member of $Rect~(J \to [0,1])$; i.e. a rectangular subset of $\Omega$.
 
 The set of branch traces $T$ is nonrectangular, but we can model $T$ subsets by $J \to Bool_\bot$ rectangles, implicitly intersected with $T$.
 
@@ -2013,7 +2177,7 @@ At this point, we need to approximate.
 
 \begin{theorem}[pair preimage approximation]
 \label{thm:pair-preimage-approximation}
-Let $g_1 \in X \pto Y_1$ and $g_2 \in X \pto Y_2$.
+Let $g_1 : X \pto Y_1$ and $g_2 : X \pto Y_2$.
 For all $B \subseteq Y_1 \times Y_2$, $preimage~\pair{g_1,g_2}\map~B \subseteq preimage~g_1~(proj_1~B) \i preimage~g_2~(proj_2~B)$.%
 \end{theorem}
 \begin{proof}
@@ -2061,6 +2225,7 @@ The best approximation of the preimage of $Bool$ under $agrees$ (as a mapping) i
 
 A lengthy (elided) sequence of substitutions to the defining expression for $\convifppre$ results in an $agrees$-free equivalence:
 \begin{equation}
+\begin{aligned}
 	\convifppre~k_1~k_2~k_3~j~A\ \equiv 
 	\ \lzfclet{
 		\pair{C_k,p_k} & k_1~j_1~A \\
@@ -2070,6 +2235,7 @@ A lengthy (elided) sequence of substitutions to the defining expression for $\co
 		A_2 & p_k~C_2 \i p_b~C_2 \\
 		A_3 & p_k~C_3 \i p_b~C_3 \\
 	}{k_2~j_2~A_2 \uplus\pre k_3~j_3~A_3}
+\end{aligned}
 \label{eqn:expanded-convifppre}
 \end{equation}
 where $j_1 = left~j$ and so on.
@@ -2185,7 +2351,7 @@ Implementations can model it by a singleton ``universe'' instance for every $Rec
 \\[-6pt]
 \!\!\!\begin{aligned}[t]
 	&\begin{aligned}[t]
-		&X \ppreto' Y ::= AStore~(R \times T)~(X \preto' Y)
+		&X \ppreto' Y ::= AStore~(\Omega \times T)~(X \preto' Y)
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
@@ -2242,31 +2408,33 @@ This arrow, the lifts in \figref{fig:extra-preimage-arrow-defs}, and the semanti
 From here on, ${\meaningofconv{\cdot}}\ppre'$ interprets programs as approximating preimage* arrow computations using ${\arrowconvif}\ppre'$.
 The following theorems assume $h := \meaningofconv{\mathit{e}}\ppre : X \ppreto Y$ and $h' := {\meaningofconv{\mathit{e}}}\ppre' : X \ppreto' Y$ for some expression $\mathit{e}$.
 
-\begin{theorem}[sound]
-\label{thm:approximation}
-For all $A \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$, $ap\pre~(h~j_0~A)~B \subseteq ap\pre'~(h'~j_0~A)~B$.%
-\end{theorem}
-\begin{proof}
-By construction.
-\end{proof}
-
 To use structural induction on the interpretation of $\mathit{e}$, we need a theorem that allows representing it as a finite expression (Definition~\ref{def:finite-expression}).
 Because ${\arrowconvif}\ppre'$ does not branch when either branch could be taken, an equivalent finite expression exists for each rectangular domain subset $A$.
 
 \begin{theorem}[equivalent finite expression]
 \label{thm:equivalent-finite-expression}
-Let $A' \in Rect~\pair{\pair{R,T},X}$.
-There is a finite expression $\mathit{e'}$ for which $ap\pre'~(h''~j_0~A')~B = ap\pre'~(h'~j_0~A')~B$ for all $B \in Rect~Y$, where $h'' := {\meaningofconv{\mathit{e'}}}\ppre'$.%
+For all $A \in Rect~\pair{\pair{\Omega,T},X}$,
+there exists a finite expression $\mathit{e'}$ for which, if $h'' := {\meaningofconv{\mathit{e'}}}\ppre'$, then $ap\pre'~(h''~j_0~A)~B = ap\pre'~(h'~j_0~A)~B$ for all $B \in Rect~Y$.%
 \end{theorem}
 \begin{proof}
-Let $T' := proj_2~(proj_1~A')$, and let the index prefix $J'$ contain every $j'$ for which $(proj~j'~T') \w \set{\bot}$ is either $\set{true}$ or $\set{false}$.
+Let $T' := proj_2~(proj_1~A)$, and let the index prefix $J'$ contain every $j'$ for which $(proj~j'~T') \w \set{\bot}$ is either $\set{true}$ or $\set{false}$.
 To construct $\mathit{e'}$, exhaustively apply first-order functions in $\mathit{e}$, but replace any $if~\mathit{e}_1~\mathit{e}_2~\mathit{e}_3$ whose index is not in $J'$ with the equivalent expression $if~\mathit{e}_1~\bot~\bot$.
 Because $\mathit{e}$ is well-defined, recurrences must be guarded by $if$, so this process terminates after finitely many applications.
 \end{proof}
 
 \begin{corollary}[terminating]
-For all $A' \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$, $ap\pre'~(h'~j_0~A')~B$ terminates.
+\label{thm:terminating}
+For all $A \in Rect~\pair{\pair{\Omega,T},X}$ and $B \in Rect~Y$, $ap\pre'~(h'~j_0~A)~B$ terminates.
 \end{corollary}
+
+\begin{theorem}[sound]
+\label{thm:approximation}
+For all $A \in Rect~\pair{\pair{\Omega,T},X}$ and $B \in Rect~Y$, $ap\pre~(h~j_0~A)~B \subseteq ap\pre'~(h'~j_0~A)~B$.
+\end{theorem}
+\begin{proof}
+By construction and Corollary~\ref{thm:terminating} (recall non-``$\equiv$'' statements imply termination).
+\end{proof}
+
 
 \begin{theorem}[monotone]
 \label{thm:monotonicity}
@@ -2277,19 +2445,19 @@ Lattice operators $(\i)$ and $(\join)$ are monotone, as is $(\times)$.
 Therefore, $id\pre$ and the other lifts in \figref{fig:extra-preimage-arrow-defs} are monotone, and each approximating preimage arrow combinator preserves monotonicity.
 Approximating preimage* arrow combinators, which are defined in terms of approximating preimage arrow combinators (\figref{fig:approximating-preimage-arrow-defs}) likewise preserve monotonicity, as does $\arrowtrans\ppre'$; therefore $id\ppre$ and other lifts are monotone.
 
-The definition of ${\arrowconvif}\ppre'$ can be written in terms of lattice operators and approximating preimage arrow combinators for any $A$ for which $C_b \subset \set{true,false}$, and thus preserves monotonicity in that case.
+The definition of ${\arrowconvif}\ppre'$ can be written in terms of lattice operators and approximating preimage arrow combinators for any $A$ for which $C_b = \set{true}$ or $C_b = \set{false}$, and thus preserves monotonicity in those cases.
 If $C_b = \set{true,false}$, which is an upper bound for $C_b$, the returned value is an upper bound.
 
 For monotonicity in $A$, suppose $A_1 \subseteq A_2$.
-Apply Theorem~\ref{thm:equivalent-finite-expression} with $A' := A_1$ to yield $\mathit{e'}$; clearly, it is also an equivalent finite expression for $A_2$.
+Apply Theorem~\ref{thm:equivalent-finite-expression} with $A_1$ to yield $\mathit{e'}$; clearly, it is also an equivalent finite expression for $A_2$.
 Monotonicity follows from structural induction on the interpretation of $\mathit{e'}$.
 
-For monotonicity in $B$, use Theorem~\ref{thm:equivalent-finite-expression} with fixed $A' := A$.
+For monotonicity in $B$, apply Theorem~\ref{thm:equivalent-finite-expression} with a fixed $A$.
 \end{proof}
 
 \begin{theorem}[decreasing]
 \label{thm:decreasing}
-For all $A \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$, $ap\pre'~(h'~j_0~A)~B \subseteq A$.%
+If $A \in Rect~\pair{\pair{\Omega,T},X}$ and $B \in Rect~Y$, $ap\pre'~(h'~j_0~A)~B \subseteq A$.%
 \end{theorem}
 \begin{proof}
 Because they compute exact preimages of rectangular sets under restriction to rectangular domains, $id\pre$ and the other lifts in \figref{fig:extra-preimage-arrow-defs} are decreasing.
@@ -2327,18 +2495,18 @@ Given these properties, we  might try to compute preimages of $B$ by computing p
 Let $B \in Rect~Y$ and
 \begin{equation}
 \begin{aligned}
-	&refine : Rect~\pair{\pair{R,T},X} \tto Rect~\pair{\pair{R,T},X} \\
+	&refine : Rect~\pair{\pair{\Omega,T},X} \tto Rect~\pair{\pair{\Omega,T},X} \\
 	&refine~A := ap\pre'~(h'~j_0~A)~B
 \end{aligned}
 \end{equation}
-Define $partition : Rect~\pair{\pair{R,T},X} \tto Set~(Rect~\pair{\pair{R,T},X})$ to produce positive-measure, disjoint rectangles, and define
+Define $partition : Rect~\pair{\pair{\Omega,T},X} \tto Set~(Rect~\pair{\pair{\Omega,T},X})$ to produce positive-measure, disjoint rectangles, and define
 \begin{equation}
 \begin{aligned}
-	&refine^* : Set~(Rect~\pair{\pair{R,T},X}) \tto Set~(Rect~\pair{\pair{R,T},X}) \\
+	&refine^* : Set~(Rect~\pair{\pair{\Omega,T},X}) \tto Set~(Rect~\pair{\pair{\Omega,T},X}) \\
 	&refine^*~\A := image~refine~\left(\U_{A \in \A} partition~A \right)
 \end{aligned}
 \end{equation}
-For any $A \in Rect~\pair{\pair{R,T},X}$, iterate $refine^*$ on $\set{A}$.
+For any $A \in Rect~\pair{\pair{\Omega,T},X}$, iterate $refine^*$ on $\set{A}$.
 \end{definition}
 
 Theorem~\ref{thm:decreasing} (decreasing) guarantees $refine~A$ is never larger than $A$.
@@ -2366,16 +2534,14 @@ For now, we use algorithms that depend only on soundness.
 
 We have four implementations: one of the exact semantics, two direct implementations of the approximating semantics, and a less direct but more efficient implementation of the approximating semantics, which we call \mykeyword{Dr. Bayes}.
 
-\subsection{Direct Implementations}
-
-If sets are restricted to be finite, the arrows used as translation targets in the exact semantics, defined in \figsref{fig:mapping-defs}, \ref{fig:bottom-arrow-defs}, \ref{fig:mapping-arrow-defs}, \ref{fig:preimage-mapping-defs}, \ref{fig:preimage-arrow-defs} and~\ref{fig:astore-arrow-defs}, can be implemented directly in any practical $\lambda$-calculus.
+If sets are restricted to be finite, the arrows used as translation targets in the exact semantics, defined in \ref{fig:bottom-arrow-defs}, \ref{fig:mapping-arrow-defs}, \ref{fig:preimage-mapping-defs}, \ref{fig:preimage-arrow-defs} and~\ref{fig:astore-arrow-defs}, can be implemented directly in any practical $\lambda$-calculus.
 Computing exact preimages is very inefficient, even under the interpretations of very small programs.
-Still, we have found our Typed Racket~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} implementation useful for finding theorem candidates.
+Still, we have found our Typed Racket~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} implementation useful for finding theorem candidates and counterexamples.
 
 Given a rectangular set library, the approximating preimage arrows defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-preimage-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
 We have done so in Typed Racket and Haskell~\cite{cit:haskell-lang}.
 Both implementations' arrow combinator definitions are almost line-for-line transliterations from the figures.
-They are at \url{https://github.com/ntoronto/writing/tree/master/2014esop-code}.
+They are at \url{https://github.com/ntoronto/writing/tree/master/2014esop-code}. [XXX: move]
 
 Making the rectangular set type polymorphic seems to require the equivalent of a typeclass system.
 In Haskell, it also requires multi-parameter typeclasses or indexed type families~\cite{cit:chakravarty-2005popl-type-families} to associate set types with the types of their members.
@@ -2384,137 +2550,9 @@ Using indexed type families, the only significant differences between the Haskel
 Typed Racket has no typeclass system on top of its type system, so the rectangular set type is monomorphic; thus, so are the arrow types.
 The lack of type variables in the combinator types is the only significant difference between the implementation and the approximating semantics.
 
-\subsection{Dr. Bayes}
+Chapter~\ref{ch:preimage2} details the implementation of Dr. Bayes.
 
-Our main implementation, \mykeyword{Dr. Bayes}, is written in Typed Racket.
-It consists of the semantic function $\meaningof{\cdot}\genc$ from \figref{fig:semantic-function} and its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow as defined in \figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}, the approximating preimage and preimage* arrows as defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-preimage-arrow-defs}, and algorithms to compute approximate probabilities.
-We use it to test the feasibility of solving real-world problems by computing approximate preimages.
-
-Dr. Bayes's arrows operate on a monomorphic rectangular set data type.
-It includes floating-point intervals to overapproximate real intervals, with which we compute approximate preimages under arithmetic and inequalities.
-Finding the smallest covering rectangle for images and preimages under $add : \pair{\Re,\Re} \tto \Re$ and other monotone functions is fairly straightforward.
-For piecewise monotone functions, we distinguish cases using $\ifpre$; e.g.
-\begin{equation}
-	\hspace{-0.5in}
-	mul\pre \ := \
-		\lzfcsplit{\ifpre~
-			&(fst\pre~\comppre~pos?\pre) \\
-			&(\lzfcsplit{\ifpre~
-				&(snd\pre~\comppre~pos?\pre) \\
-				&mul^{++}\pre \\
-				&(\lzfcsplit{\ifpre~
-					\lzfcsplit{&(snd\pre~\comppre~neg?\pre) \\
-						&mul^{+-}\pre \\
-						&(const\pre~0)))}
-				}
-			} \\
-			&\cdots
-		}
-	\hspace{-0.5in}
-\end{equation}
-To support data types, the set type includes tagged rectangles; for ad-hoc polymorphism, it includes disjoint unions.
-
-Section~\ref{sec:discretization} outlines preimage refinement: a discretization algorithm that seems to converge for programs that halt with probability 1, consisting of repeatedly shrinking and repartitioning a program's domain.
-We do not use this algorithm directly in Dr. Bayes because it is inefficient.
-Good accuracy requires fine discretization, which is \emph{exponential} in the number of discretized axes.
-For example, a nonrecursive program that contains only 10 uses of $random$ would need to partition 10 axes of $R$, the set of random sources.
-Splitting each axis into only 4 disjoint intervals yields a partition of $R$ of size $4^{10} = 1,048,576$.
-
-Fortunately, Bayesian practitioners tend to be satisified with sampling methods, which are usually more efficient than exact methods based on enumeration.
-
-Let $g : X \mapto Y$ be the interpretation of a program as a mapping arrow computation.
-A Bayesian is primarily interested in the probability of $B' \subseteq Y$ given some condition set $B \subseteq Y$.
-This can be approximated using \keyword{rejection sampling}.
-If $A := preimage~(g~X)~B$ and $A' := preimage~(g~X)~B'$, and $xs$ is a list of samples from any superset of $A$ that has at least one element in $A$, then
-\begin{equation}
-	Pr[B'|B] \ \approx \ \frac{length~(filter~(\in A' \i A)~xs)}{length~(filter~(\in A)~xs)}
-\label{eqn:sampling-approx-conditional}
-\end{equation}
-where ``$\approx$'' (rather loosely) denotes convergence as the length of $xs$ increases.
-The probability that any given element of $xs$ is in $A$ is often extremely small, so it would clearly be best to sample only within $A$.
-While we cannot do that, we can easily sample from a partition covering $A$.
-
-For a fixed number $\mathit{d}$ of uses of $random$, $\mathit{n}$ samples, and $\mathit{m}$ repartitions that split each rectangle in two, enumerating and sampling from a covering partition has time complexity $\mathit{O}(2^\mathit{md} + \mathit{n})$.
-Fortunately, we do not have to enumerate the rectangles in the partition: we sample them instead, and sample one value from each rectangle, which is $\mathit{O(mdn)}$.
-
-We cannot directly compute $a \in A$ or $a \in A' \i A$ in~\eqref{eqn:sampling-approx-conditional}, but we can use the fact that $A$ and $A'$ are preimages, and use the interpretation of the program as a bottom arrow computation $f : X \botto Y$:
-\begin{equation}
-\begin{aligned}
-	filter~(\in A)~xs
-		&\ = \ filter~(\in preimage~(g~X)~B)~xs
-\\
-		&\ = \ filter~(\fun{a}{g~X~a \in B})~xs
-\\
-		&\ = \ filter~(\fun{a}{f~a \in B})~xs
-\end{aligned}
-\end{equation}
-Substituting into~\eqref{eqn:sampling-approx-conditional} gives
-\begin{equation}
-	Pr[B'|B] \ \approx \ \frac{length~(filter~(\fun{a}{f~a \in B' \i B})~xs)}{length~(filter~(\fun{a}{f~a \in B})~xs)}
-\end{equation}
-which converges to the probability of $B'$ given $B$ as the number of samples $xs$ from the covering partition increases.
-
-For simplicity, the preceeding discussion does not deal with projecting preimages from the domain of programs $(R \times T) \times \set{\pair{}}$ onto the set of random sources $R$.
-Shortly, Dr. Bayes samples rectangles from covering partitions of $(R \times T) \times \set{\pair{}}$ subsets, weights each rectangle by the inverse of the probability with which it is sampled, and projects onto $R$.
-This alogorithm is a variant of \keyword{importance sampling}~\cite[Section 12.4]{cit:degroot-2012book-probability}, where the candidate distribution is defined by the sampling algorithm's partitioning choices, and the target distribution is $P$.
-
-\begin{lrbox}{\codebox}
-\begin{varwidth}{\textwidth}
-\singlespacing
-\begin{schemedisplay}
-(struct/drbayes collision (time point normal))
-<blank-line>
-(define/drbayes (ray-plane-intersect p0 v n d)
-  (let ([denom  (- (vec-dot v n))])
-    (if (positive? denom)
-        (let ([t  (/ (+ d (vec-dot p0 n)) denom)])
-          (if (positive? t) (collision t (vec+ p0 (vec-scale v t)) n) #f))
-        #f)))
-<blank-line>
-\end{schemedisplay}
-\end{varwidth}
-\end{lrbox}
-
-\begin{figure*}[!tb]\centering
-\smallmathfont
-\subfloat[Random paths from a single light source, conditioned on passing through an aperture.]{
-\begin{minipage}{0.49\textwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/ray-tracing}
-\end{minipage}
-\label{fig:ray-tracing-paths}
-}
-\tab\tab
-\subfloat[Random paths that pass through the aperture, projected onto a plane and accumulated.]{
-\begin{minipage}{0.43\textwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/ray-tracing-projection}
-\end{minipage}
-\label{fig:ray-tracing-projection}
-}
-
-\subfloat[Part of the ray tracer implementation. Sampling involves computing approximate preimages under functions like this.]{
-\usebox{\codebox}
-\label{fig:ray-plane-intersect}
-}
-\caption[Stochastic ray tracing in Dr. Bayes]{Stochastic ray tracing in Dr. Bayes is little more than physics simulation.}
-\label{fig:ray-tracing}
-\end{figure*}
-
-\figref{fig:ray-tracing} shows the result of using Dr. Bayes for stochastic ray tracing~\cite{cit:veach-1997siggraph-mlt}.
-In this instance, photons are cast from a light source in a uniformly random direction and are reflected by the walls of a square room, generating paths.
-The objective is to sample, with the correct distribution, only those paths that pass through an aperture.
-The smaller the aperture, the smaller the probability a path passes through it, and the more focused the resulting image.
-
-All efficient implementations of stochastic ray tracing to date use sophisticated, specialized sampling methods that bear little resemblance to the physical processes they simulate.
-The proof-of-concept ray tracer, written in Dr. Bayes, is little more than a simple physics simulation and a conditional query.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Conclusions and Future Work}
+\section{Conclusions}
 
 To allow recursion and arbitrary conditions in probabilistic programs, we combined the power of measure theory with the unifying elegance of arrows. We
 \begin{enumerate}
@@ -2526,15 +2564,6 @@ To allow recursion and arbitrary conditions in probabilistic programs, we combin
 Critically, the preimage arrow's lift from the bottom arrow distributes over bottom arrow computations.
 Our semantics thus generalizes this process to all programs: 1) encode a program as a bottom arrow computation; 2) lift this computation to get an uncomputable function that computes preimages; 3) distribute the lift; and 4) replace uncomputable expressions with sound approximations.
 
-Our semantics trades efficiency for simplicity by threading a constant, tree-shaped random source (Section~\ref{sec:threading-and-indexing}).
-Passing subtrees instead would make $random$ a constant-time primitive, and allow combinators to detect lack of change and return cached values.
-Other future optimization work includes creating new sampling algorithms, and using other easily measured but more expressive set representations, such as parallelotopes~\cite{cit:amato-2012tcs-parallelotopes}.
-On the theory side, we intend to explore preimage computation's connection to type checking and type inference, investigate ways to integrate and leverage polymorphic type systems, and find the conditions under which preimage refinement is complete in the limit.
-
-More broadly, we hope to advance Bayesian practice by providing a rich modeling language with an efficient, correct implementation, which allows general recursion and any computable, probabilistic condition.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+XXX: segue
 
 \mathversion{normal}

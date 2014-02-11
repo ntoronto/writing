@@ -60,27 +60,31 @@ Languages are also useful when they allow us to express ideas naturally and reas
 \section{Proof and Supporting Evidence}
 
 All but usefulness in the thesis can be proved, and for usefulness, we give evidence.
-To prove and demonstrate the thesis, we define two semantics, prove them correct, implement them, and test the implementations.
+To prove and demonstrate the thesis, we define two semantics, prove them correct, implement approximations of them, and test the implementations.
 
 The first semantics is an initial investigation into our general approach: transforming Bayesian theories into $\lambda$-calculus terms that build exact measure-theoretic models of the theories, and then changing the transformation to build approximate models to carry out computations.
 To keep the investigation simple, we restrict theories to countable probability distributions and finitely many statements.
 
-We show the first language is trustworthy by proving that the semantics generates correct models (Theorem~[XXX: 5.5]) and that computed approximations converge to the correct answers (Theorem~[XXX: formulate as theorem and ref]).
+We ensure the first language is trustworthy by deriving its semantics from an idealized expected meaning of Bayesian theories, and computing answers to queries from approximate models in a way that converges to the correct answers according to the exact models.
 We demonstrate the language is useful by implementing the approximating transformation, and encoding theories and running queries that are difficult to model directly without it.
 
 The second semantics handles uncountable probability distributions and recursion by transforming a first-order functional language with probabilistic choice into $\lambda$-calculus terms that build models.
 Again, we change the transformation to build approximate models and use them to carry out computations.
+
 We show the language is trustworthy by proving
 \begin{itemize}
-	\item Exact queries always terminate with correct answers (Theorem~[XXX: 7.50]).
-	\item All probabilistic programs have sensible output distributions, regardless of nontermination (Theorem~[XXX: 7.51]).
-	\item The approximations are sound, always terminate, and have other desirable properties (Theorems~[XXX: choose some of 7.56, 7.58, 7.59, 7.60]).
-	\item All answers computed using the approximations are correct (Theorem~[XXX: 8.28]).
+	\item Exact queries always terminate with correct answers (Theorem~\ref{cor:correct-convergence}).
+	\item All probabilistic programs have sensible output distributions, regardless of nontermination (Theorems~\ref{thm:proto-all-programs-measurable} and~\ref{thm:proto-all-projections-measurable}).
+	\item The approximations are sound, always terminate, and have other desirable properties (Theorems~\ref{thm:terminating} through~\ref{thm:decreasing}).
+	\item Answers computed using the approximations correctly converge (Theorem~\ref{thm:partitioned-importance-sampling-correctness}).
 \end{itemize}
-We demonstrate the language is useful by implementing the approximating transformation and encoding some typical Bayesian theories and running queries.
+Further, Theorems~\ref{thm:proto-all-programs-measurable} and~\ref{thm:proto-all-projections-measurable} apply to any probabilistic programming language that can be transformed into ours.
+Because ours is Turing-equivalent (with a random oracle) and is easy to extend with uncomputable operations such as real limits and decidable equality, this includes all probabilistic programming languages to date, and likely almost all future probabilistic programming languages.
+
+We demonstrate the second language is useful by implementing the approximating transformation and encoding some typical Bayesian theories and running queries.
 In all of our tests, the theory encodings are straightforward and the queries are efficient.
 
-To demonstrate further usefulness, we encode theories and run queries that are impossible to reason about precisely using common Bayesian mathematical tools.
+To demonstrate further usefulness, we encode theories and run queries that are impossible to reason about precisely using typical Bayesian mathematical tools.
 One example draws inferences from a correctly modeled thermometer.
 Another is a simple, direct theory of light transport and a query that together carry out stochastic ray tracing.
 
@@ -95,7 +99,7 @@ While this work is designed to make sense when read straight through, readers ma
 \end{figure*}
 
 In principle, answers to questions such as ``Which chapters should I read if I am only interested in implementations of probabilistic languages with conditioning and recursion?'' can be answered using a dependency graph.
-However, the graph would be a mess of arrows: for example, everything after Chapter~\ref{ch:background} (Background) depends on Chapter~\ref{ch:background}; similarly for Chapter~\ref{ch:using-lambda-zfc}.
+However, the graph would be a mess of arrows: for example, everything after Chapter~\ref{ch:background} (Background) depends on Chapter~\ref{ch:background}; similarly for Chapter~\ref{ch:using-lambda-zfc} (Using \lzfclang).
 \figref{fig:reading-graph} shows an alternative: a transition system on chapters for which following any path (with backtracking permitted) guarantees a reader will not miss out on prerequisites.
 
 Chapter~\ref{ch:background} gives the necessary background in Bayesian practice and functional programming theory, and motivates using measure theory.
@@ -109,7 +113,7 @@ While this precision is necessary for doing the rest of our work and verifying i
 Readers who are not verifying our work may therefore skip from Chapter~\ref{ch:background} to Chapter~\ref{ch:using-lambda-zfc}, which gives an overview of \lzfclang and its relationship with contemporary mathematics, gives examples of use, and defines some common terminology and functions.
 
 Chapter~\ref{ch:countable-models} defines a semantics for Bayesian notation restricted to countable probability distributions and finitely many statements.
-Chapter~\ref{ch:interlude} explains why its specific way of transforming notation into models does not extend easily to theories with uncountable distributions and recursion, which motivates a slight change in tactics.
+Chapter~\ref{ch:interlude} explains why its specific way of transforming notation into models does not extend easily to theories with recursion, which motivates a slight change in tactics.
 
 Following the new tactics, Chapter~\ref{ch:preimage1} defines a semantics for a probabilistic language with uncountable distributions, recursion, and arbitrary probabilistic conditions.
 Chapter~\ref{ch:preimage2} gives details that should be common to all implementations, and details specific to ours.

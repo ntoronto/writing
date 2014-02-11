@@ -2,19 +2,16 @@ Chapter 3
  * Fix restriction syntax
 
 Chapter 4
+ ? Shortcut evaluation
  * Add \beta rules, restricted \eta rules, other stuff about reducing inside lambdas
 
 Chapter 7
- * Use intertext on lazy preimage mapping proofs
- * Rename R to \Omega
- * Pictures of binary indexing scheme
- * Pictures of lattice operators?
- * Picture of refinement
  * Remove non-local conclusions
 
 Chapter 8
  * Write intro to Chapter 8: Implementation ("you are here")
  * Write Section 8.1 (set representation)
+ * Pictures of lattice operators
  * Write Section 8.3 (primitive implementation)
  * Finish Section 8.4, following the XXX notes in it
  * Move DrBayes implementation section from Chapter 7 to Chapter 8

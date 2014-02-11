@@ -2,6 +2,135 @@
 
 \DeclarePairedDelimiter{\ivl}{[\mspace{-4.5mu}(}{)\mspace{-4.5mu}]}
 
+% Moved from Chapter 7
+\begin{comment}
+\subsection{Dr. Bayes}
+
+Our main implementation, \mykeyword{Dr. Bayes}, is written in Typed Racket.
+It consists of the semantic function $\meaningof{\cdot}\genc$ from \figref{fig:semantic-function} and its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow as defined in \figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}, the approximating preimage and preimage* arrows as defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-preimage-arrow-defs}, and algorithms to compute approximate probabilities.
+We use it to test the feasibility of solving real-world problems by computing approximate preimages.
+
+Dr. Bayes's arrows operate on a monomorphic rectangular set data type.
+It includes floating-point intervals to overapproximate real intervals, with which we compute approximate preimages under arithmetic and inequalities.
+Finding the smallest covering rectangle for images and preimages under $add : \pair{\Re,\Re} \tto \Re$ and other monotone functions is fairly straightforward.
+For piecewise monotone functions, we distinguish cases using $\ifpre$; e.g.
+\begin{equation}
+	\hspace{-0.5in}
+	mul\pre \ := \
+		\lzfcsplit{\ifpre~
+			&(fst\pre~\comppre~pos?\pre) \\
+			&(\lzfcsplit{\ifpre~
+				&(snd\pre~\comppre~pos?\pre) \\
+				&mul^{++}\pre \\
+				&(\lzfcsplit{\ifpre~
+					\lzfcsplit{&(snd\pre~\comppre~neg?\pre) \\
+						&mul^{+-}\pre \\
+						&(const\pre~0)))}
+				}
+			} \\
+			&\cdots
+		}
+	\hspace{-0.5in}
+\end{equation}
+To support data types, the set type includes tagged rectangles; for ad-hoc polymorphism, it includes disjoint unions.
+
+Section~\ref{sec:discretization} outlines preimage refinement: a discretization algorithm that seems to converge for programs that halt with probability 1, consisting of repeatedly shrinking and repartitioning a program's domain.
+We do not use this algorithm directly in Dr. Bayes because it is inefficient.
+Good accuracy requires fine discretization, which is \emph{exponential} in the number of discretized axes.
+For example, a nonrecursive program that contains only 10 uses of $random$ would need to partition 10 axes of $\Omega$, the set of random sources.
+Splitting each axis into only 4 disjoint intervals yields a partition of $\Omega$ of size $4^{10} = 1,048,576$.
+
+Fortunately, Bayesian practitioners tend to be satisified with sampling methods, which are usually more efficient than exact methods based on enumeration.
+
+Let $g : X \mapto Y$ be the interpretation of a program as a mapping arrow computation.
+A Bayesian is primarily interested in the probability of $B' \subseteq Y$ given some condition set $B \subseteq Y$.
+This can be approximated using \keyword{rejection sampling}.
+If $A := preimage~(g~X)~B$ and $A' := preimage~(g~X)~B'$, and $xs$ is a list of samples from any superset of $A$ that has at least one element in $A$, then
+\begin{equation}
+	Pr[B'|B] \ \approx \ \frac{length~(filter~(\in A' \i A)~xs)}{length~(filter~(\in A)~xs)}
+\label{eqn:sampling-approx-conditional}
+\end{equation}
+where ``$\approx$'' (rather loosely) denotes convergence as the length of $xs$ increases.
+The probability that any given element of $xs$ is in $A$ is often extremely small, so it would clearly be best to sample only within $A$.
+While we cannot do that, we can easily sample from a partition covering $A$.
+
+For a fixed number $\mathit{d}$ of uses of $random$, $\mathit{n}$ samples, and $\mathit{m}$ repartitions that split each rectangle in two, enumerating and sampling from a covering partition has time complexity $\mathit{O}(2^\mathit{md} + \mathit{n})$.
+Fortunately, we do not have to enumerate the rectangles in the partition: we sample them instead, and sample one value from each rectangle, which is $\mathit{O(mdn)}$.
+
+We cannot directly compute $a \in A$ or $a \in A' \i A$ in~\eqref{eqn:sampling-approx-conditional}, but we can use the fact that $A$ and $A'$ are preimages, and use the interpretation of the program as a bottom arrow computation $f : X \botto Y$:
+\begin{equation}
+\begin{aligned}
+	filter~(\in A)~xs
+		&\ = \ filter~(\in preimage~(g~X)~B)~xs
+\\
+		&\ = \ filter~(\fun{a}{g~X~a \in B})~xs
+\\
+		&\ = \ filter~(\fun{a}{f~a \in B})~xs
+\end{aligned}
+\end{equation}
+Substituting into~\eqref{eqn:sampling-approx-conditional} gives
+\begin{equation}
+	Pr[B'|B] \ \approx \ \frac{length~(filter~(\fun{a}{f~a \in B' \i B})~xs)}{length~(filter~(\fun{a}{f~a \in B})~xs)}
+\end{equation}
+which converges to the probability of $B'$ given $B$ as the number of samples $xs$ from the covering partition increases.
+
+For simplicity, the preceeding discussion does not deal with projecting preimages from the domain of programs $(\Omega \times T) \times \set{\pair{}}$ onto the set of random sources $\Omega$.
+Shortly, Dr. Bayes samples rectangles from covering partitions of $(\Omega \times T) \times \set{\pair{}}$ subsets, weights each rectangle by the inverse of the probability with which it is sampled, and projects onto $\Omega$.
+This alogorithm is a variant of \keyword{importance sampling}~\cite[Section 12.4]{cit:degroot-2012book-probability}, where the candidate distribution is defined by the sampling algorithm's partitioning choices, and the target distribution is $P$.
+
+\begin{lrbox}{\codebox}
+\begin{varwidth}{\textwidth}
+\singlespacing
+\begin{schemedisplay}
+(struct/drbayes collision (time point normal))
+<blank-line>
+(define/drbayes (ray-plane-intersect p0 v n d)
+  (let ([denom  (- (vec-dot v n))])
+    (if (positive? denom)
+        (let ([t  (/ (+ d (vec-dot p0 n)) denom)])
+          (if (positive? t) (collision t (vec+ p0 (vec-scale v t)) n) #f))
+        #f)))
+<blank-line>
+\end{schemedisplay}
+\end{varwidth}
+\end{lrbox}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\subfloat[Random paths from a single light source, conditioned on passing through an aperture.]{
+\begin{minipage}{0.49\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/ray-tracing}
+\end{minipage}
+\label{fig:ray-tracing-paths}
+}
+\tab\tab
+\subfloat[Random paths that pass through the aperture, projected onto a plane and accumulated.]{
+\begin{minipage}{0.43\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/ray-tracing-projection}
+\end{minipage}
+\label{fig:ray-tracing-projection}
+}
+
+\subfloat[Part of the ray tracer implementation. Sampling involves computing approximate preimages under functions like this.]{
+\usebox{\codebox}
+\label{fig:ray-plane-intersect}
+}
+\caption[Stochastic ray tracing in Dr. Bayes]{Stochastic ray tracing in Dr. Bayes is little more than physics simulation.}
+\label{fig:ray-tracing}
+\end{figure*}
+
+\figref{fig:ray-tracing} shows the result of using Dr. Bayes for stochastic ray tracing~\cite{cit:veach-1997siggraph-mlt}.
+In this instance, photons are cast from a light source in a uniformly random direction and are reflected by the walls of a square room, generating paths.
+The objective is to sample, with the correct distribution, only those paths that pass through an aperture.
+The smaller the aperture, the smaller the probability a path passes through it, and the more focused the resulting image.
+
+All efficient implementations of stochastic ray tracing to date use sophisticated, specialized sampling methods that bear little resemblance to the physical processes they simulate.
+The proof-of-concept ray tracer, written in Dr. Bayes, is little more than a simple physics simulation and a conditional query.
+\end{comment}
+
+
 \section{Set Representation}
 
 

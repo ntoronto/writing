@@ -40,26 +40,26 @@ We must also adhere to this philosophy because Bayesian practitioners are unlike
 
 \subsection{Approach}
 
-Measure-theoretic probability is the most successful theory of probability in precision, maturity, and explanatory power. In particular, it is believed to explain every Bayesian model. We therefore define the exact semantics as a transformation from Bayesian notation to measure-theoretic calculations.
+Measure-theoretic probability is the most successful theory of probability in precision, maturity, and explanatory power. In particular, it is believed to explain every Bayesian theory. We therefore define the exact semantics as a transformation from Bayesian notation to measure-theoretic calculations.
 
 Measure theory treats finite, countably infinite, and uncountably infinite probabilistic outcomes uniformly, but with significant complexity. Though there are relatively few important Bayesian models that require countably many outcomes but not uncountably many, in our preliminary work, we deal with only countable sets. This choice avoids most of measure theory's complexity while retaining its functional structure, and still requires approximation.
 
-For three categories of Bayesian notation, we
+For three syntactic categories of Bayesian notation, we
 \begin{enumerate}
 	\item Manually interpret an unambiguous subclass of common notation.
 	\item Mechanize the interpretation with a semantic function.
 	\item If necessary, create an approximation and prove convergence.
 	\item Implement the approximation in Racket~\cite{cit:racket-lang}.
 \end{enumerate}
-This approach is most effective if the target language can express measure-theoretic calculations and is similar to Racket in structure and semantics; we therefore use \targetlang.
+This approach is most effective if the target language can express measure-theoretic calculations and is similar to Racket in structure and semantics. We therefore use \targetlang.
 
-The Bayesian notation we interpret falls into three syntactic categories:
+The Bayesian notation we interpret falls into these syntactic categories:
 \begin{itemize}
 \item \keyword{Expressions}, which have no side effects, interpreted by $\RV{\cdot}$.
 \item \keyword{Statements}, which create side effects, interpreted by $\PS{\cdot}$.
 \item \keyword{Queries}, which observe side effects, interpreted by $\Prob{\cdot}$ and $\Dist{\cdot}$.
 \end{itemize}
-Each semantic function transforms its syntactic category into \targetlang, in which we write all of our mathematics.
+
 We write Bayesian notation in \textit{italics}, Racket in \texttt{fixed width}, common keywords in \keyword{bold} and invented keywords in \mykeyword{bold italics}. We omit proofs for space.
 
 

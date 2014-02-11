@@ -19,8 +19,8 @@ For example, these are all \lzfclang values:
 \begin{equation}
 \begin{aligned}
 	&\set{1,2,3} \\
-	&\set{(\fun{x} x), (\fun{x} x+1), (\fun{x}\set{x,x+1})} \\
-	&\Nat,\ \Rat,\ \Re,\ \Re^\Nat,\ \Re^\Re
+	&\set{(\fun{a} a), (\fun{b} b+1), (\fun{c}\set{c,c+1})} \\
+	&\Nat,\ \Rat,\ \Re,\ \Re \times \Re,\ \Re^\Nat,\ \Re^\Re
 \end{aligned}
 \end{equation}
 (We generally write \lzfclang terms in \textsf{sans serif}.)
@@ -32,7 +32,7 @@ For example, a function that does not terminate on any input because of runaway 
 	count!from~n\ :=\ count!from~(n+1)
 \end{equation}
 We could say that $count!from~0$ does not terminate because it attempts ``infinitely deep'' computation.
-This limitation is necessary; for example, it prevents \lzfclang from having a program that solves its own halting problem.
+This limitation is necessary; for example, it prevents \lzfclang from having a program that solves its own halting problem, which would make it inconsistent.
 
 Terminating, infinite computations are ``infinitely wide,'' as in either of these equivalent expressions:
 \begin{equation}
@@ -44,7 +44,7 @@ It is usually fine to think of terminating, infinite computations as being run i
 As in ZFC, in \lzfclang, all algebraic data structures are encoded as sets; e.g. the pair $\pair{x,y}$ can be encoded as $\set{\set{x},\set{x,y}}$.
 Only the \emph{existence} of encodings into sets is important, as it means data structures inherit a defining characteristic of sets: strictness.
 More precisely, in every data structure, every path between the root and a leaf must have finite length.
-Less precisely, as with computations, values may be ``infinitely wide'' (such as $\Re$) but not ``infinitely deep'' (such as infinite trees and lists).
+Less precisely, as with computations, values may be ``infinitely wide,'' such as $\Re$, but not ``infinitely deep,'' such as infinite trees and infinite lists made from nested pairs.
 
 \section{Auxiliary Type Systems}
 
@@ -67,21 +67,21 @@ For example, $f : \Nat \tto (\Nat \tto \Nat)$ denotes that function $f$ returns 
 If $m : \Nat$ and $n : \Nat$ (equivalently $m \in \Nat$ and $n \in \Nat$), it can be applied twice using $(f~m)~n$.
 Alternatively, it can be applied using $f~m~n$, and its type may be written $f : \Nat \tto \Nat \tto \Nat$.
 
-Other examples of types are those of the \lzfclang primitives powerset $\powerset : Set~x \tto Set~(Set~x)$, big union $\U : Set~(Set~x) \tto Set~x$, and the \texttt{map}-like $image : (x \tto y) \tto Set~x \tto Set~y$.
+Other examples of types are those of the \lzfclang primitives powerset $\powerset : Set~x \tto Set~(Set~x)$, its left inverse, big union $\U : Set~(Set~x) \tto Set~x$, and the \texttt{map}-like primitive $image : (x \tto y) \tto Set~x \tto Set~y$.
 
 It is often helpful to create type aliases.
 For example, to avoid repeatedly writing ``$\u \set{\bot}$'' we might define
 \begin{equation}
 	X \arrow_\bot Y\ ::=\ X \tto Y \u \set{\bot}
 \end{equation}
-so that $f : X \arrow_\bot Y$ and $f : X \tto Y \u \set{\bot}$ denote the same thing.
+so that $f : X \arrow_\bot Y$ and $f : X \tto Y \u \set{\bot}$ are equivalent type-level statements.
 
 
 \section{Using ZFC Values and Theorems}
 
 Almost everything definable in ZFC can be defined by a finite \lzfclang program.
 The previous chapter, for example, defined the real numbers, arithmetic, and limits.
-The only values that cannot are those that \emph{must} be defined \keyword{nonconstructively}: by proving existence and uniqueness, without giving a bound (no matter how loose) on the length or cardinality of the value.
+The only ZFC values that cannot are those that \emph{must} be defined \keyword{nonconstructively}: by proving existence and uniqueness, without giving a bound (no matter how loose) on the length or cardinality of the value.
 Mathematicians avoid such nonconstructive definitions, and most would consider that definition of ``nonconstructive'' too liberal.\footnote{Constructivists would object to allowing the law of excluded middle, which is derivable from \lzfclang's $if$, and almost everyone else would object to allowing choice functions.}
 
 Almost all known ZFC theorems apply to \lzfclang's set values without alteration.\footnote{The only exceptions are theorems that rely critically on the existence of an inaccessible cardinal.}
@@ -114,38 +114,6 @@ However, we want internal equality and basic external equivalence to be similar,
 
 \section{Additional Functions and Syntactic Forms}
 
-\begin{figure*}[!tb]\centering
-%\smallmathfont
-\begin{align*}
-\begin{aligned}[t]
-	&\begin{aligned}[t]
-		&domain : (X \pto Y) \tto Set~X \\
-		&domain \ := \ image~fst
-	\end{aligned} \\
-\\[-6pt]
-	&\begin{aligned}[t]
-		&range : (X \pto Y) \tto Set~Y \\
-		&range \ := \ image~snd
-	\end{aligned}
-\end{aligned}
-&\tab\tab\tab\tab
-\begin{aligned}[t]
-	&\begin{aligned}[t]
-		&preimage : (X \pto Y) \tto Set~Y \tto Set~X \\
-		&preimage~g~B \ :=\ \setb{a \in domain~g}{g~a \in B}
-	\end{aligned} \\
-\\[-6pt]
-	&\begin{aligned}[t]
-		&restrict : (X \pto Y) \tto Set~X \tto (X \pto Y) \\
-		&restrict~g~A \ := \ \fun{a \in (A \i domain~g)}{g~a}
-	\end{aligned}
-\end{aligned}
-\end{align*}
-\bottomhrule
-\caption[Common mapping operations]{\lzfclang code for common operations on partial mappings.}
-\label{fig:mapping-defs}
-\end{figure*}
-
 We use heavily sugared syntax, with automatic currying (including primitive applications, so $image~fst$ means $\fun{A} image~fst~A$), binding forms such as indexed unions $\U_{\mathit{x} \in \mathit{e_A}}\mathit{e}$, destructuring binds as in $swap~\pair{a,b} := \pair{b,a}$, and comprehensions like $\setb{a \in A}{a \in B}$.
 We assume logical operators, bounded quantifiers, and typical set operations are defined.
 To refer to binary operators as values, we enclose them in parentheses, as in $(\in)$ and $(\subseteq)$.
@@ -160,8 +128,8 @@ A less typical set operation we use is disjoint union:
 The primitive $take : Set~x \tto x$ returns the element in a singleton set, and does not terminate when applied to a non-singleton set.
 Thus, $A \uplus B$ terminates only when $A$ and $B$ are disjoint.
 
-Operator precedence is the same as in ordinary mathematics; e.g. $x + y \cdot z\ =\ x + (y \cdot z)$.
-Application has the highest precedence, so $f~x + g~y\ =\ (f~x) + (g~y)$.
+Operator precedence is the same as in ordinary mathematics; e.g. $a + b \cdot c\ =\ a + (b \cdot c)$.
+Application has the highest precedence, so $f~a + g~b\ =\ (f~a) + (g~b)$.
 
 
 \section{Extensional Functions}
@@ -177,7 +145,7 @@ In ZFC and \lzfclang, function extensionality is achieved by encoding functions 
 For example, the increment function for the natural numbers is $\set{\pair{0,1},\pair{1,2},\pair{2,3},...}$.
 (It is fine to think of such encodings as infinite hash tables.)
 We call these encodings \keyword{mappings}.
-We use \keyword{function} to mean either a lambda or a mapping, and use adjacency (e.g. $(f~x)$) to apply either kind.
+We use \keyword{function} to mean either a lambda or a mapping, and use adjacency (e.g. $(f~a)$ or $f~a$) to apply either kind.
 
 Syntax for constructing unnamed mappings is defined by
 \begin{align}
@@ -188,11 +156,23 @@ Syntax for constructing unnamed mappings is defined by
 		&mapping~f~A \ := \ image~(\fun{a}{\pair{a,f~a}})~A
 	\end{aligned}
 \end{align}
-For symmetry with partial functions $x \tto y$, $mapping$ returns a member of the set $X \pto Y$ of all \emph{partial} mappings from $X$ to $Y$.
-\figref{fig:mapping-defs} defines other common mapping operations: $domain$, $range$, $preimage$ (which finds the mapping inputs that would produce outputs in a given set) and $restrict$ (which narrows the domain of a mapping).
+For symmetry with partial functions $x \tto y$, $mapping$ returns a member of the set $X \pto Y$ of all \emph{partial} mappings from $X$ to $Y$; i.e. if $g : X \pto Y$, then $g$'s domain may be a subset of $X$.
+Two common partial mapping operations we use in the next chapter are
+\begin{align}
+	&\begin{aligned}
+		&domain : (X \pto Y) \tto Set~X \\
+		&domain~g \ := \ image~fst~g
+	\end{aligned} \\
+\nonumber\\[-0.5\baselineskip]
+	&\begin{aligned}
+		&preimage : (X \pto Y) \tto Set~Y \tto Set~X \\
+		&preimage~g~B \ :=\ \setb{a \in domain~g}{g~a \in B}
+	\end{aligned}
+\end{align}
+The $preimage$ function finds $g$'s inputs whose corresponding outputs are in $B$.
 
 The set $J \to X$ contains all the \emph{total} mappings from $J$ to $X$; equivalently, all the vectors of $X$ indexed by $J$, which may be infinite.
-We use infinite vectors of type $J \to [0,1]$ in Chapter~\ref{ch:preimage1} as inexhaustible sources of uniformly random numbers.
+We use infinite vectors of type $J \to [0,1]$ in Chapter~\ref{ch:preimage1} as infinite sources of uniformly random numbers.
 
 In short, in addition to lambdas in \lzfclang, we have every necessary mathematical object at our disposal.
 

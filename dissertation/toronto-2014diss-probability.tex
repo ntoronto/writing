@@ -200,13 +200,13 @@ We implement the approximating semantics in Haskell and Typed Racket, and demons
 
 \documentabstract{%
 The ideals of exact modeling, and of putting off approximations as long as possible, make Bayesian practice both successful and difficult.
-Automating it has been taking the form of languages for modeling probabilistic processes and answering questions about them.
+Automating it has been taking the form of languages for modeling probabilistic processes and implementations that answer questions about them.
 
 Unfortunately, very few of these languages have a mathematical specification.
 This makes them difficult to trust: there is no way to distinguish between a bug and a feature, and there is no standard by which to prove optimizations correct.
-Further, because the languages are based on the incomplete theories of probability used in Bayesian practice, they place seemingly artificial restrictions on legal programs and queries, such as disallowing unbounded recursion and allowing only simple equality constraints.
+Further, because the languages are based on the incomplete theories of probability typically used in Bayesian practice, they place seemingly artificial restrictions on legal programs and queries, such as disallowing unbounded recursion and allowing only simple equality constraints.
 
-We prove it is possible to make trustworthy probabilistic languages for Bayesian practice by using functional programming theory to define them mathematically.
+We prove it is possible to make trustworthy probabilistic languages for Bayesian practice by using functional programming theory to define them mathematically and prove them correct.
 The specifications interpret programs using the most complete known theory of probability, so they place no restrictions on programs and allow arbitrary conditions with arbitrarily low probability.
 
 We demonstrate that the results are useful by implementing the languages, and using them to model and answer questions about typical probabilistic processes.
@@ -245,12 +245,12 @@ The wait for ``when Daddy gets a real job'' has been bearable, with no ever-incr
 The positive repurcussions will be nearly endless.
 I am eternally grateful.
 
-My wife's support of my academic pursuits has been positive and constant for 11 years.
+My wife has constantly supported my academic pursuits for 11 years.
 This is truly marvellous in a way that words are too narrow to contain.
 
-I thank my children, for praying for me every day; for being sweet, loving, talented, and so very interesting.
+I thank my children, for praying for me every day, and for being sweet, loving, talented, and so very interesting.
 
-Lastly, I thank my God and Savior, whose justice and mercy makes our mortal existence meaningful and beautiful.
+Lastly, I thank my God and Savior, whose justice and mercy makes our existence meaningful and beautiful.
 }
 
 \department{Computer Science}
@@ -265,11 +265,6 @@ Lastly, I thank my God and Savior, whose justice and mercy makes our mortal exis
 % removal of widows and orphans.
 \raggedbottom
 
-
-\begin{comment}
-	Bayesian notation: italics
-	Math: lambda-ZFC
-\end{comment}
 
 \begin{document}
 
@@ -297,7 +292,7 @@ Lastly, I thank my God and Savior, whose justice and mercy makes our mortal exis
 \input{chapter-background.tex}
 
 
-\chapter{Computing in Cantor's Paradise}
+\chapter{Computing in Cantor's Paradise With \lzfclang}
 \label{ch:lambda-zfc}
 
 This chapter is derived from work published at the 11\textsuperscript{th} \emph{International Symposium on Functional and Logic Programming (FLOPS), 2012}.
@@ -315,7 +310,7 @@ This chapter is derived from work published at the 11\textsuperscript{th} \emph{
 \input{chapter-using-lambda-zfc.tex}
 
 
-\chapter{Theories With Countable Models}
+\chapter{Countable Models and Implementation}
 \label{ch:countable-models}
 
 This chapter is derived from work published at the 22\textsuperscript{nd} \emph{Symposium on Implementation and Application of Functional Languages (IFL), 2010}.
@@ -332,25 +327,25 @@ This chapter is derived from work published at the 22\textsuperscript{nd} \emph{
 \input{chapter-interlude.tex}
 
 
-\chapter{Preimage Computation: Running Probabilistic Programs Backwards}
+\chapter{Preimage Computation Theory: Running Programs Backwards}
 \label{ch:preimage1}
 
 \input{chapter-preimage-1.tex}
 
 
-\chapter{Implementation of Preimage Computation}
+\chapter{Preimage Computation Implementation}
 \label{ch:preimage2}
 
 \input{chapter-preimage-2.tex}
 
 
-\chapter{Measurability Proofs}
+\chapter{Measurability Theorems}
 \label{ch:measurability}
 
 \input{chapter-measurability.tex}
 
 
-\chapter{Sampling Proofs}
+\chapter{Sampling Theorems}
 \label{ch:sampling-algorithm-proofs}
 
 \input{chapter-sampling-proofs.tex}

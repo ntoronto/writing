@@ -45,7 +45,7 @@ Conversely, set theory, which lacks lambdas and general recursion, is an awkward
 
 If we had a $\lambda$-calculus with infinite sets as values, we could approach computability from above in a principled way, gradually changing programs for Cantor's Paradise until they can be implemented in Church's Purgatory.
 
-We define that $\lambda$-calculus, \targetlang, and a call-by-value, big-step reduction semantics. To show that it is expressive enough, we code up the real numbers, arithmetic and limits, following standard analysis. To show that it simplifies language design, we define the uncomputable limit monad in \targetlang, and derive a computable, directly implementable replacement monad by applying standard topological theorems. When certain proof obligations are met, the output of programs that use the computable monad converge to the same values as the output of programs that use the uncomputable monad but are otherwise identical.
+We define that $\lambda$-calculus, \targetlang, and a call-by-value, big-step reduction semantics. To show that it is expressive enough, we code up the real numbers, arithmetic and limits, following standard analysis. To show that it simplifies language design, we define the uncomputable limit monad in \targetlang, and derive a computable, directly implementable replacement monad by applying standard topological theorems. When certain proof obligations are met, the outputs of programs that use the computable monad converge to the same values as the outputs of programs that use the uncomputable monad.
 
 Readers interested only in probabilistic programming languages may skip to Chapter~\ref{ch:using-lambda-zfc}, which reviews this chapter's highlights, without missing important prerequisites.
 
@@ -673,14 +673,14 @@ To distinguish these hash tables from lambdas, we call them \keyword{mappings}.
 Mappings can be applied by $ap~f~x \objdef \The{y \in (range~f)} \pair{x,y} \in f$, but we write just $f~x$.
 We define
 \begin{equation}
-	\mathit{e_f}\lvert_\mathit{e_A}\ \objstx\ image~(\fun{x} \pair{x,\mathit{e_f}~x})~\mathit{e_A}
+	mapping~f~A\ \objdef\ image~(\fun{x} \pair{x,f~x})~A
 \end{equation}
-to convert a lambda or to restrict a mapping to $e_A$.
+to convert a lambda to a mapping or to restrict a mapping to $A$.
 We usually use
 \begin{equation}
-	\fun{\mathit{x} \in \mathit{e_A}} \mathit{e_y}\ \objstx\ (\fun{\mathit{x}} \mathit{e_y})\lvert_\mathit{e_A}
+	\fun{\mathit{x} \in \mathit{e_A}} \mathit{e_y}\ \objstx\ mapping~(\fun{\mathit{x}} \mathit{e_y})~\mathit{e_A}
 \end{equation}
-to define mappings. (XXX: this is not what restriction is in the preimage paper)
+to define mappings.
 
 A sequence of $A$ is a mapping $xs \in \alpha \to A$ for some ordinal $\alpha$.
 For example, $ns \objdef \fun{n \in \lnat} n$ is a countable sequence in $\lnat \to \lnat$ of increasing finite ordinals.
@@ -771,7 +771,7 @@ The limit monad's computations are of type \tlzfc{\lnat \to \metricuniv}. The ty
 Define \tlzfc{partial!sums : (\seqtype{\Re}) \tto (\seqtype{\Re})} first by
 \tlzfc{partial!sums'~xs \objdef \fun{n} if~(n = 0)~(xs~0)~((xs~n) + (partial!sums'~xs~(n - 1)))}.
 (The sequence is recursively defined, so we cannot use \tlzfc{\fun{n \in \lnat} \mathit{e}} to immediately create it.)
-Then restrict its output: \tlzfc{partial!sums~xs \objdef (partial!sums'~xs)\lvert_\lnat}.
+Then convert it to a mapping: \tlzfc{partial!sums~xs \objdef mapping~(partial!sums'~xs)~\lnat}.
 \begin{comment}
 \begin{equation}
 \lzfc{
@@ -920,7 +920,7 @@ Both support classical reasoning.
 %internally, while \targetlang does so externally. MT, EFL*, and \targetlang all have computable sublanguages, though MT's and \targetlang's are arguably easier to target.
 MT and EFL* are interpreted in set theory using a straightforward extension of Scott-style denotational semantics to $\kappa$-sized domains, while \targetlang is interpreted in set theory using a straightforward extension of operational semantics to $\kappa$-sized relations.
 
-The key difference between \targetlang and these higher-order logics is that \targetlang is not a logic. It is a programming language with infinite terms, which by design includes a transitive model of set theory (Theorem~\ref{thm:lambda-zfc-is-a-model}). Therefore, ZFC theorems can be applied to its set-valued terms with only trivial interpretation, whereas the interpretation it takes to apply ZFC theorems to lambda terms that represent sets in MT or EFL* can be highly nontrivial. Applying a ZFC theorem in HOL or CIC requires re-proving it to the satisfaction of a type checker.
+The key difference between \targetlang and these higher-order logics is that \targetlang is not a logic. It is a programming language with infinite terms, which by design includes a transitive model of set theory (Theorem~\ref{thm:lambda-zfc-is-a-model}). Therefore, ZFC theorems can be applied to its set-valued terms with only trivial interpretation, whereas the interpretation it takes to apply ZFC theorems to lambda terms that represent sets in MT or EFL* can be nontrivial. Applying a ZFC theorem in HOL or CIC requires re-proving it to the satisfaction of a type checker.
 
 The infinitary $\lambda$-calculus~\cite{cit:kennaway-1996-inf-lc} has ``infinitely deep'' terms. Although it exists for investigating laziness, cyclic data, and undefinedness in finitary languages, it is possible to encode uncomputable mathematics in it. In \targetlang, such up-front encodings are unnecessary.
 
