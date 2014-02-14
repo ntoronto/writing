@@ -1,38 +1,81 @@
-\section{Copied from Chapter 5}
+\mathversion{sans}
 
-For discrete Bayesian theories, we explained a large subclass of notation as measure-theoretic calculations by transformation into \targetlang. There is now at least one precisely defined set of expressions that denote discrete conditional distributions in conditional theories, and it is very large and expressive. We gave a converging approximating semantics and implemented it in Racket.
+\section{Conclusions}
 
-%We could have interpreted notation as first-order logic and ZFC, in which measure theory is developed. Defining the exact semantics compositionally would have been excruciating, and deriving an implementation from the semantics would have involved much hand-waving. With our approach, the path from notation to exact meaning to approximation to implementation is clear.
+We started by defining \lzfclang, a call-by-value $\lambda$-calculus with infinite sets and set operations, so that we could interpret Bayesian notation categorically.
 
-Now that we are satisfied that our approach works, we turn our attention to uncountable sample spaces and theories with infinitely many statements.
+We then investigated a general approach to trustworthy Bayesian languages: defining an exact semantics that interprets notation as measure-theoretic models, and then deriving a directly implementable approximating semantics.
+We restricted our investigation to countable distributions and theories with finitely many statements, as it is the first point in the design space where approximation is necessary, and requires no deep measure theory.
 
-Following measure-theoretic structure in our preliminary work should make the transition to uncountable spaces fairly smooth. The functional structure of the exact semantics will not change, but some details will. The random variable idiom will be identical, but will require measurability proofs. We will still interpret statements as state monad computations, but with general probability spaces as state instead of discrete probability spaces. We will use regular conditional probability in $\condps$, $\extendps$ will calculate product $\sigma$-algebras and transition kernel products, and $\distps$ will return probability measures. We will not need to change $\RV\cdot$, $\Dist\cdot$ or $\Prob\cdot$. Many approximations are available; the most efficient and general are sampling methods. We will likely choose sampling methods that parallelize easily.
+In a slight change of tactics, we fixed a canonical probability space of uniformly random, infinite binary trees, and interpreted programs as measure-theoretic random variables, and then as computations that compute exact preimages.
+The approximating semantics interprets programs as computations that compute conservative approximations of preimages, using rectangles instead of sets.
+We demonstrated that the language is useful by implementing the approximating semantics and encoding typical Bayesian theories.
+We also encoded theories without density models, which can only be interpreted using measure theory.
 
-The most general constructive way to specify theories with infinitely many primitive random variables is with recursive abstractions, but it is not clear what kind of abstraction we need. Lambdas are suitable for most functional programming, in which it is usually good that intermediate values are unobservable. However, they do not meet Bayesian needs: practitioners define theories to study them, not to obtain single answers. If lambdas were the only abstraction, returning every intermediate value from every lambda would become \textit{good practice}. Because we do not know what form abstraction will take, we will likely develop it independently by allowing theories with infinitely many statements.
+In short, we developed trustworthy, useful languages for Bayesian modeling and inference by founding them solidly on functional programming theory and measure-theoretic probability.
 
-Model equivalence in distribution extends readily to uncountable spaces. It defines a standard for measure-theoretic optimizations, which can only be done in the exact semantics. Examples are variable collapse, a probabilistic analogue of constant folding that can increase efficiency by an order of magnitude, and a probabilistic analogue of constraint propagation to speed up conditional queries.
+\section{Future Work}
 
-\section{Copied from Chapter 7}
+Future work falls into two categories: expressiveness and optimization.
 
-To allow recursion and arbitrary conditions in probabilistic programs, we combined the power of measure theory with the unifying elegance of arrows. We
-\begin{enumerate}
-	\item Defined a transformation from first-order programs to arbitrary arrows.
-	\item Defined the bottom arrow as a standard translation target.
-	\item Derived the uncomputable preimage arrow as an alternative target.
-	\item Derived a sound, computable approximation of the preimage arrow, and enough computable lifts to transform programs.
-\end{enumerate}
-Critically, the preimage arrow's lift from the bottom arrow distributes over bottom arrow computations.
-Our semantics thus generalizes this process to all programs: 1) encode a program as a bottom arrow computation; 2) lift this computation to get an uncomputable function that computes preimages; 3) distribute the lift; and 4) replace uncomputable expressions with sound approximations.
+\subsection{Expressiveness}
 
-Our semantics trades efficiency for simplicity by threading a constant, tree-shaped random source (Section~\ref{sec:threading-and-indexing}).
-Passing subtrees instead would make $random$ a constant-time primitive, and allow combinators to detect lack of change and return cached values.
-Other future optimization work includes creating new sampling algorithms, and using other easily measured but more expressive set representations, such as parallelotopes~\cite{cit:amato-2012tcs-parallelotopes}.
-On the theory side, we intend to explore preimage computation's connection to type checking and type inference, investigate ways to integrate and leverage polymorphic type systems, and find the conditions under which preimage refinement is complete in the limit.
+Adding a new feature and its semantics to a Turing-equivalent language makes the language more \keyword{expressive} if the only way to encode the new feature in the original language with the original semantics is by a global transformation~[XXX: cite Felleisen].
 
-More broadly, we hope to advance Bayesian practice by providing a rich modeling language with an efficient, correct implementation, which allows general recursion and any computable, probabilistic condition.
+An example is adding lambdas.
+For a first-order language like we have defined, adding lambdas requires closure conversion and defunctionalization: turning every lambda value into a data structure containing bound variable values and a function pointer, and changing every application site to apply a global dispatching function that decodes such closures~[XXX: cite].
+It may be simpler, more efficient, or more elegant to add lambda terms to the language itself, despite the fact that ensuring higher-order application is measurable is difficult.
 
+Other examples of expressive new features are mutation, exceptions and parameters~[XXX: cite] (or more generally continuations~[XXX: cite] and continuation marks~[XXX: cite]).
+Once lambdas are available, these can be encoded by globally transforming programs into monadic computations~[XXX: cite; include Kimball].
+We want to know whether such global transformations are the simplest, most efficient, or most elegant ways to extend our probabilistic language's expressiveness.
 
+Non-examples are loops and other constructs that are merely syntactic sugar, which can be implemented using local transformations.
+We will be able to provide all such features by making Racket syntax transformers available to programs.
 
-We have not entirely given up on the probability space monad.
-It has already been useful in proving that distribution queries and conditioning do not commute.
-We could use it in the future to reason about other \emph{local} program properties; i.e. without referring to a global probability space. [XXX: move to future work]
+It is not clear that lambdas are the best recursive abstraction for encoding Bayesian theories.
+Lambdas are good for creating abstractions because their bodies and the computations they carry out are generally unobservable.
+However, these facts may cause them to not meet Bayesian needs very well: Bayesians define theories in order to study them, and often to discover the behavior of a process cannot be directly observed.
+Abstracting such processes using lambdas would require returning every intermediate value.
+We do not know what the right recursive abstraction is for such cases, let alone whether it can be implemented using a local transformation.
+This dimension of probabilistic language design clearly needs study.
+
+In our experience, probabilistic programs are more difficult to debug than other kinds of programs.
+Therefore, one way to increase expressiveness while reducing errors is by adding a type system.
+A type system similar to Typed Racket~[XXX: cite] would be a good choice.
+Because Typed Racket was originally meant for converting untyped programs into typed programs by adding a few annotations, it has true union types, and \keyword{occurrence typing}, which allows identifiers to have different types in each branch of a conditional based on the result of its test expression.
+Occurrence typing is similar to how the forward phase in preimage computation applies the interpretation of each \emph{true} branch to the preimage of $\set{true}$ under the test, and the \emph{false} branch to the preimage of $\set{false}$.
+Union types are similar to our representation of disjoint unions of sets of tagged data structures.
+
+In fact, there are many similarities between preimage computation and type checking and inference, which we plan to investigate.
+
+\subsection{Optimization}
+
+A type system would not only help reduce programmer error, but would provide information about program terms that an optimizer could use.
+For example, because our implementation's sets are monomorphic, every set operation must dispatch to a more specific operation based on the runtime data types of its arguments.
+If a type system determined that a certain computation consumed and produced only pairs, such dispatch would be unnecessary.
+
+Importance sampling is known to suffer from high variance in its estimates when used on high-dimensional models~[XXX: cite].
+The higher the variance, the more samples are necessary to get good estimates.
+A major piece of future optimization work is to use different sampling algorithms, such as Markov Chain Monte Carlo (MCMC)~[XXX: cite].
+We expect the split-and-refine part of sampling to be particularly amenable, because it divides the program domain into an at-most-countable partition.
+Markov-chain sampling of parts from this partition may easily sidestep a common problem with MCMC methods: that they often mix poorly when sampling within narrow, non-convex shapes.
+In any case, to use MCMC, we would need to solve this problem, because the preimages of conditions in typical Bayesian queries are narrow and non-convex.
+
+Our semantics trades efficiency for simplicity by threading a constant, tree-shaped random source.
+This makes each $random$ computation linear-time in the depth it appears in the completely inlined program, which can turn functions that should be linear-time into quadratic-time.
+Passing subtrees instead would make $random$ constant-time, restoring these functions' apparent time complexity.
+Passing subtrees would also allow combinators to detect lack of change in their received subtrees and return cached values.
+
+Besides rectangles, we intend to try other simple, but more expressive set representations, such as parallelotopes~\cite{cit:amato-2012tcs-parallelotopes}.
+For representing sets of strings, regular expressions look promising~[XXX: cite paper from CS 686], as does the idea of using \emph{abstract} regular expressions to represent sets of lengths and other integral values.
+
+Model equivalence in distribution extends readily to uncountable spaces.
+It defines a standard for measure-theoretic optimizations, which can only be done in the exact semantics.
+Examples of optimizations we could prove correct and implement using this equivalence are variable collapse, a probabilistic analogue of constant folding that can increase efficiency by an order of magnitude, and a probabilistic analogue of constraint propagation to speed up conditional queries.
+
+More broadly, we hope to advance Bayesian practice by providing rich modeling languages with an efficient, correct implementations, which allow general recursion and every computable, probabilistic condition.
+
+%features: nonparametric Bayesian modeling, conditioning on functions, 
+
+\mathversion{normal}

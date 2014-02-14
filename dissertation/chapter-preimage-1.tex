@@ -16,7 +16,7 @@ Measure-theoretic probability~\cite{cit:klenke-2006-probability} is widely belie
 It mainly does this by \emph{assigning probabilities to sets}.
 Functions that do so are \keyword{probability measures}.
 
-If a probability measure $P$ assigns probabilities to subsets of $X$ and $g : X \to Y$, then \keyword{preimage measure} defines the distribution over subsets of $Y$:
+If a probability measure $P$ assigns probabilities to subsets of $X$ and $g : X \to Y$, then the distribution over subsets of $Y$ is
 \begin{equation}
 	\Pr[B] \ = \ P~(preimage~g~B)
 \end{equation}
@@ -2513,7 +2513,7 @@ Theorem~\ref{thm:decreasing} (decreasing) guarantees $refine~A$ is never larger 
 Theorem~\ref{thm:monotonicity} (monotone) guarantees refining a \emph{partition} of $A$ never does worse than refining $A$ itself.
 Theorem~\ref{thm:approximation} (sound) guarantees the algorithm is \keyword{sound}: the preimage of $B$ is always contained in the covering partition $refine^*$ returns.
 
-We would like it to be \keyword{complete} in the limit, up to null sets: covering partitions' measures should converge to the true preimage measure.
+We would like it to be \keyword{complete} in the limit, up to null sets: covering partitions' measures should converge to the true measure.
 Unfortunately, preimage refinement appears to compute the \keyword{Jordan outer measure} of a preimage, which is not always its measure.
 A counterexample is the expression $rational?~random$, where $rational?$ returns $true$ when its argument is rational and loops otherwise.
 (This is definable using a $(\leq)$ primitive.)
@@ -2563,6 +2563,13 @@ To allow recursion and arbitrary conditions in probabilistic programs, we combin
 \end{enumerate}
 Critically, the preimage arrow's lift from the bottom arrow distributes over bottom arrow computations.
 Our semantics thus generalizes this process to all programs: 1) encode a program as a bottom arrow computation; 2) lift this computation to get an uncomputable function that computes preimages; 3) distribute the lift; and 4) replace uncomputable expressions with sound approximations.
+
+Using arrows drastically simplifies the correctness proofs.
+Almost every semantic correctness theorem proceeds from a proof that a lift distributes over five combinators.
+There are seven theorems in total corresponding to the morphisms in our roadmap~\eqref{eqn:roadmap-diagram1}, but the three center morphisms (pointing downward) are done in one proof, as are the two bottom morphisms (pointing rightward).
+In total, there are 20 cases, plus 11 for the original (and very simple) theorem that arrow homomorphisms distribute over program terms.
+
+In contrast, the corresponding theorems with separate semantic functions would require seven proofs by structural induction over at least 11 rules (12 for programs that access the random store), for a total of at least 77 cases. This reduction in complexity by semantic abstraction not have been possible without targeting \lzfclang, which allows such arrows to carry out uncountably infinite computations.
 
 XXX: segue
 

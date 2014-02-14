@@ -1,25 +1,18 @@
-Chapter 3
- * Fix restriction syntax
-
-Chapter 4
- ? Shortcut evaluation
- * Add \beta rules, restricted \eta rules, other stuff about reducing inside lambdas
-
-Chapter 7
- * Remove non-local conclusions
-
 Chapter 8
+ * Intro picture: how did we get here?
  * Write intro to Chapter 8: Implementation ("you are here")
  * Write Section 8.1 (set representation)
  * Pictures of lattice operators
  * Write Section 8.3 (primitive implementation)
  * Finish Section 8.4, following the XXX notes in it
  * Move DrBayes implementation section from Chapter 7 to Chapter 8
+ * Examples and uses of finished implementation
 
-Add either Section 8.5 or new chapter after Chapter 8 with examples and uses of finished implementation
-
-Consolidate Related Work
-
-Consolidate Conclusions and Future Work
+Future work ideas:
+ * Partial-order reduction
+ * Nonparametric Bayesian models
+ * Conditioning on extensional function values
+ 
+Add citations in future work
 
 Schedule defense

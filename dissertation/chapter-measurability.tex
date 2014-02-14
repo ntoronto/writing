@@ -6,8 +6,9 @@ Instead of ignoring measurability, however, as is so often done, we have moved i
 
 \section{Basic Definitions}
 
-We assume readers are familiar with topology or measure theory.
-For readers familiar with topology but not measure theory, we review the necessary fundamentals by analogy to topology.
+For readers familiar with topology, we review the necessary fundamentals by analogy to topology.
+However, we have tried to include enough of the fundamentals that readers not familiar with basic topology can verify the proofs.
+[XXX: cite book for imported lemmas]
 
 The analogue of a topology of open sets is a $\sigma$-algebra of measurable sets.
 
@@ -89,7 +90,7 @@ By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction) and L
 We do not need to prove all interpretations using $\meaningof{\cdot}\gen$ are measurable.
 However, we do need to prove mapping arrow combinators preserve measurability.
 
-\paragraph{Composition}
+\subsection{Composition}
 Proving compositions are measurable takes the most work.
 The main complication is that, under measurable mappings, while \emph{preimages} of measurable sets are measurable, \emph{images} of measurable sets may not be.
 We need the following four extra theorems to get around this.
@@ -116,7 +117,7 @@ By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction).
 
 \begin{theorem}[maximal domain subsets]
 \label{thm:maximal-domain-subsets}
-Let $g : X \mapto Y$. For any $A \subseteq A^*$, $domain~(g~A) = A$.%
+Let $g : X \mapto Y$. For all $A \subseteq A^*$, $domain~(g~A) = A$.%
 \end{theorem}
 \begin{proof}
 Follows from Theorem~\ref{thm:domain-closure-operators}.
@@ -163,7 +164,7 @@ By Theorem~\ref{thm:mapping-arrow-monotonicity} and Lemma~\ref{lem:images-of-pre
 $range~g_1' \subseteq B^*$ implies (by Theorem~\ref{thm:maximal-domain-subsets}) that $domain~g_2' = range~g_1'$, and (by Theorem~\ref{thm:mapping-arrow-monotonicity}) that $g_2' \subseteq g_2''$.
 \end{proof}
 
-\paragraph{Pairing}
+\subsection{Pairing}
 Proving pairing preserves measurability is straightforward given a corresponding theorem about mappings.
 
 \begin{lemma}[$\pair{\cdot,\cdot}\map$ measurability]
@@ -180,7 +181,7 @@ The maximal domain of $g_1~\pairmap~g_2$ is $A^{**} := A_1^* \i A_2^*$, which is
 By definition, $(g_1~\pairmap~g_2)~A^{**} = \pair{g_1~A^{**},g_2~A^{**}}\map$, which by Lemma~\ref{lem:pairings-are-measurable} is $\A!(\B_1 \otimes \B_2)$-measurable.
 \end{proof}
 
-\paragraph{Conditional}
+\subsection{Conditional}
 Conditionals can be proved measurable given a theorem that ensures the measurability of \emph{finite} unions of disjoint, measurable mappings.
 We will need the corresponding theorem for \emph{countable} unions further on, however.
 
@@ -217,7 +218,7 @@ By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction), $g_2
 Apply Lemma~\ref{lem:union-of-measurable-mappings}.
 \end{proof}
 
-\paragraph{Laziness}
+\subsection{Laziness}
 We must first prove measurability of an often-ignored corner case.
 
 \begin{theorem}[measurability of $\emptyset$]
@@ -246,7 +247,7 @@ If $A^{**} \neq \emptyset$, then $\lazymap~g = g~0$, which is $\A!\B$-measurable
 As with pure computations, we must first define what it means for an effectful computation to be measurable.
 
 \begin{definition}[measurable mapping* arrow computation]
-Let $\A$ and $\B$ be $\sigma$-algebras on $(R \times T) \times X$ and $Y$.
+Let $\A$ and $\B$ be $\sigma$-algebras on $(\Omega \times T) \times X$ and $Y$.
 A computation $g : X \pmapto Y$ is $\A!\B$-\keyword{measurable} if $g~j_0$ is an $\A!\B$-measurable mapping arrow computation.
 \end{definition}
 
@@ -334,7 +335,7 @@ Now all we need to do is represent recursive programs as a net of finite express
 \begin{theorem}[approximation with finite expressions]
 \label{thm:nonrecursive-approximation}
 Let $g := \meaningofconv{\mathit{e}}\pmap : X \pmapto Y$ and $t \in T$.
-Define $A := (R \times \set{t}) \times X$.
+Define $A := (\Omega \times \set{t}) \times X$.
 There is a finite expression $\mathit{e'}$ for which $\meaningof{\mathit{e'}}\pmap~j_0~A = g~j_0~A$.%
 \end{theorem}
 \begin{proof}
@@ -348,15 +349,15 @@ Because $\mathit{e}$ is well-defined, recurrences must be guarded by $if$, so th
 For all expressions $\mathit{e}$, $\meaningofconv{\mathit{e}}\pmap$ is measurable.%
 \end{theorem}
 \begin{proof}
-Let $g := \meaningofconv{\mathit{e}}\pmap$ and $g' := g~j_0~((R \times T) \times X)$.
+Let $g := \meaningofconv{\mathit{e}}\pmap$ and $g' := g~j_0~((\Omega \times T) \times X)$.
 By Corollary~\ref{cor:correct-convergence} (correct computation everywhere), $g' = g~j_0~A^*$ where $A^*$ is $g$'s maximal domain; thus we need only show $g'$ is a measurable mapping.
 
 By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction),
 \begin{equation}
-	g' \ =\ \bigcup\limits_{t \in T} g~j_0~((R \times \set{t}) \times X)
+	g' \ =\ \bigcup\limits_{t \in T} g~j_0~((\Omega \times \set{t}) \times X)
 \end{equation}
-By Theorem~\ref{thm:nonrecursive-approximation} (approximation with finite expressions), for every $t \in T$, there is a finite expression whose interpretation agrees with $g$ on $(R \times \set{t}) \times X$.
-Therefore, by Theorem~\ref{thm:nonrecursive-programs-are-measurable} (all finite expressions are measurable), $g~j_0~((R \times \set{t}) \times X)$ is a measurable mapping.
+By Theorem~\ref{thm:nonrecursive-approximation} (approximation with finite expressions), for every $t \in T$, there is a finite expression whose interpretation agrees with $g$ on $(\Omega \times \set{t}) \times X$.
+Therefore, by Theorem~\ref{thm:nonrecursive-programs-are-measurable} (all finite expressions are measurable), $g~j_0~((\Omega \times \set{t}) \times X)$ is a measurable mapping.
 By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction), they have disjoint domains.
 By Lemma~\ref{lem:union-of-measurable-mappings} (union of measurable mappings), their union is measurable.
 \end{proof}
@@ -388,7 +389,7 @@ Because $image~fst$ distributes over unions, $image~fst~A$ is a countable union 
 
 \begin{theorem}
 Let $g : X \pmapto Y$ be measurable.
-If $X$ is at most countable and $\Sigma~X = \powerset~X$, for all $B \in \Sigma~Y$, $image~(fst~\arrowcomp~fst)~(preimage~(g~j_0~A^*)~B) \in \Sigma~R$.
+If $X$ is at most countable and $\Sigma~X = \powerset~X$, for all $B \in \Sigma~Y$, $image~(fst~\arrowcomp~fst)~(preimage~(g~j_0~A^*)~B) \in \Sigma~\Omega$.
 \end{theorem}
 \begin{proof}
 $T$ is countable and $\Sigma~T = \powerset~T$ by~\eqref{eqn:standard-traces-rule}; apply Theorem~\ref{thm:measurable-projections} twice.
