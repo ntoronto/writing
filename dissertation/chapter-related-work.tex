@@ -66,7 +66,7 @@ This cleanly separates the syntax from the semantics, and allows us to prove the
 
 Any programming language research described by the words ``bijective'' or ``reversible'' might seem to have much in common with ours.
 Unfortunately, when we look more closely, we can usually draw only loose analogies and perhaps inspiration.
-An example is lenses~\cite{cit:hofmann-2012popl-edit-lenses}, which are transformations from $X$ to $Y$ that can be run forward and backward, in a way that maintains some relationship between $X$ and $Y$.
+An example is lenses~\cite{cit:hofmann-2012popl-edit-lenses}, which are transformations from $X$ to $Y$ that can be run forwards and backwards, in a way that maintains some relationship between $X$ and $Y$.
 Usually, a destructive, external process is assumed, so that, for example, a change from $y \in Y$ to $y' \in Y$ induces a corresponding change from $x \in X$ to some $x' \in X$.
 When transformations lose information, lenses must satisfy certain behavioral laws.
 In our work, no input or output is updated, and preimages are always definable regardless of non-injectivity.

@@ -57,7 +57,7 @@ Implementing a language based on such a semantics is complicated because
 	\setcounter{enumi}{3}
 	\item Contemporary mathematics is unlike any implementation's host language.%
 \label{problem:different-language}
-	\item It requires running Turing-equivalent programs backward, efficiently, on possibly uncountable sets of outputs.%
+	\item It requires running Turing-equivalent programs backwards, efficiently, on possibly uncountable sets of outputs.%
 \label{problem:backward-efficient}
 \end{enumerate}
 
@@ -106,7 +106,7 @@ At the top-left, $X \botto Y$ computations (or ``bottom arrow computations'') ar
 From bottom arrow computations, the $\liftmap$ combinator produces $X \mapto Y$ computations, which create equivalent extensional functions, or mappings.
 From mapping arrow computations, the $\liftpre$ combinator produces $X \preto Y$ computations, which compute preimages.
 
-Instances of arrows in the bottom row are like those in the top, except they thread an infinite store of random values, and can be constructed to always terminate.
+Instances of arrows in the bottom row are like those in the top row, except they thread an infinite store of random values, and can be constructed to always terminate.
 
 Most of our correctness theorems rely on proofs that every combinator in~\eqref{eqn:roadmap-diagram1} is a homomorphism; for example, that $\liftmap$ distributes over all bottom arrow combinators.
 
@@ -2381,10 +2381,13 @@ Implementations can model it by a singleton ``universe'' instance for every $Rec
 				C_3 & C_k \i C_b \i \set{false} \\
 				A_2 & p_k~C_2 \i p_b~C_2 \\
 				A_3 & p_k~C_3 \i p_b~C_3 \\
-			}{if~\lzfcsplit{
-					&(C_b = \set{true,false}) \\
-					&\pair{\top,\fun{B}\lzfcsplit{A_2 \join A_3}} \\
-					&(k_2~(left~(right~j))~A_2 \uplus\pre' k_3~(right~(right~j))~A_3)\!\!\!\!\!\!\!\!\!}}
+			}{\lzfccase{C_b}
+				{
+					\set{true,false} & \pair{\top,\fun{B}\lzfcsplit{A_2 \join A_3}} \\
+					\set{true} & k_2~(left~(right~j))~A_2 \\
+					\set{false} & k_3~(right~(right~j))~A_3
+				}
+			}
 		}
 	\end{aligned}
 \end{aligned}
@@ -2482,13 +2485,13 @@ By definition and applying basic lattice properties,
 \end{displaybreaks}
 Thus, approximating preimage arrow combinators return decreasing computations when given decreasing computations.
 This property transfers trivially to approximating preimage* arrow combinators.
-Use Theorem~\ref{thm:equivalent-finite-expression} with $A' := A$, and structural induction.
+Apply Theorem~\ref{thm:equivalent-finite-expression} and use structural induction.
 \end{proof}
 
 \subsection{Preimage Refinement Algorithm}
 \label{sec:discretization}
 
-Given these properties, we  might try to compute preimages of $B$ by computing preimages with respect to increasingly fine discretizations of $A$.
+Given these properties, we might try to compute exact preimages of $B$ by computing preimages with respect to increasingly fine discretizations of $A$.
 
 \begin{definition}[preimage refinement algorithm]
 \label{def:preimage-refinement}
@@ -2496,30 +2499,79 @@ Let $B \in Rect~Y$ and
 \begin{equation}
 \begin{aligned}
 	&refine : Rect~\pair{\pair{\Omega,T},X} \tto Rect~\pair{\pair{\Omega,T},X} \\
-	&refine~A := ap\pre'~(h'~j_0~A)~B
+	&refine~A\ :=\ ap\pre'~(h'~j_0~A)~B
 \end{aligned}
 \end{equation}
-Define $partition : Rect~\pair{\pair{\Omega,T},X} \tto Set~(Rect~\pair{\pair{\Omega,T},X})$ to produce positive-measure, disjoint rectangles, and define
+Define $split : Rect~\pair{\pair{\Omega,T},X} \tto Set~(Rect~\pair{\pair{\Omega,T},X})$ to produce positive-measure, disjoint rectangles, and define
 \begin{equation}
 \begin{aligned}
 	&refine^* : Set~(Rect~\pair{\pair{\Omega,T},X}) \tto Set~(Rect~\pair{\pair{\Omega,T},X}) \\
-	&refine^*~\A := image~refine~\left(\U_{A \in \A} partition~A \right)
+	&refine^*~\A\ :=\ image~refine~\left(\U_{A \in \A} split~A \right)
 \end{aligned}
 \end{equation}
-For any $A \in Rect~\pair{\pair{\Omega,T},X}$, iterate $refine^*$ on $\set{A}$.
+For any positive-measure $A_0 \in Rect~\pair{\pair{\Omega,T},X}$, iterate $refine^*$ on $\set{A_0}$.
 \end{definition}
+
+\newcommand{\betweenrefinementfigurehspace}{\hspace{0.07in}}
+\newcommand{\subfigurewidth}{2.1in}
+
+\begin{figure*}[tb!]\centering
+\subfloat[Exact preimage of $B$]{%
+\label{fig:preimage-refinement:exact}%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-00}%
+}%
+\betweenrefinementfigurehspace%
+\subfloat[Initial partition $\A_0 := \set{A_0}$]{%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-01}%
+}%
+\betweenrefinementfigurehspace%
+\subfloat[$\A_0' := \U_{A \in \A_0} split~A$]{%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-02}%
+}
+
+\vspace{0.5\baselineskip}
+
+\subfloat[$\A_1 := image~refine~\A_0'$]{%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-03}%
+}%
+\betweenrefinementfigurehspace%
+\subfloat[$\A_1' := \U_{A \in \A_1} split~A$]{%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-04}%
+}%
+\betweenrefinementfigurehspace%
+\subfloat[$\A_2 := image~refine~\A_1'$]{%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-05}%
+}
+
+\vspace{\baselineskip}
+
+\subfloat[Further preimage refinements $\A_3 := refine^*~\A_2$, $\A_4 := refine^*~\A_3$ and $\A_5 := refine^*~\A_4$]{%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-07}%
+\betweenrefinementfigurehspace%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-09}%
+\betweenrefinementfigurehspace%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-11}%
+}
+
+\caption[Preimage refinement algorithm]{Preimage refinement algorithm on $\pair{\pair{\Omega,T},X}$.
+Only two dimensions of $\Omega$ are shown.
+In this example, the covering partition appears to converge in measure to the exact. (In the worst case, \ref{fig:preimage-refinement:exact} represents an open set, which in the limit, preimage refinement overapproximates only on the boundary.)}
+\label{fig:preimage-refinement}
+\end{figure*}
+
+\figref{fig:preimage-refinement} illustrates the preimage refinement algorithm.
 
 Theorem~\ref{thm:decreasing} (decreasing) guarantees $refine~A$ is never larger than $A$.
 Theorem~\ref{thm:monotonicity} (monotone) guarantees refining a \emph{partition} of $A$ never does worse than refining $A$ itself.
-Theorem~\ref{thm:approximation} (sound) guarantees the algorithm is \keyword{sound}: the preimage of $B$ is always contained in the covering partition $refine^*$ returns.
+Theorem~\ref{thm:approximation} (sound) guarantees the algorithm is sound: the exact preimage of $B$ is always contained in the covering partition $refine^*$ returns.
 
-We would like it to be \keyword{complete} in the limit, up to null sets: covering partitions' measures should converge to the true measure.
+We would like it to be precise in the limit, up to null sets: covering partitions' measures should converge to the true measure.
 Unfortunately, preimage refinement appears to compute the \keyword{Jordan outer measure} of a preimage, which is not always its measure.
 A counterexample is the expression $rational?~random$, where $rational?$ returns $true$ when its argument is rational and loops otherwise.
 (This is definable using a $(\leq)$ primitive.)
 The preimage of $\set{true}$ (the rational numbers) has measure $0$, but its Jordan outer measure is $1$.
 
-We conjecture that a minimal requirement for preimage refinement's measures to converge is that a program must converge with probability $1$.
+We conjecture that a minimal requirement for preimage refinement's measures to converge is that the program must terminate with probability $1$.
 There are certainly other requirements.
 We leave these and proof of convergence of measures for future work.
 
@@ -2567,10 +2619,11 @@ Our semantics thus generalizes this process to all programs: 1) encode a program
 Using arrows drastically simplifies the correctness proofs.
 Almost every semantic correctness theorem proceeds from a proof that a lift distributes over five combinators.
 There are seven theorems in total corresponding to the morphisms in our roadmap~\eqref{eqn:roadmap-diagram1}, but the three center morphisms (pointing downward) are done in one proof, as are the two bottom morphisms (pointing rightward).
-In total, there are 20 cases, plus 11 for the original (and very simple) theorem that arrow homomorphisms distribute over program terms.
+In total, there are 20 cases, plus 11 for the original (and very simple) proof by induction that arrow homomorphisms distribute over program terms.
 
-In contrast, the corresponding theorems with separate semantic functions would require seven proofs by structural induction over at least 11 rules (12 for programs that access the random store), for a total of at least 77 cases. This reduction in complexity by semantic abstraction not have been possible without targeting \lzfclang, which allows such arrows to carry out uncountably infinite computations.
+In contrast, the corresponding theorems with separate semantic functions would require seven proofs by structural induction over at least 11 rules (12 for programs that access the random store), for a total of at least 77 cases. This reduction in complexity by semantic abstraction would have been difficult without targeting \lzfclang, which allows such arrows to carry out uncountably infinite computations.
 
-XXX: segue
+Further, because the approximating semantics targets a computable \lzfclang sublanguage, it is directly implementable.
+The next chapter details creating a \emph{practical} implementation.
 
 \mathversion{normal}

@@ -90,6 +90,7 @@ Proofs about \lzfclang's set values apply directly to ZFC sets.\footnote{Assumin
 We often import well-known ZFC theorems as lemmas; for example:
 
 \begin{lemma}[set equality is extensional]
+\label{lem:set-equality-extensional}
 For all $A : Set~x$ and $B : Set~x$, $A = B$ if and only if $A \subseteq B$ and $B \subseteq A$.
 \end{lemma}
 Or, $A = B$ if and only if they contain the same members.
@@ -125,8 +126,8 @@ A less typical set operation we use is disjoint union:
 	&A \uplus B \ := \ if~(A \i B = \emptyset)~(A \u B)~(take~\emptyset)
 \end{aligned}
 \end{equation}
-The primitive $take : Set~x \tto x$ returns the element in a singleton set, and does not terminate when applied to a non-singleton set.
-Thus, $A \uplus B$ terminates only when $A$ and $B$ are disjoint.
+The primitive $take : Set~x \tto x$ returns the element in a singleton set, and does not reduce when applied to a non-singleton set.
+Thus, $A \uplus B$ is well-defined only when $A$ and $B$ are disjoint.
 
 Operator precedence is the same as in ordinary mathematics; e.g. $a + b \cdot c\ =\ a + (b \cdot c)$.
 Application has the highest precedence, so $f~a + g~b\ =\ (f~a) + (g~b)$.
@@ -174,6 +175,6 @@ The $preimage$ function finds $g$'s inputs whose corresponding outputs are in $B
 The set $J \to X$ contains all the \emph{total} mappings from $J$ to $X$; equivalently, all the vectors of $X$ indexed by $J$, which may be infinite.
 We use infinite vectors of type $J \to [0,1]$ in Chapter~\ref{ch:preimage1} as infinite sources of uniformly random numbers.
 
-In short, in addition to lambdas in \lzfclang, we have every necessary mathematical object at our disposal.
+In short, in addition to lambdas in \lzfclang, we have every necessary mathematical object and theorem at our disposal.
 
 \mathversion{normal}

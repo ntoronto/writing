@@ -2,193 +2,685 @@
 
 \DeclarePairedDelimiter{\ivl}{[\mspace{-4.5mu}(}{)\mspace{-4.5mu}]}
 
-% Moved from Chapter 7
-\begin{comment}
-\subsection{Dr. Bayes}
+\section{Introduction}
 
-Our main implementation, \mykeyword{Dr. Bayes}, is written in Typed Racket.
-It consists of the semantic function $\meaningof{\cdot}\genc$ from \figref{fig:semantic-function} and its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow as defined in \figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}, the approximating preimage and preimage* arrows as defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-preimage-arrow-defs}, and algorithms to compute approximate probabilities.
-We use it to test the feasibility of solving real-world problems by computing approximate preimages.
+To maintain generality, the preceeding chapter leaves out some details; in particular, how to
+\begin{enumerate}
+	\item Represent and compute with abstract sets.
+	\item Compute approximate preimages under real primitives (especially $\Re \times \Re \to \Re$ functions).
+	\item Use preimage refinement to compute conditional probabilities \emph{efficiently}.
+\end{enumerate}
+In this chapter, we provide these details.
 
-Dr. Bayes's arrows operate on a monomorphic rectangular set data type.
-It includes floating-point intervals to overapproximate real intervals, with which we compute approximate preimages under arithmetic and inequalities.
-Finding the smallest covering rectangle for images and preimages under $add : \pair{\Re,\Re} \tto \Re$ and other monotone functions is fairly straightforward.
-For piecewise monotone functions, we distinguish cases using $\ifpre$; e.g.
-\begin{equation}
-	\hspace{-0.5in}
-	mul\pre \ := \
-		\lzfcsplit{\ifpre~
-			&(fst\pre~\comppre~pos?\pre) \\
-			&(\lzfcsplit{\ifpre~
-				&(snd\pre~\comppre~pos?\pre) \\
-				&mul^{++}\pre \\
-				&(\lzfcsplit{\ifpre~
-					\lzfcsplit{&(snd\pre~\comppre~neg?\pre) \\
-						&mul^{+-}\pre \\
-						&(const\pre~0)))}
-				}
-			} \\
-			&\cdots
-		}
-	\hspace{-0.5in}
-\end{equation}
-To support data types, the set type includes tagged rectangles; for ad-hoc polymorphism, it includes disjoint unions.
+\section{Abstract Sets and Concrete Values}
 
-Section~\ref{sec:discretization} outlines preimage refinement: a discretization algorithm that seems to converge for programs that halt with probability 1, consisting of repeatedly shrinking and repartitioning a program's domain.
-We do not use this algorithm directly in Dr. Bayes because it is inefficient.
-Good accuracy requires fine discretization, which is \emph{exponential} in the number of discretized axes.
-For example, a nonrecursive program that contains only 10 uses of $random$ would need to partition 10 axes of $\Omega$, the set of random sources.
-Splitting each axis into only 4 disjoint intervals yields a partition of $\Omega$ of size $4^{10} = 1,048,576$.
+While any kind of abstract sets with finite representations and computable operations would do, we use rectangles for their efficiency and simplicity, especially emptiness checking.
 
-Fortunately, Bayesian practitioners tend to be satisified with sampling methods, which are usually more efficient than exact methods based on enumeration.
+In a host language such as Haskell with sufficiently advanced typeclasses or an equivalent, it is possible to use polymorphism to represent rectangles in an extensible way.
+For each required value type $X$, we need to define, in the host language,
+\begin{itemize}
+	\item A type of rectangles of $X$ with an associated type of members of $X$.
+	\item Representations of the sets $\emptyset$ and $X$ (i.e. $\top$ in Figure~\ref{fig:approximating-preimage*-arrow-defs}).
+	\item Intersection $(\i)$ and join $(\join)$.
+	\item A singleton constructor and a membership test.
+\end{itemize}
+The membership test is used in sampling algorithms, to determine whether points sampled from the rectangular cover of a preimage set lie within the preimage set.
 
-Let $g : X \mapto Y$ be the interpretation of a program as a mapping arrow computation.
-A Bayesian is primarily interested in the probability of $B' \subseteq Y$ given some condition set $B \subseteq Y$.
-This can be approximated using \keyword{rejection sampling}.
-If $A := preimage~(g~X)~B$ and $A' := preimage~(g~X)~B'$, and $xs$ is a list of samples from any superset of $A$ that has at least one element in $A$, then
-\begin{equation}
-	Pr[B'|B] \ \approx \ \frac{length~(filter~(\in A' \i A)~xs)}{length~(filter~(\in A)~xs)}
-\label{eqn:sampling-approx-conditional}
-\end{equation}
-where ``$\approx$'' (rather loosely) denotes convergence as the length of $xs$ increases.
-The probability that any given element of $xs$ is in $A$ is often extremely small, so it would clearly be best to sample only within $A$.
-While we cannot do that, we can easily sample from a partition covering $A$.
+Figure~\ref{fig:haskell-sets} shows the definition of a Haskell typeclass \texttt{Set} that encapsulates these types, values and operations.
+\texttt{Set} uses a type family \texttt{Member} to associate with each rectangle type \texttt{s} a value type \texttt{Member~s}.
+Each required $Rect~X$ is represented by a type instance of \texttt{Set}.
+For example, the code in Figure~\ref{fig:haskell-pair-set} represents $Rect~\pair{X_1,X_2}$ using the data type \texttt{PairSet~s1~s2}, and declares it as an instance of \texttt{Set} by defining \texttt{Member~(PairSet~s1~s2)} to be a 2-tuple type, and defining the empty pair set, the universal pair set, and the required operations.
 
-For a fixed number $\mathit{d}$ of uses of $random$, $\mathit{n}$ samples, and $\mathit{m}$ repartitions that split each rectangle in two, enumerating and sampling from a covering partition has time complexity $\mathit{O}(2^\mathit{md} + \mathit{n})$.
-Fortunately, we do not have to enumerate the rectangles in the partition: we sample them instead, and sample one value from each rectangle, which is $\mathit{O(mdn)}$.
-
-We cannot directly compute $a \in A$ or $a \in A' \i A$ in~\eqref{eqn:sampling-approx-conditional}, but we can use the fact that $A$ and $A'$ are preimages, and use the interpretation of the program as a bottom arrow computation $f : X \botto Y$:
-\begin{equation}
-\begin{aligned}
-	filter~(\in A)~xs
-		&\ = \ filter~(\in preimage~(g~X)~B)~xs
-\\
-		&\ = \ filter~(\fun{a}{g~X~a \in B})~xs
-\\
-		&\ = \ filter~(\fun{a}{f~a \in B})~xs
-\end{aligned}
-\end{equation}
-Substituting into~\eqref{eqn:sampling-approx-conditional} gives
-\begin{equation}
-	Pr[B'|B] \ \approx \ \frac{length~(filter~(\fun{a}{f~a \in B' \i B})~xs)}{length~(filter~(\fun{a}{f~a \in B})~xs)}
-\end{equation}
-which converges to the probability of $B'$ given $B$ as the number of samples $xs$ from the covering partition increases.
-
-For simplicity, the preceeding discussion does not deal with projecting preimages from the domain of programs $(\Omega \times T) \times \set{\pair{}}$ onto the set of random sources $\Omega$.
-Shortly, Dr. Bayes samples rectangles from covering partitions of $(\Omega \times T) \times \set{\pair{}}$ subsets, weights each rectangle by the inverse of the probability with which it is sampled, and projects onto $\Omega$.
-This alogorithm is a variant of \keyword{importance sampling}~\cite[Section 12.4]{cit:degroot-2012book-probability}, where the candidate distribution is defined by the sampling algorithm's partitioning choices, and the target distribution is $P$.
-
-\begin{lrbox}{\codebox}
-\begin{varwidth}{\textwidth}
-\singlespacing
-\begin{schemedisplay}
-(struct/drbayes collision (time point normal))
-<blank-line>
-(define/drbayes (ray-plane-intersect p0 v n d)
-  (let ([denom  (- (vec-dot v n))])
-    (if (positive? denom)
-        (let ([t  (/ (+ d (vec-dot p0 n)) denom)])
-          (if (positive? t) (collision t (vec+ p0 (vec-scale v t)) n) #f))
-        #f)))
-<blank-line>
-\end{schemedisplay}
+\begin{figure*}[tb!]\centering
+\begin{varwidth}{5.25in}
+%infixr 3 /\
+%infixr 2 \/
+\begin{haskellcode}
+class Eq s => Set s where
+  type Member s                      -- type of members of s
+  empty :: s                         -- lattice bottom
+  univ  :: s                         -- lattice top
+  (/\) :: s -> s -> s                -- intersection
+  (\/) :: s -> s -> s                -- join
+  singleton :: Member s -> s         -- singleton set
+  member :: Member s -> s -> Bool    -- membership test
+\end{haskellcode}
 \end{varwidth}
-\end{lrbox}
-
-\begin{figure*}[!tb]\centering
-\smallmathfont
-\subfloat[Random paths from a single light source, conditioned on passing through an aperture.]{
-\begin{minipage}{0.49\textwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/ray-tracing}
-\end{minipage}
-\label{fig:ray-tracing-paths}
-}
-\tab\tab
-\subfloat[Random paths that pass through the aperture, projected onto a plane and accumulated.]{
-\begin{minipage}{0.43\textwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/ray-tracing-projection}
-\end{minipage}
-\label{fig:ray-tracing-projection}
-}
-
-\subfloat[Part of the ray tracer implementation. Sampling involves computing approximate preimages under functions like this.]{
-\usebox{\codebox}
-\label{fig:ray-plane-intersect}
-}
-\caption[Stochastic ray tracing in Dr. Bayes]{Stochastic ray tracing in Dr. Bayes is little more than physics simulation.}
-\label{fig:ray-tracing}
+\bottomhrule
+\caption[Haskell typeclass for rectangular sets]{A Haskell typeclass for rectangular sets.}
+\label{fig:haskell-sets}
 \end{figure*}
 
-\figref{fig:ray-tracing} shows the result of using Dr. Bayes for stochastic ray tracing~\cite{cit:veach-1997siggraph-mlt}.
-In this instance, photons are cast from a light source in a uniformly random direction and are reflected by the walls of a square room, generating paths.
-The objective is to sample, with the correct distribution, only those paths that pass through an aperture.
-The smaller the aperture, the smaller the probability a path passes through it, and the more focused the resulting image.
+\begin{figure*}[tb!]\centering
+\begin{varwidth}{5.25in}
+\begin{haskellcode}
+data PairSet s1 s2 = EmptyPairSet | UnivPairSet | PairSet s1 s2
+  deriving(Show, Eq)
 
-All efficient implementations of stochastic ray tracing to date use sophisticated, specialized sampling methods that bear little resemblance to the physical processes they simulate.
-The proof-of-concept ray tracer, written in Dr. Bayes, is little more than a simple physics simulation and a conditional query.
-\end{comment}
+prod :: (Set s1, Set s2) => s1 -> s2 -> PairSet s1 s2
+prod a1 a2 | a1 == empty || a2 == empty  = EmptyPairSet
+           | a1 == univ  && a2 == univ   = UnivPairSet
+           | otherwise                   = PairSet a1 a2
+
+instance (Set s1, Set s2) => Set (PairSet s1 s2) where
+  type Member (PairSet s1 s2) = (Member s1, Member s2)
+
+  empty = EmptyPairSet
+  univ  = UnivPairSet
+
+  EmptyPairSet /\ _ = EmptyPairSet
+  _ /\ EmptyPairSet = EmptyPairSet
+  UnivPairSet /\ a = a
+  a /\ UnivPairSet = a
+  PairSet a1 a2 /\ PairSet b1 b2 = prod (a1 /\ b1) (a2 /\ b2)
+
+  EmptyPairSet \/ a = a
+  a \/ EmptyPairSet = a
+  UnivPairSet \/ _ = UnivPairSet
+  _ \/ UnivPairSet = UnivPairSet
+  PairSet a1 a2 \/ PairSet b1 b2 = prod (a1 \/ b1) (a2 \/ b2)
+
+  member EmptyPairSet _ = False
+  member UnivPairSet  _ = True
+  member (x1,x2) (PairSet a1 a2) = member x1 a1 && member x2 a2
+
+  singleton (x1,x2) = prod (singleton x1) (singleton x2)
+\end{haskellcode}
+\end{varwidth}
+\bottomhrule
+\caption[Haskell implementation of sets of pairs]{An instance of \texttt{Set}, representing rectangular sets $Rect~\pair{X_1,X_2}$.}
+\label{fig:haskell-pair-set}
+\end{figure*}
+
+In a language without typeclasses and type families, or equally expressive type-level features, the representation is best done monomorphically:\footnote{It is possible to encode typeclasses and type families into a polymorphic type system by parameterizing every function on function tables that represent typeclasses, but this encoding is difficult to work with.} all required value types $X_1, X_2, \dots, X_n$ are considered as one universal type $X := \bigcup_{i = 1}^n X_i$.
+The same types, values and operations are necessary; i.e. the type of rectangles of $X$ and of values of $X$, representations of $\emptyset$ and $X$, intersection, join, singleton, and membership.
+
+\begin{figure*}[p!]\centering
+\begin{schemedisplay}
+;; Lattice bottom and top
+(define-singleton-type Empty-Set empty-set)
+(define-singleton-type Univ-Set univ-set)
+<blank-line>
+;; Type of rectangular sets
+(define-type Set (U Empty-Set Nonempty-Set))
+<blank-line>
+;; Type of *nonempty* rectangular sets
+(define-type Nonempty-Set
+  (U Univ-Set Real-Set Bool-Set Pair-Set Null-Set Omega-Set Trace-Set))
+<blank-line>
+;; Type of members of rectangular sets
+(define-type Value
+  (Rec Value (U Real Boolean (Pair Value Value) Null Omega-Val Trace-Val)))
+<blank-line>
+(: intersect (Set Set -> Set))
+;; Returns the intersection of two rectangular sets
+(define (intersect A B)
+  (cond [(and (real-set? A) (real-set? B))  (real-set-intersect A B)]
+        [(and (bool-set? A) (bool-set? B))  (bool-set-intersect A B)]
+        [(and (pair-set? A) (pair-set? B))  (pair-set-intersect A B)]
+        [(and (null-set? A) (null-set? B))  null-set]
+        [(and (omega-set? A) (omega-set? B))  (omega-set-intersect A B)]
+        [(and (trace-set? A) (trace-set? B))  (trace-set-intersect A B)]
+        [(univ-set? A)  B]
+        [(univ-set? B)  A]
+        [else  empty-set]))
+<blank-line>
+;; Type of *nonempty* rectangular sets of pairs
+(struct: Pair-Set ([fst : Nonempty-Set] [snd : Nonempty-Set])
+  #:transparent)
+(define pair-set? Pair-Set?)
+<blank-line>
+(: prod (Set Set -> (U Empty-Set Pair-Set)))
+;; Constructs pair sets from possibly empty sets
+(define (prod A1 A2)
+  (if (or (empty-set? A1) (empty-set? A2))
+      empty-set
+      (Pair-Set A1 A2)))
+<blank-line>
+(: pair-set-intersect (Pair-Set Pair-Set -> (U Empty-Set Pair-Set)))
+;; Intersection specialized to pair sets
+(define (pair-set-intersect A B)
+  (match-define (Pair-Set A1 A2) A)
+  (match-define (Pair-Set B1 B2) B)
+  (prod (intersect A1 B1) (intersect A2 B2)))
+\end{schemedisplay}
+\bottomhrule
+\caption[Typed Racket implementation of rectangular sets]{Part of a Typed Racket implementation of monomorphic, rectangular sets.}
+\label{fig:typed-racket-set}
+\end{figure*}
+
+Of course, it is good factorization to have separate representations for each type $X_i$.
+Figure~\ref{fig:typed-racket-set} shows a fragment of a Typed Racket representation of rectangular sets, operations and values, with rectangles of $\Re$ (\scheme{Real-Set}), $Bool$ (\scheme{Bool-Set}), $\pair{X,X}$ (\scheme{Pair-Set}), $\set{\pair{}}$ (\scheme{Null-Set}), $J \to [0,1]$ (\scheme{Omega-Set}) and $J \to Bool_\bot$ (\scheme{Trace-Set}).
+The type \scheme{Nonempty-Set} is the union of these types and \scheme{Univ-Set}, which represents $X$.
+The \scheme{Set} type additionally represents $\emptyset$.
+The \scheme{Value} type represents members of $X$ and is defined similarly, but mostly uses built-in Racket types such as \scheme{Real} and \scheme{Pair}.
+
+The \scheme{intersect} function receives any two \scheme{Set} instances and dispatches to a more specific intersection function based on their runtime data types.
+The intersection of two differently typed rectangles is empty because the types represent disjoint sets.
+Every operation on \scheme{Set} or \scheme{Value} is computed in a similar way.
+
+Typed Racket's true union types make it easy to represent \emph{nonempty} sets of pairs, simply by leaving \scheme{Empty-Set} out of the type in \scheme{Pair-Set}'s fields.
+The \scheme{pair-set-intersect} function is derived from the identity $(A_1 \times A_2) \i (B_1 \times B_2)\ =\ (A_1 \i B_1) \times (A_2 \i B_2)$.
+
+Subsets of $Bool$ are easy to represent.
+Subsets of $\set{\pair{}}$ are trivial.
+
+We need the representation of real sets to have closed intervals because $\Omega = J \to [0,1]$.
+Because preimage refinement splits $\Omega$ into disjoint sets, we also need half-open and open intervals.
+We therefore need to represent intervals with four values: two extended-real endpoints, and two booleans that determine whether each endpoint is in the interval (i.e. whether each endpoint is closed).
+
+\begin{figure*}[tb!]\centering
+%\def\oldcodesize{\codesize}
+%\makeatletter
+%\def\codesize{\@setfontsize\small{10pt}{11.5pt}}
+%\makeatother
+\begin{schemedisplay}
+;; Type of rectangular real sets (intervals)
+(struct: Real-Set ([mn : Flonum] [mx : Flonum] [mn? : Boolean] [mx? : Boolean])
+  #:transparent)
+<blank-line>
+(: interval (Flonum Flonum Boolean Boolean -> (U Empty-Set Real-Set)))
+<blank-line>
+(: real-set-intersect (Real-Set Real-Set -> (U Empty-Set Real-Set)))
+;; Intersection specialized to real sets
+(define (real-set-intersect A B)
+  (match-define (Real-Set a1 a2 a1? a2?) A)
+  (match-define (Real-Set b1 b2 b1? b2?) B)
+  (define-values (c1 c1?)
+    (cond [(> a1 b1)  (values a1 a1?)]
+          [(< a1 b1)  (values b1 b1?)]
+          [else       (values a1 (and a1? b1?))]))
+  (define-values (c2 c2?)
+    (cond [(> a2 b2)  (values b2 b2?)]
+          [(< a2 b2)  (values a2 a2?)]
+          [else       (values a2 (and a2? b2?))]))
+  (interval c1 c2 c1? c2?))
+<blank-line>
+(: real-set-singleton (Real -> Real-Set))
+;; Returns the smallest Real-Set containing the given Real
+(define (real-set-singleton a)
+  (define b (fl a))
+  (cond [(not (rational? a))  ; No +nan.0 or infinities
+         (raise-argument-error 'real-set-singleton "rational?" a)]
+        [(< b a)  (Real-Set b (flnext b) #f #f)]
+        [(< a b)  (Real-Set (flprev b) b #f #f)]
+        [else     (Real-Set b b #t #t)]))
+\end{schemedisplay}
+%\def\codesize{\oldcodesize}
+\bottomhrule
+\caption[Typed Racket implementation of intervals]{Part of a Typed Racket implementation of closed, open and half-open intervals.}
+\label{fig:typed-racket-real-set}
+\end{figure*}
+
+Figure~\ref{fig:typed-racket-real-set} lists part of the code for representing closed, open and half-open intervals.
+For efficiency, endpoints are 64-bit floating-point numbers, but this does not threaten soundness.
+Because the floating-point numbers contain \scheme{-inf.0} and \scheme{+inf.0}, every real interval can be covered by at least one floating-point interval.
+The (unlisted) \scheme{interval} function returns a \scheme{Real-Set} or \scheme{Empty-Set} given open or closed endpoints.
+It ensures neither endpoint is \scheme{+nan.0}, returns \scheme{empty-set} if the endpoints are out of order or are equal but at least one is open, and forces \scheme{-inf.0} and \scheme{+inf.0} endpoints to be open.
+The \scheme{real-set-intersect} function intersects real sets; the unlisted \scheme{real-set-join} is similar, but always returns a (nonempty) \scheme{Real-Set}.
+The unlisted \scheme{real-set-member?} is simple enough: it returns \scheme{#t} when its value argument is between its set argument's endpoints, or equal to a closed endpoint.
+
+The function \scheme{real-set-singleton} is also defined in Figure~\ref{fig:typed-racket-real-set}.
+Because $\Re$ values are represented by the type \scheme{Real}, which includes exact rationals such as \scheme{1/7}, it cannot simply return the closed interval \scheme{(Real-Set a a #t #t)}.
+Fortunately, because the floating-point numbers contain \scheme{-inf.0} and \scheme{+inf.0} and there are only finitely many of them, every real number that is not represented exactly by a float is between two closest floats.
+The \scheme{fl} function converts an exact rational to a floating-point number by rounding its argument to the nearest one.
+The logic after \scheme{(define b (fl a))} determines whether \scheme{b} is rounded down or up, or is not rounded, and uses Racket's \scheme{math/flonum} library's \scheme{flnext} and \scheme{flprev} in the rounding cases to construct the smallest open floating-point interval containing \scheme{a}.
+If \scheme{b} is not rounded, it returns a closed interval with both endpoints \scheme{b}.
+
+Testing \scheme{real-set-singleton} on \scheme{3/4} and \scheme{1/7}, we get
+\begin{center}
+\singlespacing
+\begin{schemedisplay}
+> (real-set-singleton 3/4)
+(Real-Set 0.75 0.75 #t #t)
+<blank-line>
+> (real-set-singleton 1/7)
+(Real-Set 0.14285714285714285 0.14285714285714288 #f #f)
+<blank-line>
+> (real-set-member? 3/4 (real-set-singleton 3/4))
+#t
+<blank-line>
+> (real-set-member? 1/7 (real-set-singleton 1/7))
+#t
+\end{schemedisplay}
+\end{center}
+Using the Racket's \scheme{math/bigfloat} library to get a 128-bit approximation of $\pi$, and using the \scheme{#e} number prefix to construct exact rational numbers that are smaller and larger than the smallest and largest positive floating-point numbers, we get the following intervals:
+\begin{center}
+\singlespacing
+\begin{schemedisplay}
+> (real-set-singleton (bigfloat->real pi.bf))
+(Real-Set 3.141592653589793 3.1415926535897936 #f #f)
+<blank-line>
+> (real-set-singleton #e1e-350)
+(Real-Set 0.0 4.9406564584125e-324 #f #f)
+<blank-line>
+> (real-set-singleton #e1e350)
+(Real-Set 1.7976931348623157e+308 +inf.0 #f #f)
+\end{schemedisplay}
+\end{center}
+These are the tightest sound approximations of $\set{3{/}4}$, $\set{1{/}7}$, $\set{\pi}$, $\set{10^{-350}}$ and $\set{10^{350}}$ possible with floating-point intervals.
+
+\subsection{Infinite Binary Trees}
+
+Rectangular families of sets (Definition~\ref{def:standard-rectangle}) are defined so that rectangles of any $J \to A$ have only finitely many projections that are proper subsets of $A$.
+For example, for $\Omega := J \to [0,1]$, if $\Omega' \in Rect~\Omega$, then $proj~j~\Omega' \subset [0,1]$ for only finitely many $j \in J$.
+Further, the index set $J$ is part of a binary indexing scheme, so such values have a tree structure we can use to represent them.
+We can thus use self-similarly to represent $\Omega$ rectangles by a finite data structure: a subtree in which every projection is $[0,1]$ is represented by (the representation of) $\Omega$ itself.
+
+We need a constructor for building binary trees recursively.
+The following function receives a node value $a$ and two tree encodings $l$ and $r$, and returns a tree encoding that maps $j_0$ to $a$, and has $l$ and $r$ as the left and right subtrees.
+\begin{equation}
+\begin{aligned}
+	&tree!node : A \tto (J \to A) \tto (J \to A) \tto (J \to A) \\
+	&tree!node~a~l~r\ :=\ 
+		\lzfcsplit{
+			&\set{\pair{j_0,a}}\ \u \\
+			&\setb{\pair{left~j,a}}{\pair{j,a} \in l}\ \u \\
+			&\setb{\pair{right~j,a}}{\pair{j,a} \in r}
+		}
+\end{aligned}
+\end{equation}
+From $tree!node$, we define a function to construct instances of $Rect~(J \to A)$ from a projection, and left and right subtree rectangles.
+It is essentially a trinary cartesian product.
+\begin{equation}
+\begin{aligned}
+	&tree!prod : Rect~A \tto Rect~(J \to A) \tto Rect~(J \to A) \tto Rect~(J \to A) \\
+	&tree!prod~A~L~R\ :=\ \setb{tree!cons~a~l~r}{a \in A, l \in L, r \in R}
+\end{aligned}
+\end{equation}
+Any $Rect~(J \to A)$ can be constructed from $J \to A$ itself, finitely many projections, and finitely many applications of $tree!prod$.
+For example,
+\begin{equation}
+	tree!prod~[0,\tfrac{1}{2}]~(tree!prod~[\tfrac{1}{2},1]~\Omega~\Omega)~\Omega
+\label{eqn:finite-tree-product}
+\end{equation}
+constructs an instance $\Omega' \in Rect~\Omega$ for which $proj~j_0~\Omega' = [0,\tfrac{1}{2}]$ and $proj~(left~j_0)~\Omega' = [\tfrac{1}{2},1]$, and all other projections are $[0,1]$.
+
+\begin{figure*}[p!]\centering
+\begin{schemedisplay}
+;; Binary indexing scheme
+(define-type J (Listof Boolean))
+(define j0 null)
+<blank-line>
+(: left (J -> J))
+(define (left j) (cons #t j))
+<blank-line>
+(: right (J -> J))
+(define (right j) (cons #f j))
+<blank-line>
+<blank-line>
+;; Type representing Omega
+(define-singleton-type Univ-Omega-Set univ-omega-set)
+<blank-line>
+;; Type representing a subrectangle of Omega
+(struct: Omega-Node ([axis : Real-Set] [left : Omega-Set] [right : Omega-Set])
+  #:transparent)
+<blank-line>
+(define-type Omega-Set (U Univ-Omega-Set Omega-Node))
+(define-predicate omega-set? Omega-Set)
+<blank-line>
+(: omega-set-project (J Omega-Set -> Real-Set))
+;; Returns Z's axis at index j
+(define (omega-set-project j Z)
+  (let loop ([j  (reverse j)] [Z Z])
+    (match Z
+      [(? univ-omega-set?)  unit-interval]
+      [(Omega-Node A L R)
+       (cond [(null? j)  A]
+             [(first j)  (loop (rest j) L)]
+             [else       (loop (rest j) R)])])))
+<blank-line>
+;; Functionally equivalent to univ-omega-set, but has fields for recursion
+(define univ-omega-node
+  (Omega-Node unit-interval univ-omega-set univ-omega-set))
+<blank-line>
+(: omega-set-unproject (J Omega-Set Real-Set -> (U Empty-Set Omega-Set)))
+;; Functionally updates Z's axis at index j by intersecting it with B
+(define (omega-set-unproject j Z B)
+  (let loop ([j  (reverse j)] [Z Z])
+    (match Z
+      [(? univ-omega-set?)  (loop j univ-omega-node)]
+      [(Omega-Node A L R)
+       (cond [(null? j)  (omega-set-node (real-set-intersect A B) L R)]
+             [(first j)  (omega-set-node A (loop (rest j) L) R)]
+             [else       (omega-set-node A L (loop (rest j) R))])])))
+\end{schemedisplay}
+\bottomhrule
+\caption[Typed Racket representation of $\mathsf{Rect}~\Omega$]{Part of a Typed Racket representation of $Rect~\Omega$, as \emph{finite} binary trees.}
+\label{fig:tree-rectangle-implementation}
+\end{figure*}
+
+In Figure~\ref{fig:tree-rectangle-implementation}, $tree!prod$ is represented by a data type \scheme{Omega-Node}, and $\Omega$ is represented by the singleton value \scheme{univ-omega-set}.
+Representations of $Rect~\Omega$ instances are constructed as in \eqref{eqn:finite-tree-product}; for example
+\begin{center}\singlespacing
+\begin{schemedisplay}
+(define omega-rect
+  (Omega-Node (Real-Set 0.0 0.5 #t #t)
+              (Omega-Node (Real-Set 0.5 1.0 #t #t)
+                          univ-omega-set
+                          univ-omega-set)
+              univ-omega-set))
+\end{schemedisplay}
+\end{center}
+Functions \scheme{omega-set-project} and \scheme{omega-set-unproject} respectively implement $proj$ and $unproj$ for $\Omega$ rectangles; for example
+\begin{center}\singlespacing
+\begin{schemedisplay}
+> (omega-set-project j0 omega-rect)
+(Real-Set 0.0 0.5 #t #t)
+<blank-line>
+> (omega-set-project (right j0) omega-rect)
+(Real-Set 0.0 1.0 #t #t)
+<blank-line>
+> (omega-set-unproject (left j0) omega-rect (Real-Set 0.0 0.75 #t #t))
+(Omega-Node (Real-Set 0.0 0.5 #t #t)
+            (Omega-Node (Real-Set 0.5 0.75 #t #t)
+                        univ-omega-set
+                        univ-omega-set)
+            univ-omega-set)
+\end{schemedisplay}
+\end{center}
 
 
-\section{Set Representation}
+\begin{figure*}[tb!]\centering
+\begin{schemedisplay}
+(struct: Omega-Val ([value : (Promise Real)]
+                    [left  : (Promise Omega-Val)]
+                    [right : (Promise Omega-Val)])
+  #:transparent)
+<blank-line>
+(: omega-set-member? (Omega-Val Omega-Set -> Boolean))
+(define (omega-set-member? z Z)
+  (match* (z Z)
+    [(z (? univ-omega-set?))  #t]
+    [((Omega-Val a l r) (Omega-Node A L R))
+     (and (real-set-member? (force a) A)
+          (omega-set-member? (force l) L)
+          (omega-set-member? (force r) R))]))
+<blank-line>
+(: omega-set-sample (Omega-Set -> Omega-Val))
+(define (omega-set-sample Z)
+  (match Z
+    [(? univ-omega-set?)
+     (omega-set-sample univ-omega-node)]
+    [(Omega-Node A L R)
+     (Omega-Val (delay (real-set-sample A))
+                (delay (omega-set-sample L))
+                (delay (omega-set-sample R)))]))
+\end{schemedisplay}
+\bottomhrule
+\caption[Typed Racket representation of values $\omega \in \Omega$]{A Typed Racket representation of values $\omega \in \Omega$, as lazy binary trees.}
+\label{fig:tree-representation}
+\end{figure*}
+
+
+Figure~\ref{fig:tree-representation} lists an implementation of values in $\Omega$, which are infinite binary trees, as a lazy data structure.
+The \scheme{Omega-Val} data type represents the $tree!node$ function.
+Instances of \scheme{(Promise A)} are lazy values: they are created using special syntax \scheme{(delay a)} where \scheme{a} is of type \scheme{A}, and are computed and cached using the function \scheme{force}~[XXX: cite?].
+Thus, an \scheme{Omega-Val}'s infinite left and right subtrees are represented by \scheme{(Promise Omega-Val)}, which are promises to produce subtrees.
+
+For lazy trees, it is easy to write recursive functions that may not terminate.
+The two listed functions \scheme{omega-set-member?} and \scheme{omega-set-sample} always terminate, however: both recur on the structure of \scheme{Omega-Set}, and are thus well-founded.
+
+Representations of branch traces and rectangles are similar to \scheme{Omega-Val} and \scheme{Omega-Set}.
+
+\subsection{Disjoint Bottom and Top Unions}
+
+The set representations up to this point are the minimum necessary for a language with real numbers and lists.
+Whether more complicated representations are necessary depends on the presence of certain language features and primitives.
+
+Suppose, for example, that we extend $\meaningofconv{\cdot}\genc$ by this rule:
+\begin{equation}
+	\meaningofconv{strict!if~\mathit{e_1}~\mathit{e_2}~\mathit{e_3}}\genc\ :=\ 
+		\arrowif\genc
+			~\meaningofconv{\mathit{e_1}}\genc
+			~\meaningofconv{\mathit{e_2}}\genc
+			~\meaningofconv{\mathit{e_3}}\genc
+\end{equation}
+Recall that $if$ is interpreted using $\arrowif\genc$ and $\arrowlazy\genc$, so that programs with $if$-guarded recursion have a well-defined interpretation, and preimage computation always terminates.
+Compare these two expressions, in which $\mathit{e}$ is any test expression that may evaluate to $true$ or $false$:
+\begin{equation}
+\begin{aligned}
+	if~&\mathit{e}~\pair{}~random \\
+	strict!if~&\mathit{e}~\pair{}~random \\
+\end{aligned}
+\end{equation}
+The $if$ expression is interpreted as an application of $\convifppre$, whose approximation (Figure~\ref{fig:approximating-preimage*-arrow-defs}) takes at most one branch.
+The image of the program domain under the $if$ expression is therefore $\set{\pair{}}$ or $[0,1]$, or is not computed at all.
+In contrast, $strict!if$ is interpreted as an application of $\ifppre$, whose approximation (Figure~\ref{fig:approximating-preimage-arrow-defs}) takes \emph{both} branches.
+The image of the program domain under the $strict!if$ expression is therefore $\set{\pair{}} \uplus [0,1]$.
+
+In fact, in the absence of a form or a primitive such as $strict!if$, neither image nor preimage computation attempts to join sets of different types.
+The implementation of $(\join)$ may return anything in these circumstances (though it is safest to raise an error).
+
+We have found $strict!if$ useful for a few things.
+
+One is defining strict versions of boolean operators, which are faster than their lazy (i.e. short-cutting) counterparts:
+\begin{equation}
+\begin{aligned}
+	a~and~b&\ :\equiv\ if~a~b~false \\
+	a~and^*~b&\ :\equiv\ strict!if~a~b~false
+\end{aligned}
+\end{equation}
+Here, ``$:\equiv$'' denotes defining special syntax rather than defining a function.
+(Otherwise, both conjunctions would be strict.)
+
+Another is to assert that $prop?~x$ for some predicate $prop?$ and value $x$:
+\begin{equation}
+	assert~prop?~x\ :\equiv\ strict!if~(prop?~x)~x~fail
+\end{equation}
+Here, $fail$ is interpreted as a computation that always returns $\emptyset$ for images and preimages.
+This expression thus restricts the program domain to the set of values for which $prop?~x$ evaluates to $true$ regardless of branch traces, which cannot be done using $if$.
+
+Another is pasting together piecewise monotone functions (Section~\ref{sec:piecewise-monotone-primitives}).
+
+With $strict!if$, there must be a type to represent disjoint unions such as $\set{\pair{}} \uplus [0,1]$.
+One that is relatively easy to use is
+\begin{center}\singlespacing
+\begin{schemedisplay}
+(struct: Bot-Union-Set ([hash : (HashTable Symbol Nonempty-Set)])
+  #:transparent)
+\end{schemedisplay}
+\end{center}
+which maps symbols to instances of associated set types.
+This type also allows user data types to be represented easily: every structure definition is assigned a symbol, which is mapped to product sets within instances of \scheme{Bot-Union-Set}.
+Intersections and joins are done by looping over symbols.
+
+Suppose we add a primitive $real?$ that returns $true$ when its argument is a real number and $false$ otherwise.
+As a preimage computation, it could be defined as
+\begin{equation}
+	real?_{pre}~A\ :=\ 
+		\lzfccase{\pair{A \i \Re, A \w \Re}}{
+			\pair{\emptyset,\emptyset} & \pair{\emptyset,\fun{B} \emptyset} \\
+			\pair{A_t,\emptyset} & const\pre~true~A_t \\ %\pair{\set{true}, \fun{B} if~(B = \emptyset)~\emptyset~A_t} \\
+			\pair{\emptyset,A_f} & const\pre~false~A_f \\ %\pair{\set{false}, \fun{B} if~(B = \emptyset)~\emptyset~A_t} \\
+			\pair{A_t,A_f} & \pair{Bool, \fun{B} (if~(true \in B)~A_t~\emptyset) \u (if~(false \in B)~A_f~\emptyset)}
+		}
+\end{equation}
+We potentially have a problem implementing this: we do not have relative complement for implementing $A \w \Re$.
+If we have a limited number of data types, however, we can do this:
+\begin{equation}
+	A \w \Re\ =\ A \i (X_1 \u X_2 \u ... \u X_n)
+\end{equation}
+where $\Re$ does not appear in the union $X_1 \u X_2 \u ... \u X_n$, which can be represented by a \scheme{Bot-Union-Set}.
+Unfortunately, computing this in the presence of user data types can be very inefficient and requires some static analysis to determine which are used in a particular program.
+
+Instead, we might represent $X_1 \u X_2 \u ... \u X_n$ using a \keyword{top union}:
+\begin{center}
+\begin{schemedisplay}
+(struct: Top-Union-Set ([hash : (HashTable Symbol Nonuniversal-Set)])
+  #:transparent)
+\end{schemedisplay}
+\end{center}
+where \scheme{Nonuniversal-Set} is a new subtype of \scheme{Set} that does not include \scheme{Univ-Omega-Set}, \scheme{Univ-Trace-Set} nor other universal sets.
+For example, a \scheme{Top-Union-Set} that maps \scheme{'real} to \scheme{empty-set} would represent the set of all values except the reals.
+
+With top unions, it is easy to abstract $real?_{pre}$ to arbitrary predicates:
+\begin{equation}
+\lzfcsplit{
+	&predicate_{pre}~X_t~X_f~A\ :=\ \\
+	&\tab
+		\lzfccase{\pair{A \i X_t, A \i X_f}}{
+			\pair{\emptyset,\emptyset} & \pair{\emptyset,\fun{B} \emptyset} \\
+			\pair{A_t,\emptyset} & const\pre~true~A_t \\ %\pair{\set{true}, \fun{B} if~(B = \emptyset)~\emptyset~A_t} \\
+			\pair{\emptyset,A_f} & const\pre~false~A_f \\ %\pair{\set{false}, \fun{B} if~(B = \emptyset)~\emptyset~A_t} \\
+			\pair{A_t,A_f} & \pair{Bool, \fun{B} (if~(true \in B)~A_t~\emptyset) \u (if~(false \in B)~A_f~\emptyset)}
+		}
+}
+\end{equation}
+Thus, $real?_{pre} \equiv predicate_{pre}~\Re~(\top \w \Re)$.
+In the implementation, $\top \w \Re$ would be represented by an instance of \scheme{Top-Union-Set}.
+
+\subsection{Testing}
+
+Dr. Bayes's rectangular sets include sets of booleans, $\set{\pair{}}$, pairs, real sets, tagged structures, and bottom and top disjoint unions.
+Real sets are represented by finite, sorted lists of nonadjacent intervals, which complicates the set library further.
+We plan to add set representations for other basic data types, such as symbols and strings.
+
+Even without representing sets of symbols and strings, the set library is the largest part of Dr. Bayes's codebase: at just over 3000 lines of code, it comprises half.
+
+Not only is the set library large and complicated, but errors in it are difficult to diagnose.
+By analogy, if Dr. Bayes is Java, then the bottom* and preimage* arrows are bytecode, and rectangular set operations are machine code.
+Blaming an error from Dr. Bayes's output on the set library is like blaming an error from Java program output on an error in the CPU's microprogram for an opcode.
+Worse, because Dr. Bayes outputs stochastic approximations, we are lucky if a noncatastrophic error in the set library is detectable.
+
+Fortunately, unlike CPU microcode, rectangular set operations are correct if and only if they obey a small collection of laws.
+
+The first part of the collection of laws regards sets not as boxes of values, but as values themselves in a bounded lattice.
+There are eight algebraic laws that define a bounded lattice.
+In terms of $(\i)$, $(\join)$, $\emptyset$ and $\bot$, the algebraic laws are
+\begin{equation}
+\begin{aligned}
+	\emptyset \join A &= A
+	&&\text{$(\join)$ identity} \\
+	\top \i A &= A
+	&&\text{$(\i)$ identity} \\
+	A \join B &= B \join A
+	&&\text{$(\join)$ commutativity}\\
+	A \i B &= B \i A
+	&&\text{$(\i)$ commutativity}\\
+	(A \join B) \join C &= A \join (B \join C)
+	\hspace{0.5in} &&\text{$(\join)$ associativity}\\
+	(A \i B) \i C &= A \i (B \i C)
+	&&\text{$(\i)$ associativity}\\
+	A \join (A \i B) &= A
+	&&\text{$(\join)$-$(\i)$ absorption}\\
+	A \i (A \join B) &= A
+	&&\text{$(\i)$-$(\join)$ absorption}
+\end{aligned}
+\end{equation}
+If these laws hold in the implementation, then at an abstract level in which we do not consider the contents of the sets, the implementation is correct.
+
+But we must consider their contents, because we will be sampling within them, and we will be testing membership to determine whether the samples lie inside a preimage set.
+For our lattice, membership in its elements is characterized by these two laws:
+\begin{equation}
+\begin{aligned}
+	x \in A~or~x \in B &\implies x \in (A \join B)
+	&&\text{$(\join)$ membership} \\
+	x \in A~and~x \in B &\iff x \in (A \i B)
+	\hspace{0.5in} &&\text{$(\i)$ membership} \\
+\end{aligned}
+\end{equation}
+These are taken from the definitions of $(\u)$ and $(\i)$, but the first has (${\Longleftrightarrow}$) replaced by (${\Longrightarrow}$) because $(\join)$ overapproximates (i.e. if $x \in (A \join B)$, it may be in neither $A$ nor $B$).
+
+If the preceeding 10 laws hold, the implementation is correct.
+
+The first eight laws refer to $(=)$, which we have not discussed the implementation of yet.
+The set representations given in this section can easily be made canonical, so that equality can be decided structurally.
+By default, Racket's \scheme{equal?} primitive decides equality structurally for types with the \scheme{#:transparent} property, as Haskell's \texttt{(==)} primitive does by default for types in the \texttt{Eq} typeclass.
+
+Dr. Bayes's set representations are currently canonical, but may not be in the future: the only equality requirement is that $A = \emptyset$ be decidable.
+(Hopefully it is also efficient.)
+So to decide equality nonstructurally, we implement $(\subseteq)$ as \scheme{subseteq?} and use Lemma~\ref{lem:set-equality-extensional}:
+\begin{equation}
+\begin{aligned}
+	&A = B \iff A \subseteq B~and~B \subseteq A
+	\hspace{0.5in} &&\text{$(=)$ extensionality}
+\end{aligned}
+\end{equation}
+Of course, we must now test \scheme{subseteq?} to ensure it has the properties of $(\subseteq)$.
+The only essential property is derived from its definition, from Axiom~\ref{axm:extensionality} in Chapter~\ref{ch:lambda-zfc}:
+\begin{equation}
+\begin{aligned}
+	A \subseteq B \iff x \in A \implies x \in B
+	\hspace{0.5in} &&\text{$(\subseteq)$ definition}
+\end{aligned}
+\end{equation}
+If the preceeding 12 laws hold, the implementation is correct.
+For canonical sets, $(=)$ extensionality is testable; otherwise we use it to define set equality (i.e. it holds by definition).
+
+The testing regime is this: some large number of times,
+\begin{enumerate}
+	\item Randomly generate $A$, $B$ and $C$.
+	\item Randomly generate $x \in A$ and $y \in B$.
+	\item Evaluate the preceeding 12 laws.
+\end{enumerate}
+The number of iterations for a typical testing run is 100,000, for which the current implementation takes about a minute on current hardware.
+
+If step 2 randomly generated just $x \in \top$, then $x \in A$ would be rare, and $x \in A \implies x \in B$ would too often be equivalent to $false \implies x \in B$, which is always $true$.
+Of course, we cannot always test with $x \in A = true$, so for more complete coverage we also generate $y \in B$ and test $y \in A \implies y \in B$.
+We ensure boundary conditions, such as intersections and joins between two barely overlapping or adjacent intervals, happen often enough by choosing interval endpoints from $\set{-\infty,-4,-3,-2,-1,0,1,2,3,4,+\infty}$.
+We choose members of intervals from a similar small set that includes those endpoints, except the infinities.
+
+To be even more certain that the implementation is correct, we additionally test an alternative lattice characterization: that the elements have an associated partial order in which every two elements has a meet and a join.
+In this case, the partial order is $(\subseteq)$.
+To be a partial order, it should have these properties:
+\begin{equation}
+\begin{aligned}
+	&A \subseteq A
+	&&\text{$(\subseteq)$ reflexivity} \\
+	&A \subseteq B~and~B \subseteq A \implies A = B
+	&&\text{$(\subseteq)$ antisymmetry} \\
+	&A \subseteq B~and~B \subseteq C \implies A \subseteq C
+	\hspace{0.5in} &&\text{$(\subseteq)$ transitivity}
+\end{aligned}
+\end{equation}
+For canonical sets, $(\subseteq)$ antisymmetry is testable; otherwise it holds by definition.
+
+The partial order is related to the lattice operators by the following properties, of which the first two provide alternative definitions for $(\subseteq)$ in terms of $(\join)$ or $(\i)$, or vice-versa:
+\begin{equation}
+\begin{aligned}
+	&B = A \join B \iff A \subseteq B
+	&&\text{$(\join)$-$(\subseteq)$ definition} \\
+	&A = A \i B \iff A \subseteq B
+	&&\text{$(\i)$-$(\subseteq)$ definition} \\
+	&A \subseteq A \join B
+	&&\text{$(\join)$ increasing} \\
+	&A \i B \subseteq A
+	&&\text{$(\i)$ decreasing} \\
+	&A_1 \subseteq A_2~and~B_1 \subseteq B_2 \implies A_1 \join B_1 \subseteq A_2 \join B_2
+	&&\text{$(\join)$ monotone} \\
+	&A_1 \subseteq A_2~and~B_1 \subseteq B_2 \implies A_1 \i B_1 \subseteq A_2 \i B_2
+	\hspace{0.5in} &&\text{$(\i)$ monotone} \\
+\end{aligned}
+\end{equation}
+For noncanonical sets, the first two properties are equivalent to the middle two.
+
+Errors introduced by changing the set library are caught quickly, usually within a few hundred iterations.
+We are quite certain of the correctness of our current implementation of rectangular sets and set operations, having tested the preceeding 21 lattice and membership properties on millions of random inputs.
 
 
 \section{Preimages Under Real Functions}
+\label{sec:preimages-under-real-functions}
 
 \newcommand{\cl}[1]{\overline{\vphantom{i}{#1}}}
 \newcommand{\sub}[1]{_{_{#1}}}
 
-XXX: lifts are generally uncomputable, but many specific lifts are computable or approximately computable
+Chapter~\ref{ch:preimage1} leaves computing approximate preimages under arithmetic and other primitives up to implementors.
+In this section, we formalize a unified approach to doing so for one- and two-argument real functions, and give examples from Dr. Bayes's implementation.
 
-XXX: something about computing functions backward by computing inverses forward
+The general idea is to compute preimages by computing images of inverses.
+While how to do so seems obvious for certain kinds of one-argument functions, for two-argument functions it is not.
+Generalizing the computation of preimages under two-argument functions requires a theory of per-axis function inversion, which we have not been able to find in the literature.
 
-XXX: obvious how to do this with invertible functions (though infinite endpoints are a little tricky); not obvious how to do the same with two-argument functions
+We start with one-argument functions for simplicity, and extend to two-argument functions by regarding a one-argument function and its inverse as a cyclic group of order 2, and generalizing to similar groups of order 3.
+The resulting theory should generalize naturally to functions with any number of arguments, but we leave it for future work.
 
-\subsection{Invertible Primitives}
-
-We consider only strictly monotone functions on $\Re$.
-Further on, we recover more generality by using language conditionals to implement \emph{piecewise} monotone functions.
-
-One reason we consider only strictly monotone functions is that they are easy to invert.
-Recall that a function is invertible (bijective) if and only if it is injective (one-to-one) and surjective (onto).
-
-\begin{lemma}
-\label{lem:monotone-implies-invertible}
-If $f : A \to B$ is strictly montone, $f$ is injective.
-If $f$ is additionally surjective, $f$ and its inverse are continuous.
-\end{lemma}
-
-Preimages under invertible functions can be computed using their inverses.
-We are primarily interested in computing preimages under restricted functions.
-
-\begin{lemma}
-\label{lem:invertible-function-preimages}
-Let $A' \subseteq A$, $B' \subseteq B$, and $f : A \to B$ have inverse $f^{-1} : B \to A$.
-Let $f' := restrict~f~A'$. Then
-\begin{equation}
-	preimage~f'~B'\ =\ A' \i image~f^{-1}~B'
-\end{equation}
-\end{lemma}
-
-\begin{figure}[!tb]
-\centering
-\includegraphics[width=4in]{figures/preimage-by-inverse-image}
-\caption[ ]{Computing the preimage of the interval $[2,7]$ under $sqr$ restricted to $[1,2)$, by computing roots and intersecting with $[1,2)$.}
-\label{fig:sqr-preimage}
-\end{figure}
-
-These facts suggest that we can compute images (or preimages) of intervals under any strictly monotone, surjective $f$ by applying $f$ (or its inverse) to interval endpoints to yield an interval, as in Figure~\ref{fig:sqr-preimage}
-This is evident for endpoints in $A$.
-Limit endpoints like $+\infty$ require a larger $\cl{f}$ defined on a compact superset of $A$.
-
-The next theorem is easier to state with interval notation in which the kind of interval is not baked into the syntax.
+Working with intervals algorithmically is easier if we have notation in which the kind of interval is not baked into the syntax.
 
 \begin{definition}[interval]
 $\ivl{a_1,a_2,\alpha_1,\alpha_2}$ denotes an interval, where $a_1,a_2 \in \cl{\Re}$ are extended real endpoints, and $\alpha_1,\alpha_2 \in Bool$ determine whether $a_1$ and $a_2$ are contained in the interval.
 \end{definition}
 
-\begin{example}
 Some intervals, using $\ivl{\cdot,\cdot,\cdot,\cdot}$ notation:
 \begin{equation}
 \begin{aligned}
@@ -198,17 +690,47 @@ Some intervals, using $\ivl{\cdot,\cdot,\cdot,\cdot}$ notation:
 	\ivl{-\infty,+\infty,true,true} &= [-\infty,+\infty] = \cl{\Re}
 \end{aligned}
 \end{equation}
-All but the last are subsets of $\Re$.
-\exampleqed
-\end{example}
+
+\subsection{Invertible Primitives}
+
+We consider only total, strictly monotone functions on subsets of $\Re$.
+Further on, we recover more generality by using language conditionals to implement \emph{piecewise} monotone functions.
+
+One reason we consider only strictly monotone functions is that they are easy to invert.
+Recall that a function is invertible (bijective) if and only if it is injective (one-to-one) and surjective (onto).
+
+\begin{lemma}[strictly monotone, surjective implies invertible, continuous]
+\label{lem:monotone-implies-invertible}
+If $g : A \to B$ is strictly montone, $g$ is injective.
+If $g$ is additionally surjective, $g$ and its inverse are continuous.
+\end{lemma}
+
+Preimages under invertible functions can be computed using their inverses.
+Because we are deriving preimage arrow computations, we are primarily interested in computing preimages under restricted functions.
+
+\begin{lemma}[preimages from inverse images]
+\label{lem:invertible-function-preimages}
+If $A' \subseteq A$, $B' \subseteq B$, and $g : A \to B$ has inverse $g^{-1} : B \to A$, then $preimage~(restrict~f~A')~B'\ =\ A' \i image~g^{-1}~B'$.
+\end{lemma}
+
+\begin{figure}[!tb]
+\centering
+\includegraphics[width=4in]{figures/preimage-by-inverse-image}
+\caption[{Computing the preimage of $[2,7]$}]{Computing the preimage of the interval $[2,7]$ under $sqr$ restricted to $[1,2)$, by computing roots and intersecting with $[1,2)$.}
+\label{fig:sqr-preimage}
+\end{figure}
+
+These facts suggest that we can compute images (or preimages) of intervals under any strictly monotone, surjective $g$ by applying $g$ (or its inverse) to interval endpoints to yield an interval, as in Figure~\ref{fig:sqr-preimage}.
+This is evident for endpoints in $A$.
+Limit endpoints like $+\infty$ require a larger $\cl{g}$ defined on a compact superset of $A$.
 
 \begin{theorem}[images of intervals by endpoints]
 \label{thm:images-of-intervals}
-Let $\cl{A}$ and $\cl{B}$ be compact subsets of $\cl{\Re}$, $\cl{f} : \cl{A} \to \cl{B}$ strictly monotone and surjective, and $f$ the restriction of $\cl{f}$ to some $A \subseteq \cl{A}$.
+Let $\cl{A}$ and $\cl{B}$ be compact subsets of $\cl{\Re}$, $\cl{g} : \cl{A} \to \cl{B}$ be strictly monotone and surjective, and $g$ be the restriction of $\cl{g}$ to some $A \subseteq \cl{A}$.
 For all nonempty $\ivl{a_1,a_2,\alpha_1,\alpha_2} \subseteq A$,
 \begin{itemize}
-	\item If $\cl{f}$ is increasing, $image~f~\ivl{a_1,a_2,\alpha_1,\alpha_2} = \ivl{\cl{f}~a_1, \cl{f}~a_2,\alpha_1,\alpha_2}$.
-	\item If $\cl{f}$ is decreasing, $image~f~\ivl{a_1,a_2,\alpha_1,\alpha_2} = \ivl{\cl{f}~a_2, \cl{f}~a_1,\alpha_2,\alpha_1}$.
+	\item If $\cl{g}$ is increasing, $image~g~\ivl{a_1,a_2,\alpha_1,\alpha_2} = \ivl{\cl{g}~a_1, \cl{g}~a_2,\alpha_1,\alpha_2}$.
+	\item If $\cl{g}$ is decreasing, $image~g~\ivl{a_1,a_2,\alpha_1,\alpha_2} = \ivl{\cl{g}~a_2, \cl{g}~a_1,\alpha_2,\alpha_1}$.
 \end{itemize}
 \end{theorem}
 \begin{proof}
@@ -216,45 +738,47 @@ Because $\cl{A}$ is compact and totally ordered, every subset of $\cl{A}$ has a 
 Therefore, the endpoints of every interval subset of $A$ are in $\cl{A}$.
 
 Let $(a_1,a_2] \subseteq A$.
-Suppose $\cl{f}$ is strictly increasing; thus $a_1 < a \leq a_2$ if and only if $\cl{f}~a_1 < \cl{f}~a \leq \cl{f}~a_2$, so $image~f~(a_1,a_2] = image~\cl{f}~(a_1,a_2] = (\cl{f}~a_1,\cl{f}~a_2]$.
+Suppose $\cl{g}$ is strictly increasing; thus $a_1 < a \leq a_2$ if and only if $\cl{g}~a_1 < \cl{g}~a \leq \cl{g}~a_2$, so $image~g~(a_1,a_2] = image~\cl{g}~(a_1,a_2] = (\cl{g}~a_1,\cl{g}~a_2]$.
 The remaining cases are similar.
 \end{proof}
 
-To use Theorem~\ref{thm:images-of-intervals} to compute preimages under $f$ by computing images under its inverse $f^{-1}$, we must know whether $f^{-1}$ is increasing or decreasing.
+To use Theorem~\ref{thm:images-of-intervals} to compute preimages under $g$ by computing images under its inverse $g^{-1}$, we must know if $g^{-1}$ is increasing or decreasing.
 The following lemma can help.
 
-\begin{lemma}
+\begin{lemma}[inverse direction]
 \label{lem:inverse-direction}
-If $f : A \to B$ is strictly monotone and surjective with inverse $f^{-1} : B \to A$, then $f$ is increasing if and only if $f^{-1}$ is increasing.
+If $g : A \to B$ is strictly monotone and surjective with inverse $g^{-1} : B \to A$, then $g$ is increasing if and only if $g^{-1}$ is increasing.
 \end{lemma}
 
-\begin{example}
-The extension of $log : (0,+\infty) \to \Re$ to the compact superdomain $[0,+\infty]$ is defined by
+\begin{example}[nonnegative square]
+The extension of $sqr^+ : [0,+\infty) \to \Re$, where $sqr^+~a := a \cdot a$, to the compact superdomain $[0,+\infty]$ is
 \begin{equation}
 \begin{aligned}
-	&\cl{log} : [0,+\infty] \to \cl{\Re} \\
-	&	\cl{log}~a\ := \lim_{a' \to a} log~a'
-		\ =\ \lzfccase{a}{
-				0 & -\infty \\
-				+\infty & +\infty \\
-				else & log~a \\
-			}
+	&\cl{sqr^+} : [0,+\infty] \to [0,+\infty] \\
+	&	\cl{sqr^+}~a\ := \lim_{a' \to a} sqr^+~a'
+		\ =\ if~(a = +\infty)~{+\infty}~(sqr^+~a)
 \end{aligned}
 \end{equation}
-The extension of its inverse $exp$ is $\cl{exp} : \cl{\Re} \to [0,+\infty]$, defined similarly, which by Lemma~\ref{lem:inverse-direction} is also strictly increasing.
+(With respect to $\Re$'s standard topology, which is first-countable, $sqr^+$ is continuous and thus limit-preserving.)
+The extension of its inverse $sqrt^+$ is $\cl{sqrt^+} : [0,+\infty] \to [0,+\infty]$, defined similarly, which by Lemma~\ref{lem:inverse-direction} is also strictly increasing.
 Thus,
 \begin{equation}
 \begin{aligned}
-	image~log~(0,1]\ &=\ (\cl{log}~0,\cl{log}~1] = (-\infty,0]
-\\[0.5\baselineskip]
-	preimage~log~[0,+\infty)
-		\ &=\ image~exp~[0,+\infty)
+	image~sqr^+~[5,+\infty)\ &=\ [\cl{sqr^+}~5,\cl{sqr^+}~{+\infty})
 \\
-		\ &=\ [\mspace{2mu}\cl{exp}~0,\cl{exp}~{+\infty})
-		= [1,+\infty)
+		\ &=\ [25,+\infty)
+\\[6pt]
+	preimage~(restrict~sqr^+~[1,2))~[2,7]
+		\ &=\ [1,2) \i image~sqrt^+~[2,7]
+\\
+		\ &=\ [1,2) \i [\cl{sqrt^+}~2,\cl{sqrt^+}~7]
+\\
+		\ &=\ [1,2) \i [\sqrt{2},\sqrt{7}]
+\\
+		\ &=\ [\sqrt{2},2)
 \end{aligned}
 \end{equation}
-by Theorem~\ref{thm:images-of-intervals} and Lemma~\ref{lem:invertible-function-preimages},
+by Theorem~\ref{thm:images-of-intervals} and Lemma~\ref{lem:invertible-function-preimages}.
 \exampleqed
 \end{example}
 
@@ -266,22 +790,21 @@ by Theorem~\ref{thm:images-of-intervals} and Lemma~\ref{lem:invertible-function-
 
 We do not expect to be able to compute preimages under $\Re \times \Re \pto \Re$ primitives by simply inverting them.
 Two-argument invertible real functions are difficult to define and are usually pathological.
-
 Instead, we compute approximate preimages only, using inverses with respect to one argument (with the other held constant).
 
 \begin{definition}[axial inverse]
 \label{def:axial-inverse}
-Let $f_c : A \times B \to C$.
-Functions $f_a : B \times C \to A$ and $f_b : C \times A \to B$ defined so that
+Let $g_c : A \times B \to C$.
+Functions $g_a : B \times C \to A$ and $g_b : C \times A \to B$ defined so that
 \begin{equation}
-	f_c~\pair{a,b} = c\ \iff\ f_a~\pair{b,c} = a\ \iff\ f_b~\pair{c,a} = b
+	g_c~\pair{a,b} = c\ \iff\ g_a~\pair{b,c} = a\ \iff\ g_b~\pair{c,a} = b
 \end{equation}
-are \mykeyword{axial inverses} with respect to $f_c$'s first and second arguments.
+are \mykeyword{axial inverses} with respect to $g_c$'s first and second arguments.
 \end{definition}
 
-We call $f_c$ \mykeyword{axis-invertible} or \mykeyword{trijective} when it has axial inverses $f_a$ and $f_b$.
-We call $f_a$ the \mykeyword{first axial inverse} of $f_c$ because it is the inverse of $f_c$ along the first axis: $f_a$ with only $c$ varying (i.e. $\fun{c \in C} f_a~\pair{b,c}$), is the inverse of $f_c$ with only $a$ varying (i.e. $\fun{a \in A} f_c~\pair{a,b}$).
-Similarly, $f_b$ is the \mykeyword{second axial inverse}.
+We call $g_c$ \mykeyword{axis-invertible} or \mykeyword{trijective} when it has axial inverses $g_a$ and $g_b$.
+We call $g_a$ the \mykeyword{first axial inverse} of $g_c$ because it is the inverse of $g_c$ along the first axis: $g_a$ with only $c$ varying, or $\fun{c \in C} g_a~\pair{b,c}$, is the inverse of $g_c$ with only $a$ varying, or $\fun{a \in A} g_c~\pair{a,b}$.
+Similarly, $g_b$ is the \mykeyword{second axial inverse}.
 
 \begin{example}
 \label{ex:plus-axial-inverses}
@@ -290,21 +813,21 @@ Its axial inverses are $add_a~\pair{b,c} := c - b$ and $add_b~\pair{c,a} := c - 
 \exampleqed
 \end{example}
 
-We have chosen the axial inverse function types carefully: they are the only types for which $f_c$, $f_a$ and $f_b$ form a cyclic group.
+We have chosen the axial inverse function types carefully: they are the only types for which $g_c$, $g_a$ and $g_b$ form a cyclic group.
 
-\begin{lemma}
+\begin{lemma}[axial inverse cyclic group]
 \label{lem:axial-inverse-cyclic-group}
 The following statements are equivalent.
 \begin{itemize}
-	\item $f_c$ has axial inverses $f_a$ and $f_b$.
-	\item $f_a$ has axial inverses $f_b$ and $f_c$.
-	\item $f_b$ has axial inverses $f_c$ and $f_a$.
+	\item $g_c$ has axial inverses $g_a$ and $g_b$.
+	\item $g_a$ has axial inverses $g_b$ and $g_c$.
+	\item $g_b$ has axial inverses $g_c$ and $g_a$.
 \end{itemize}
 Equivalently, every axis-invertible function generates a cyclic group of order 3 by inversion in the first axis.
 \end{lemma}
 
-This fact is analogous to how mutual inverses $f$ and $f^{-1}$ also form a cyclic group (of order 2, generated by inversion).
-Similar to using mutual inversion to compute preimages under both $log$ and $exp$, Lemma~\ref{lem:axial-inverse-cyclic-group} allows computing preimages under two-argument functions related by axial inversion.
+This fact is analogous to how mutual inverses $g$ and $g^{-1}$ form a cyclic group of order 2 generated by inversion.
+Similar to using mutual inversion to compute images and preimages under both $sqr^+$ and $sqrt^+$, Lemma~\ref{lem:axial-inverse-cyclic-group} allows computing preimages under two-argument functions related by axial inversion.
 
 \begin{example}
 Define $sub_c : \Re \times \Re \to \Re$ by $sub_c~\pair{a,b} := a-b$.
@@ -317,41 +840,41 @@ Instead, they provide a way to compute a preimage's smallest rectangular boundin
 
 \begin{theorem}[preimage bounds from axial inverse images]
 \label{thm:axis-invertible-function-preimages}
-Let $A' \subseteq A$, $B' \subseteq B$, $C' \subseteq C$, and $f_c : A \times B \to C$ with axial inverses $f_a$ and $f_b$.
-If $f_c' = restrict~f_c~(A' \times B')$, then
+Let $A' \subseteq A$, $B' \subseteq B$, $C' \subseteq C$, and $g_c : A \times B \to C$ with axial inverses $g_a$ and $g_b$.
+If $g_c' := restrict~g_c~(A' \times B')$, then
 \begin{equation}
-	preimage~f_c'~C'\ \subseteq\ \lzfcsplit{
-		&(A' \i image~f_a~(B' \times C'))\ \times \\
-		&(B' \i image~f_b~(C' \times A'))}
+	preimage~g_c'~C'\ \subseteq\ \lzfcsplit{
+		&(A' \i image~g_a~(B' \times C'))\ \times \\
+		&(B' \i image~g_b~(C' \times A'))}
 \end{equation}
 Further, the right-hand side is the smallest rectangular superset.
 \end{theorem}
 \begin{proof}
-The smallest rectangle containing $preimage~f_c'~C'$ is
+The smallest rectangle containing $preimage~g_c'~C'$ is
 \begin{equation}
-	preimage~f_c'~C'\ \subseteq\ 
+	preimage~g_c'~C'\ \subseteq\ 
 		\lzfcsplit{
-			&(image~fst~(preimage~f_c'~C'))\ \times \\
-			&(image~snd~(preimage~f_c'~C'))}
+			&(image~fst~(preimage~g_c'~C'))\ \times \\
+			&(image~snd~(preimage~g_c'~C'))}
 \end{equation}
-Starting with the first set in the product, expand definitions, distribute $fst$, replace $f_c~\pair{a,b} = c$ by $f_a~\pair{b,c} = a$, and simplify:
+Starting with the first set in the product, expand definitions, distribute $fst$, replace $g_c~\pair{a,b} = c$ by $g_a~\pair{b,c} = a$, and simplify:
 \begin{displaybreaks}
 \begin{align*}
-	&image~fst~(preimage~f_c'~C')
+	&image~fst~(preimage~g_c'~C')
 \nobreak\\
-	&\tab =\ image~fst~\setb{\pair{a,b} \in A' \times B'}{f_c~\pair{a,b} \in C'}
+	&\tab =\ image~fst~\setb{\pair{a,b} \in A' \times B'}{g_c~\pair{a,b} \in C'}
 \\
-	&\tab =\ \setb{a \in A'}{\Exists{b \in B'} f_c~\pair{a,b} \in C'}
+	&\tab =\ \setb{a \in A'}{\Exists{b \in B'} g_c~\pair{a,b} \in C'}
 \\
-	&\tab =\ \setb{a \in A'}{\Exists{b \in B',c \in C'} f_c~\pair{a,b} = c}
+	&\tab =\ \setb{a \in A'}{\Exists{b \in B',c \in C'} g_c~\pair{a,b} = c}
 \\
-	&\tab =\ \setb{a \in A'}{\Exists{b \in B',c \in C'} f_a~\pair{b,c} = a}
+	&\tab =\ \setb{a \in A'}{\Exists{b \in B',c \in C'} g_a~\pair{b,c} = a}
 \\
-	&\tab =\ \setb{f_a~\pair{b,c}}{b \in B', c \in C', f_a~\pair{b,c} \in A'}
+	&\tab =\ \setb{g_a~\pair{b,c}}{b \in B', c \in C', g_a~\pair{b,c} \in A'}
 \\
-	&\tab =\ A' \i \setb{f_a~\pair{b,c}}{b \in B', c \in C'}
+	&\tab =\ A' \i \setb{g_a~\pair{b,c}}{b \in B', c \in C'}
 \nobreak\\
-	&\tab =\ A' \i image~f_a~(B' \times C')
+	&\tab =\ A' \i image~g_a~(B' \times C')
 \end{align*}
 \end{displaybreaks}
 The second set in the product is similar.
@@ -360,14 +883,13 @@ The second set in the product is similar.
 \begin{figure}[!tb]
 \centering
 \includegraphics[width=4in]{figures/rect-preimage-by-inverse-images}
-\caption[ ]{Computing an approximate preimage of $[0,\tfrac{1}{2}]$ under addition restricted to $[0,1] \times [0,2]$ (Example~\ref{ex:plus-preimage}).
+\caption[{Computing an approximate preimage of $[0,1{/}2]$}]{Computing an approximate preimage of $[0,\tfrac{1}{2}]$ under addition restricted to $[0,1] \times [0,2]$ (Example~\ref{ex:plus-preimage}).
 The preimage is approximated by intersecting the domain with an overapproximation computed using axial inverses.}
 \label{fig:plus-preimage}
 \end{figure}
 
 \begin{example}
 \label{ex:plus-preimage}
-See Figure~\ref{fig:plus-preimage}.
 Let $add_c' := restrict~add_c~([0,1] \times [0,2])$.
 By Theorem~\ref{thm:axis-invertible-function-preimages},
 \begin{align*}
@@ -380,50 +902,49 @@ By Theorem~\ref{thm:axis-invertible-function-preimages},
 \\
 		&= [0,\tfrac{1}{2}] \times [0,\tfrac{1}{2}]
 \end{align*}
-is the smallest rectangular subset of $[0,1] \times [0,2]$ that contains the preimage of $[0,\tfrac{1}{2}]$ under $add_c$.
+is the smallest rectangular subset of $[0,1] \times [0,2]$ containing the preimage of $[0,\tfrac{1}{2}]$ under $add_c'$.
+Figure~\ref{fig:plus-preimage} illustrates the calculation.
 \exampleqed
 \end{example}
 
 At this point, we have an analogue of Lemma~\ref{lem:invertible-function-preimages}, in that we can compute (approximate) preimages by computing images under (axial) inverses.
-To compute images using interval endpoints, we need analogues of Lemma~\ref{lem:monotone-implies-invertible} (strictly monotone, surjective functions are invertible and continuous), Theorem~\ref{thm:images-of-intervals} (images of intervals by endpoints), and Lemma~\ref{lem:inverse-direction} (inverse direction).
+Computing images using interval endpoints requires analogues of Lemma~\ref{lem:monotone-implies-invertible} (strictly monotone, surjective implies invertible, continuous), Theorem~\ref{thm:images-of-intervals} (images of intervals by endpoints), and Lemma~\ref{lem:inverse-direction} (inverse direction).
 
-We first need a notion of properties that hold along an axis for every fixed value of the other argument.
-
-\begin{definition}[uniform axis property]
-$f_c : A \times B \to C$ has property $P$ \keyword{uniformly} in its first axis when $P~(flip~(curry~f_c)~b)$ for all $b \in B$, and uniformly in its second axis when $P~(curry~f_c~a)$ for all $a \in A$.
-If the axis is not specified, $P$ holds uniformly for both.
-\end{definition}
+We first need a notion of function properties that hold for one argument for every fixed value of the other argument.
+We will say that $g_c : A \times B \to C$ has property $P$ \mykeyword{in its first axis} when $P~(\fun{a \in A} g_c~\pair{a,b})$ for all $b \in B$.
+Similarly, $g_c$ has property $P$ \mykeyword{in its second axis} when $P~(\fun{b \in B} g_c~\pair{a,b})$ for all $a \in A$.
 
 Now Lemma~\ref{lem:monotone-implies-invertible}'s analogue is an easy corollary.
 
-\begin{lemma}
-\label{lem:uniformly-monotone-implies-invertible}
-Let $f_c : A \times B \to C$ for totally ordered $A$, $B$ and $C$.
-If $f_c$ is uniformly surjective and either uniformly strictly increasing or uniformly strictly decreasing in each axis, then $f_c$ is axis-invertible; further, it and its axial inverses are continuous.
-\end{lemma}
-
-From here on, assume axis monotonicity properties are uniform unless otherwise stated.
+\begin{theorem}[strictly monotone, surjective implies axis-invertible, continuous]
+\label{thm:uniformly-monotone-implies-invertible}
+Let $g_c : A \times B \to C$ for totally ordered $A$, $B$ and $C$.
+If $g_c$ is surjective and either strictly increasing or strictly decreasing in each axis, then $g_c$ is axis-invertible; further, it and its axial inverses are continuous.
+\end{theorem}
+\begin{proof}
+XXX: todo
+\end{proof}
 
 \begin{example}
-$add_c$ is uniformly surjective and strictly increasing.
-$sub_c$ is uniformly surjective and strictly increasing/decreasing in its first/second axis.
+In each axis, $add_c$ is surjective and strictly increasing.
+In each axis, $sub_c$ is surjective, and is strictly increasing/decreasing in its first/second axis.
 Therefore, both are axis-invertible.
 \exampleqed
 \end{example}
 
-Restriction usually makes a function not uniformly surjective.
+Restriction usually makes a function not surjective in each axis.
 
 \begin{example}
 Let $add_c' : [0,1] \times [0,1] \to [0,2]$, defined by restricting $add_c$.
-It is strictly increasing, but not uniformly surjective: the range of $curry~add_c'~0$ is $[0,1]$, not $[0,2]$.
+It is surjective, but not in each axis: the range of $\fun{b \in B} add_c'~\pair{0,b}$ is $[0,1]$, not $[0,2]$.
 \exampleqed
 \end{example}
 
 \begin{figure}[!tb]
 \centering
 \includegraphics[width=4in]{figures/mul-nonuniform-properties}
-\caption[ ]{Multiplication on $\Re \times \Re$ is not uniformly surjective, nor uniformly strictly increasing or decreasing in each axis: $a \cdot 0 = 0$ and $0 \cdot b = 0$ for all $a$ and $b$ (Example~\ref{ex:mul-nonuniform}).
-Fortunately, it is uniformly surjective and strictly monotone in each open quadrant.}
+\caption[Multiplication on $\Re \times \Re$]{Multiplication on $\Re \times \Re$ is not surjective nor strictly monotone in each axis: $a \cdot 0 = 0$ and $0 \cdot b = 0$ for all $a$ and $b$ (Example~\ref{ex:mul-nonuniform}).
+Fortunately, restricted to each open quadrant, multiplication is surjective and strictly increasing or decreasing in each axis.}
 \label{fig:mul-nonuniform}
 \end{figure}
 
@@ -432,59 +953,65 @@ Fortunately, restriction sometimes does the opposite.
 \begin{example}
 \label{ex:mul-nonuniform}
 Define $mul_c : \Re \times \Re \to \Re$ by $mul_c~\pair{a,b} := a \cdot b$.
-It is not uniformly surjective nor strictly monotone because $mul_c~\pair{0,b} = 0$ for all $b \in B$.
+It is not surjective nor strictly monotone in each axis because $mul_c~\pair{0,b} = 0$ for all $b \in B$.
 (See Figure~\ref{fig:mul-nonuniform}.)
-But $mul_c^{++} : (0,+\infty) \times (0,+\infty) \to (0,+\infty)$, and $mul_c$ restricted to the other open quadrants, are uniformly surjective and strictly increasing or decreasing in each axis.
+But $mul_c^{++} : (0,+\infty) \times (0,+\infty) \to (0,+\infty)$, and $mul_c$ restricted to the other open quadrants, are surjective and strictly increasing or decreasing in each axis.
 \exampleqed
 \end{example}
 
-Theorem~\ref{thm:images-of-intervals} justifies computing images of intervals with infinite endpoints by applying an extended function to the endpoints.
+Theorem~\ref{thm:images-of-intervals} justifies computing images of intervals with infinite endpoints under one-argument functions by applying an extended function to the endpoints.
 Its two-argument analogue is more involved because extended, two-argument functions may not be defined at every point.
 
 \begin{example}
-$add_c$ cannot be extended to $\cl{add_c} : \cl{\Re} \times \cl{\Re} \to \cl{\Re}$ in the same way $log$ is extended to $\cl{log}$ because
+$add_c$ cannot be extended to $\cl{add_c} : \cl{\Re} \times \cl{\Re} \to \cl{\Re}$ in the same way $sqr^+$ is extended to $\cl{sqr^+}$ because
 \begin{equation}
 	\lim_{\pair{a',b'} \to \pair{a,b}} add_c~\pair{a',b'}
 \end{equation}
-does not exist when $\pair{a,b}$ is $\pair{-\infty,+\infty}$ or $\pair{+\infty,-\infty}$.
+diverges when $\pair{a,b}$ is $\pair{-\infty,+\infty}$ or $\pair{+\infty,-\infty}$.
 \exampleqed
 \end{example}
 
-The previous example suggests that extensions of increasing, two-argument functions are always well-defined except at off-diagonal corners.
+The previous example suggests that extensions of strictly increasing, two-argument functions are always well-defined except at off-diagonal corners.
 This is true, and similar statements hold for axes with other directions, and for more restricted domains.
 
 \begin{theorem}[$\cl{\Re} \times \cl{\Re}$ extension]
 \label{thm:two-argument-extensions}
-Let $A$, $B$, $C$ be open subsets of $\Re$, with $f_c : A \times B \to C$ uniformly surjective and strictly increasing or decreasing in each axis.
+Let $A$, $B$, $C$ be open subsets of $\Re$, and $g_c : A \times B \to C$ be surjective and strictly increasing or decreasing in each axis.
 Let $\cl{A}$, $\cl{B}$ and $\cl{C}$ be the closures of $A$, $B$ and $C$ in $\cl{\Re}$.
 The following extension is well-defined:
 \begin{equation}
 \begin{aligned}
-	&\cl{f_c} : (\cl{A} \times \cl{B}) \w N \to \cl{C} \\
-	&\cl{f_c}~\pair{a,b}\ :=\ \lim_{\pair{a',b'} \to \pair{a,b}} f_c~\pair{a',b'}
+	&\cl{g_c} : (\cl{A} \times \cl{B}) \w N \to \cl{C} \\
+	&\cl{g_c}~\pair{a,b}\ :=\ \lim_{\pair{a',b'} \to \pair{a,b}} g_c~\pair{a',b'}
 \end{aligned}
 \end{equation}
-where $N := \set{\pair{min~\cl{A},max~\cl{B}},\pair{max~\cl{A},min~\cl{B}}}$ if $f_c$ is increasing or decreasing, and
-$N := \set{\pair{min~\cl{A},min~\cl{B}},\pair{max~\cl{A},max~\cl{B}}}$ if $f_c$ is increasing/decreasing or decreasing/increasing.
+where $N := \set{\pair{min~\cl{A},max~\cl{B}},\pair{max~\cl{A},min~\cl{B}}}$ if $g_c$ is increasing in each axis or decreasing in each axis, and
+$N := \set{\pair{min~\cl{A},min~\cl{B}},\pair{max~\cl{A},max~\cl{B}}}$ if $g_c$ is increasing/decreasing or decreasing/increasing.
 \end{theorem}
 \begin{proof}
-Suppose $f_c$ is increasing, and let $g : \Nat \to A \times B$ be a sequence of $f_c$'s domain values.
+Suppose $g_c$ is increasing/increasing, and let $xs : \Nat \to A \times B$ be a sequence of $g_c$'s domain values, and $ys := map~g_c~xs$.
 
-Any $g$ that converges to $\pair{max~\cl{A},max~\cl{B}}$ has a strictly increasing subsequence.
-By monotonicity, $map~f_c~g$ has a strictly increasing subsequence.
-It is bounded by $max~\cl{C}$, so $\cl{f_c}~\pair{max~\cl{A},max~\cl{B}} = max~\cl{C}$.
-A similar argument proves $\cl{f}~\pair{min~\cl{A},min~\cl{B}} = min~\cl{C}$.
+Interior case: $xs$ converges to $\pair{a,b} \in A \times B$.
+The limit of $ys$ is $g_c~\pair{a,b}$ because $g_c$ preserves limits by its continuity (by Theorem~\ref{thm:uniformly-monotone-implies-invertible}) in the first-countable space $\Re \times \Re$.
 
-For any $g$ that converges to $\pair{max~\cl{A},b'}$ for some $b' \in B$, define
+Corner case: $xs$ converges to $\pair{max~\cl{A},max~\cl{B}}$.
+It thus has a strictly increasing subsequence.
+By monotonicity, $ys$ has a strictly increasing subsequence.
+Because $ys$ is bounded by $max~\cl{C}$, $\cl{g_c}~\pair{max~\cl{A},max~\cl{B}} = max~\cl{C}$.
+A similar argument proves $\cl{g_c}~\pair{min~\cl{A},min~\cl{B}} = min~\cl{C}$.
+
+Border case: $xs$ converges to $\pair{max~\cl{A},b'}$ for some $b' \in B$.
+Define
 \begin{equation}
-	g'\ :=\ map~(\fun{\pair{a,b}}\pair{f_a~\pair{b',f_c~\pair{a,b}}',b'})~g
+	xs'\ :=\ map~(\fun{\pair{a,b}}\pair{g_a~\pair{b',g_c~\pair{a,b}},b'})~xs
 \end{equation}
-where $f_a$ is $f_c$'s first axial inverse, so that $map~f_c~g = map~f_c~g'$.
-Because $g'$ has a subsequence that is strictly increasing in the first of each pair, and because the second of each pair is the constant $b'$, by monotonicity, $map~f_c~g'$ has a strictly increasing subsequence.
-It is bounded by $max~\cl{C}$, so $\cl{f_c}~\pair{max~\cl{A},b'} = max~\cl{C}$.
-By similar arguments, $\cl{f}~\pair{min~\cl{A},b} = min~\cl{C}$ and so on.
+where $g_a$ is $g_c$'s first axial inverse.
+Now $ys = map~g_c~xs'$.
+Because $xs'$ has a subsequence that is strictly increasing in the first of each pair, and because the second of each pair is the constant $b'$, by monotonicity, $ys$ has a strictly increasing subsequence.
+It is bounded by $max~\cl{C}$, so $\cl{g_c}~\pair{max~\cl{A},b'} = max~\cl{C}$.
+Similar arguments prove $\cl{g_c}~\pair{min~\cl{A},b'} = min~\cl{C}$, $\cl{g_c}~\pair{a',max~\cl{B}} = max~\cl{C}$, and $\cl{g_c}~\pair{a',min~\cl{B}} = min~\cl{C}$.
 
-Arguments for $f$ decreasing, etc., are similar.
+The cases for $g_c$'s other possible directions are similar.
 \end{proof}
 
 Following the proof of Theorem~\ref{thm:two-argument-extensions}, extensions of two-argument functions can be defined by two corner cases, four border cases, and an interior case.
@@ -511,49 +1038,47 @@ where $N := \set{\pair{0,0},\pair{1,+\infty}}$.
 \exampleqed
 \end{example}
 
-The analogue of Theorem~\ref{thm:images-of-intervals} is easiest to state if we have predicates that indicate a function's direction in each axis.
-Define $inc_1 : (A \times B \to C) \tto Bool$ so that $inc_1~f$ if and only if $f$ is strictly increasing in its first axis, and similarly $inc_2$ so that $inc_2~f$ if and only if $f$ is strictly increasing in its second axis.
+The analogue of Theorem~\ref{thm:images-of-intervals} (images of intervals by endpoints) is easiest to state if we have predicates that indicate a function's direction in each axis.
+Define $inc_1 : (A \times B \to C) \tto Bool$ so that $inc_1~g$ if and only if $g$ is strictly increasing in its first axis, and similarly $inc_2$ so that $inc_2~g$ if and only if $g$ is strictly increasing in its second axis.
 
 \begin{theorem}[images of rectangles by interval endpoints]
 \label{thm:images-of-rectangles}
-Let $A,B,C$ be open subsets of $\Re$, with $f_c : A \times B \to C$ uniformly surjective and strictly increasing or decreasing in each axis, with extension $\cl{f_c}$ as defined in Theorem~\ref{thm:two-argument-extensions}.
-If $A' := \ivl{a_1,a_2,\alpha_1,\alpha_2} \subseteq A$ and $B' := \ivl{b_1,b_2,\beta_1,\beta_2} \subseteq B$, then the image $C'$ under $f_c$ is
+Let $A,B,C$ be open subsets of $\Re$, and $g_c : A \times B \to C$ be surjective and strictly increasing or decreasing in each axis, with $\cl{g_c}$ as defined in Theorem~\ref{thm:two-argument-extensions}.
+If $A' := \ivl{a_1,a_2,\alpha_1,\alpha_2} \subseteq A$ and $B' := \ivl{b_1,b_2,\beta_1,\beta_2} \subseteq B$, then
 \begin{equation}
 \begin{aligned}
-	&image~f_c~(\ivl{a_1,a_2,\alpha_1,\alpha_2} \times \ivl{b_1,b_2,\beta_1,\beta_2})
+	C'\ :=&\ image~g_c~(\ivl{a_1,a_2,\alpha_1,\alpha_2} \times \ivl{b_1,b_2,\beta_1,\beta_2})
 \\
-	&\tab =\ \lzfclet{
-		\pair{a_1,a_2,\alpha_1,\alpha_2} & \lzfccond{(inc_1~f_c) & \pair{a_1,a_2,\alpha_1,\alpha_2} \\ else & \pair{a_2,a_1,\alpha_2,\alpha_1}} \\
-		\pair{b_1,b_2,\beta_1,\beta_2} & \lzfccond{(inc_2~f_c) & \pair{b_1,b_2,\beta_1,\beta_2} \\ else & \pair{b_2,b_1,\beta_2,\beta_1}}
-	}{\ivl{\cl{f_c}~\pair{a_1,b_1},\cl{f_c}~\pair{a_2,b_2},\alpha_1~and~\beta_1,\alpha_2~and~\beta_2}}
+	=&\ \lzfclet{
+		\pair{a_1',a_2',\alpha_1',\alpha_2'} & \lzfccond{(inc_1~g_c) & \pair{a_1,a_2,\alpha_1,\alpha_2} \\ else & \pair{a_2,a_1,\alpha_2,\alpha_1}} \\
+		\pair{b_1',b_2',\beta_1',\beta_2'} & \lzfccond{(inc_2~g_c) & \pair{b_1,b_2,\beta_1,\beta_2} \\ else & \pair{b_2,b_1,\beta_2,\beta_1}}
+	}{\ivl{\cl{g_c}~\pair{a_1',b_1'},\cl{g_c}~\pair{a_2',b_2'},\alpha_1'~and~\beta_1',\alpha_2'~and~\beta_2'}}
 \end{aligned}
 \end{equation}
 \end{theorem}
 \begin{proof}
-Because $f_c$ is continuous and $A' \times B'$ is a connected set, $C'$ is a connected set, which in $\Re$ is an interval.
-Thus, we need to determine only its bounds and whether it contains each endpoint.
+Because $g_c$ is continuous and $A' \times B'$ is a connected set, $C'$ is a connected set, which in $\Re$ is an interval.
+Thus, we need to determine only its endpoints and whether it contains each endpoint.
 
-Suppose $f_c$ is increasing.
-By monotonicity, $C'$ is contained in $[\cl{f_c}~\pair{a_1,b_1},\cl{f_c}~\pair{a_2,b_2}]$.
-If either $\alpha_1$ or $\beta_1$ is $false$, $C'$ cannot contain $\cl{f_c}~\pair{a_1,b_1}$.
-If either $\alpha_2$ or $\beta_2$ is $false$, $C'$ cannot contain $\cl{f_c}~\pair{a_2,b_2}$.
-Therefore $C' = \ivl{\cl{f_c}~\pair{a_1,b_1},\cl{f_c}~\pair{a_2,b_2},\alpha_1~and~\beta_1,\alpha_2~and~\beta_2}$.
+Suppose $g_c$ is increasing/increasing.
+In this case, $a_1' = a_1$, $b_1' = b_1$, and so on.
+By monotonicity, $C'$ is contained in $[\cl{g_c}~\pair{a_1',b_1'},\cl{g_c}~\pair{a_2',b_2'}]$.
+If $\alpha_1'$ or $\beta_1'$ is $false$, $C'$ cannot contain $\cl{g_c}~\pair{a_1',b_1'}$.
+If $\alpha_2'$ or $\beta_2'$ is $false$, $C'$ cannot contain $\cl{g_c}~\pair{a_2',b_2'}$.
+Therefore $C' = \ivl{\cl{g_c}~\pair{a_1',b_1'},\cl{g_c}~\pair{a_2',b_2'},\alpha_1'~and~\beta_1',\alpha_2'~and~\beta_2'}$.
 
-We still must prove $\pair{a_1,b_1}$ and $\pair{a_2,b_2}$ are in $\cl{f_c}$'s domain.
-First, recall $\cl{f_c} : (\cl{A} \times \cl{B}) \w N \to \cl{C}$, where $\cl{A}$, $\cl{B}$ and $\cl{C}$ are the closures of $A$, $B$ and $C$ in $\cl{\Re}$, and $N = \set{\pair{min~\cl{A},max~\cl{B}},\pair{max~\cl{A},min~\cl{B}}}$.
-
-Because $A' \subseteq A$ and $B' \subseteq B$, and $A$ and $B$ are open sets, $a_1 \neq max~\cl{A}$, $a_2 \neq \min~\cl{A}$, $b_1 \neq max~\cl{B}$, and $b_2 \neq min~\cl{B}$, so
+We still must prove $\pair{a_1',b_1'}$ and $\pair{a_2',b_2'}$ are in $\cl{g_c}$'s domain.
+First, recall $\cl{g_c} : (\cl{A} \times \cl{B}) \w N \to \cl{C}$, where $\cl{A}$, $\cl{B}$ and $\cl{C}$ are the closures of $A$, $B$ and $C$, and $N = \set{\pair{min~\cl{A},max~\cl{B}},\pair{max~\cl{A},min~\cl{B}}}$.
+Because $A' \subseteq A$ and $B' \subseteq B$, and $A$ and $B$ are open sets, $a_1 \neq max~\cl{A}$, $a_2 \neq \min~\cl{A}$, $b_1 \neq max~\cl{B}$, and $b_2 \neq min~\cl{B}$, so for all $a \in \cl{A}$ and $b \in \cl{B}$,
 \begin{equation}
 \begin{aligned}
-	\pair{a_1,b_1} &\neq \pair{max~\cl{A},b} & \text{for all}\ b \in \cl{B} \\
-	\pair{a_1,b_1} &\neq \pair{a,max~\cl{B}} & \text{for all}\ a \in \cl{A} \\
-	\pair{a_2,b_2} &\neq \pair{min~\cl{A},b} & \text{for all}\ b \in \cl{B} \\
-	\pair{a_2,b_2} &\neq \pair{a,min~\cl{B}} & \text{for all}\ a \in \cl{A} \\
+	\pair{a_1,b_1} &\neq \pair{max~\cl{A},b} \hspace{0.5in} & \pair{a_2,b_2} &\neq \pair{min~\cl{A},b} \\
+	\pair{a_1,b_1} &\neq \pair{a,max~\cl{B}} \hspace{0.5in} & \pair{a_2,b_2} &\neq \pair{a,min~\cl{B}}
 \end{aligned}
 \end{equation}
 Therefore, $\pair{a_1,b_1} \not\in N$ and $\pair{a_2,b_2} \not\in N$, as desired.
 
-The remaining cases for $f_c$ are similar.
+The remaining cases for $g_c$ are similar.
 \end{proof}
 
 \begin{example}
@@ -576,68 +1101,387 @@ Because $inc_1~pow_c$ and $not~(inc_2~pow_c)$,
 \exampleqed
 \end{example}
 
-To use Theorem~\ref{thm:images-of-rectangles} to compute approximate preimages under $f_c$ by computing images under its axial inverses, we must know whether each axis of $f_a$ and $f_b$ is increasing or decreasing.
+To use Theorem~\ref{thm:images-of-rectangles} to compute approximate preimages under some $g_c$ by computing images under its axial inverses, we must know whether each axis of $g_a$ and $g_b$ is increasing or decreasing.
 It helps to have an analogue of Lemma~\ref{lem:inverse-direction} (inverse direction).
 
-\begin{theorem}
-Let $f_c : A \times B \to C$ be uniformly surjective and strictly increasing or decreasing in each axis, with axial inverses $f_a$ and $f_b$.
-The following statements hold:
+\begin{theorem}[axial inverse directions]
+\label{thm:axial-inverse-direction}
+Let $g_c : A \times B \to C$ be surjective and strictly increasing or decreasing in each axis, with axial inverses $g_a$ and $g_b$.
+Then
 \begin{enumerate}
-	\item $inc_1~f_a$ if and only if $(inc_1~f_c)~xor~(inc_2~f_c)$.
-	\item $inc_2~f_a$ if and only if $inc_1~f_c$.
+	\item $inc_1~g_a$ if and only if $(inc_1~g_c)~xor~(inc_2~g_c)$.
+	\item $inc_2~g_a$ if and only if $inc_1~g_c$.
 \end{enumerate}
 \end{theorem}
 \begin{proof}
-For statement 1, let $c \in C$, $b_1,b_2 \in B$, $a_1 := f_a~\pair{b_1,c}$ and $a_2 := f_a~\pair{b_2,c}$.
-Let $c' := f_c~\pair{a_1,b_2}$; note $c = f_c~\pair{a_1,b_1} = f_c~\pair{a_2,b_2}$.
-Suppose $inc_1~f_c$ and $inc_2~f_c$; then $a_1 > a_2 \iff c < c'$ and $b_1 < b_2 \iff c < c'$, so $b_1 < b_2 \iff a_1 > a_2$.
+For 1, let $c \in C$, $b_1,b_2 \in B$, $a_1 := g_a~\pair{b_1,c}$ and $a_2 := g_a~\pair{b_2,c}$.
+Let $c' := g_c~\pair{a_1,b_2}$; note $c = g_c~\pair{a_1,b_1} = g_c~\pair{a_2,b_2}$.
+Suppose $inc_1~g_c$ and $inc_2~g_c$; then $a_1 > a_2 \iff c < c'$ and $b_1 < b_2 \iff c < c'$, so $b_1 < b_2 \iff a_1 > a_2$.
 The remaining cases are similar.
 
 For statement 2, fix $b \in B$ and apply Lemma~\ref{lem:inverse-direction}.
 \end{proof}
 
-By Lemma~\ref{lem:axial-inverse-cyclic-group}, $inc_1~f_b \iff inc_2~f_c$, and $inc_2~f_b \iff inc_1~f_a$.
-We can therefore easily determine the uniform directions of $f_a$'s and $f_b$'s axes from the uniform directions of $f_c$'s axes.
+By Theorem~\ref{thm:axial-inverse-direction}, we can use $g_c$'s axis directions to determine $g_a$'s, and by Lemma~\ref{lem:axial-inverse-cyclic-group} (axial inverse cyclic group), use $g_a$'s to determine $g_b$'s.
 
-We are certain the preceeding definitions and theorems extend naturally to functions with any number of arguments, but have not needed to extend them yet.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Discontinuous Primitives}
-
-\section{Primitive Implementation}
+\subsection{Primitive Implementation}
 \label{sec:primitive-implementation}
 
 Because floating-point functions are defined on subsets of $\cl{\Re}$, it would seem we could compute preimages under strictly monotone, real functions by applying their floating-point counterparts to interval endpoints.
-This is mostly true, but we must take care to round in the right directions and account for floating-point negative zero.
+This is mostly true, but as with \scheme{real-set-singleton}, we must take care with rounding.
+We must also account for floating-point negative zero.
 
+As with all interval arithmetic, to compute sound approximations of interval images, we must round the results \emph{outward}: round the lower endpoints down, and round the upper endpoints up.
+Unlike with most interval arithmetic, soundness is not just a nice theoretical guarantee.
+For the lowest-rejection-rate sampling algorithm presented further on, it is critical.
+
+The sampler chooses a random value $a$, restricts $\Omega$ at index $j$ to $[a,a]$ using $\Omega' := unproj~j~\Omega~[a,a]$, and computes a preimage under the program's interpretion as a function, restricted to $\Omega'$.
+If in the forward pass, the approximation of the image of $\Omega'$ is not sound, the reverse pass will often falsely compute an empty preimage.
+
+Here is a more concrete example.
+As a preimage arrow computation, square root is
 \begin{equation}
 \begin{aligned}
-	&\cl{pos!recip} : [0,+\infty] \to [0,+\infty] \\
-	&\cl{pos!recip}~a\ =\
-		\lzfccond{
-			0 < a < +\infty & 1/a \\
-			a = 0 & +\infty \\
-			a = +\infty & 0
+	&sqrt_{pre} : [0,+\infty) \preto\,[0,+\infty) \\
+	&sqrt_{pre}~A\ :=\ \pair{image~sqrt^+~A, preimage~(restrict~sqrt^+~A)}
+\end{aligned}
+\end{equation}
+Suppose $A = [\frac{1}{2},\frac{1}{2}]$, and that the implementation mistakenly computes $image~sqrt^+~[\frac{1}{2},\frac{1}{2}]$ as $[0.7071067811865476,0.7071067811865476]$.
+The number $0.7071067811865476$ is the closest 64-bit floating-point number to $\sqrt{\frac{1}{2}}$; i.e. the implementation's floating-point square root is compliant with the IEEE 754 floating-point standard~[XXX: cite].
+
+Now suppose that, on the reverse phase, we compute the preimage of $\Re$ under $restrict~sqrt^+~[\frac{1}{2},\frac{1}{2}]$.
+By Lemma~\ref{lem:invertible-function-preimages}, the implementation of $pre$ should compute
+\begin{equation}
+\begin{aligned}
+	&preimage~(restrict~sqrt^+~[\tfrac{1}{2},\tfrac{1}{2}])~(\Re \i [0.7071067811865476,0.7071067811865476])
+\\
+	&\tab=\ [\tfrac{1}{2},\tfrac{1}{2}] \i image~sqr^+~[0.7071067811865476,0.7071067811865476]
+\end{aligned}
+\end{equation}
+If it again uses compliant floating-point arithmetic but does not round outward, it computes
+\begin{equation}
+	[\tfrac{1}{2},\tfrac{1}{2}] \i [0.5000000000000001,0.5000000000000001]\ =\ \emptyset
+\end{equation}
+In fact, an implementation that does not round intervals outward would falsely compute $\emptyset$ for about half of the floating-point numbers between $0.0$ and $1.0$.
+
+The IEEE 754 floating-point standard mandates a settable rounding mode, and that common operations must use it to determine which of the nearest floating-point numbers to round to.
+Unfortunately, there is no portable way to set the rounding mode.
+In Racket, we have a few other options.
+\begin{enumerate}
+	\item Use \scheme{math/bigfloat}, which wraps the MPFR arbitrary-precision floating-point library~[XXX: cite], which \emph{does} provide a way to set the rounding mode for its operations.
+	\item Use the \scheme{math/flonum} library's functions for \keyword{double-doubles}, which are two nonoverlapping floating-point numbers that when added together represent a number with a 105-bit significand~[XXX: cite].
+	Convert flonums to double-doubles, operate on them, and manually round the high-order number of the result up or down based on the sign of the low-order number.
+	\item Use the \scheme{math/flonum} library's \scheme{flnext} and \scheme{flprev} to bump the endpoints up or down.
+\end{enumerate}
+We use option 2 for functions with 105-bit implementations, such as arithmetic, $exp$ and $log$, and otherwise use option 3.
+
+For option 3, how far the endpoints are bumped up or down depends on the maximum error in the output of the function's floating-point implementation.
+For example, we use the normal distribution's inverse cumulative density function $F_N^{-1}$ and (its inverse $F_N$) to transform uniformly distributed random numbers (i.e. each $\omega~j$) into normally distributed random numbers.
+As a preimage arrow computation, it is
+\begin{equation}
+\begin{aligned}
+	&normal_{pre} : (0,1)~\preto~\Re \\
+	&normal_{pre}~A\ :=\ \pair{image~F_N^{-1}~A, preimage~(restrict~F_N^{-1}~A)}
+\end{aligned}
+\end{equation}
+Racket's \scheme{math/distributions} library implements $F_N^{-1}$ with \scheme{flnormal-inv-cdf} and $F_N$ with \scheme{flnormal-cdf}, whose outputs are always within four floating-point numbers of the exact outputs.
+The implementation of $normal_{pre}$ therefore bumps lower endpoints down by $4$ and upper endpoints up by $4$.
+
+For the code in this section, we use a \scheme{/rndu} suffix (read ``with rounding up'') for the names of functions that round up, and a \scheme{/rndd} for the name of functions that round down.
+In Racket, prefixing floating-point functions with \scheme{fl} is conventional, so the name of the floating-point addition function that rounds down is \scheme{fl+/rndd}, and the name of the floating-point square root function that rounds up is \scheme{flsqrt/rndu}.
+
+\begin{figure*}[tb!]\centering
+\begin{schemedisplay}
+;; Represents an R -> R bijection, its direction, domain and range
+(struct: Bijection
+    ([inc? : Boolean] [domain : Real-Set] [range : Real-Set]
+     [gb/rndd : (Flonum -> Flonum)] [gb/rndu : (Flonum -> Flonum)]
+     [ga/rndd : (Flonum -> Flonum)] [ga/rndu : (Flonum -> Flonum)]))
+<blank-line>
+(: bijection-inverse (Bijection -> Bijection))
+;; Returns the inverse of a bijection (see Lemma 8.5)
+(define (bijection-inverse g)
+  (match-define (Bijection inc? X Y gb/rndd gb/rndu ga/rndd ga/rndu) g)
+  (Bijection inc? Y X ga/rndd ga/rndu gb/rndd gb/rndu))
+<blank-line>
+(: real-image (Boolean (Flonum -> Flonum) (Flonum -> Flonum) Real-Set
+                -> Real-Set))
+;; Returns a sound approximation of the image of A under g (Theorem 8.4)
+(define (real-image inc? g/rndd g/rndu A)
+  (match-define (Real-Set a1 a2 a1? a2?) A)
+  (cond [inc?  (Real-Set (g/rndd a1) (g/rndu a2) a1? a2?)]
+        [else  (Real-Set (g/rndd a2) (g/rndu a1) a2? a1?)]))
+<blank-line>
+(: bijection-image (Bijection Real-Set -> (U Empty-Set Real-Set)))
+;; Computes the image of A under bijection g
+(define (bijection-image g A)
+  (match-define (Bijection inc? X Y gb/rndd gb/rndu _ _) g)
+  (let ([A  (real-set-intersect A X)])
+    (if (empty-set? A)
+        empty-set
+        (real-set-intersect Y (real-image inc? gb/rndd gb/rndu A)))))
+<blank-line>
+(: bijection-preimage (bijection Real-Set Real-Set -> (U Empty-Set Real-Set)))
+;; Returns an approximate preimage of B under g restricted to A (Lemma 8.3)
+(define (bijection-preimage g A B)
+  (match-define (Bijection inc? X Y _ _ ga/rndd ga/rndu) g)
+  (let ([A  (real-set-intersect A X)]
+        [B  (real-set-intersect B Y)])
+    (if (or (empty-set? A) (empty-set? B))
+        empty-set
+        (real-set-intersect A (real-image inc? ga/rndd ga/rndu B)))))
+\end{schemedisplay}
+\bottomhrule
+\caption[Computing images and preimages under real functions]{Typed Racket code for computing images and preimages under strictly monotone, surjective real functions.}
+\label{fig:bijection-implementation}
+\end{figure*}
+
+Figure~\ref{fig:bijection-implementation} lists code that computes sound image and preimage approximations under strictly monotone, surjective real functions.
+Such functions are represented by instances of \scheme{Bijection}.
+Each instance contains a \scheme{Boolean} indicating whether the function is increasing, its domain, range, an implementation with rounding down and up, and an inverse implementation with rounding down and up.
+For example,
+\begin{center}\singlespacing
+\begin{schemedisplay}
+(define pos-sqr-bij
+  (Bijection #t nonnegative-reals nonnegative-reals
+             flsqr/rndd flsqr/rndu
+             flsqrt/rndd flsqrt/rndu))
+<blank-line>
+(define sqrt-bij
+  (bijection-inverse pos-sqr-bij))
+\end{schemedisplay}
+\end{center}
+The preimage arrow computation \scheme{sqrt-pre} computes \scheme{(bijection-image sqrt-bij A)} in the forward phase and \scheme{(bijection-preimage sqrt-bij A B)} in the reverse phase.
+
+A simple example shows how floating-point's signed zeros can cause problems: the implementation of the reciprocal function.
+Let $\cl{recip^+}$ be the extension of $recip^+ : (0,+\infty) \to (0,+\infty)$ to the compact superdomain $[0,+\infty]$, defined by
+\begin{equation}
+\begin{aligned}
+	&\cl{recip^+} : [0,+\infty] \to [0,+\infty] \\
+	&\cl{recip^+}~a\ :=\ \lim_{a' \to a}~recip^+~a'\ =\ 
+		\lzfccase{a}
+		{
+			0 & +\infty \\
+			+\infty & 0 \\
+			else & recip^+~a \\
 		}
 \end{aligned}
 \end{equation}
+Suppose we implement it this way:
+\begin{center}\singlespacing
+\begin{schemedisplay}
+(define pos-recip-bij
+  (Bijection #f positive-reals positive-reals
+             (λ (a) (fl//rndd 1.0 a)) (λ (a) (fl//rndu 1.0 a))
+             (λ (a) (fl//rndd 1.0 a)) (λ (a) (fl//rndu 1.0 a))))
+\end{schemedisplay}
+\end{center}
+Because $recip^+$ is surjective, $image~recip^+~(0,+\infty) = (0,+\infty)$.
+With this implementation, we get the expected result only when the left endpoint is \emph{positive} floating-point zero, or \scheme{+0.0}:
+\begin{center}\singlespacing
+\begin{schemedisplay}
+> (bijection-image pos-recip-bij (Real-Set +0.0 +inf.0 #f #f))
+(Real-Set 0.0 +inf.0 #f #f)
+<blank-line>
+> (bijection-image pos-recip-bij (Real-Set -0.0 +inf.0 #f #f))
+empty-set
+\end{schemedisplay}
+\end{center}
+The issue is that \scheme{(fl/ 1.0 +0.0)} returns \scheme{+inf.0}, but \scheme{(fl/ 1.0 -0.0)} returns \scheme{-inf.0}, as per the IEEE 754 floating-point standard.
+The implementation should compute
+\begin{equation}
+	image~recip^+~(0,+\infty)\ =\ (\cl{recip^+}~{+\infty}, \cl{recip^+}~0)\ =\ (0,+\infty)
+\end{equation}
+but tries to return $(0,-\infty)$, which is the empty set.
 
-\section{Partitioned Sampling}
+In interval arithmetic, the typical solution is to allow \scheme{+0.0} only as a \emph{lower} endpoint, and \scheme{-0.0} as only as an \emph{upper} endpoint~[XXX: cite].
+We have not determined whether this solution generalizes to nonarithmetic functions, however, so we define
+\begin{center}\singlespacing
+\begin{schemedisplay}
+(define (pos-recip/rndd a)
+  (if (fl= a 0.0) +inf.0 (fl/ 1.0 a)))
+\end{schemedisplay}
+\end{center}
+and similarly \scheme{pos-recip/rndu}, and define \scheme{pos-recip-bij} in terms of these functions.
 
-Suppose that we want to sample values in a probability space $X,P$ by first sampling a set from a \emph{partition} of $X$ and then sampling from that set.\footnote{This is not \emph{stratified} sampling, which samples a fixed number of times from each partition.}
-[XXX: this transition should mention why we want to do partition sampling instead of just supposing that we do]
+\begin{figure*}[p!]\centering
+\begin{schemedisplay}
+;; Represents an R x R -> R trijection, its directions, domain and range
+(struct: Trijection
+ ([inc1? : Boolean] [inc2? : Boolean]
+  [domain1 : Real-Set] [domain2 : Real-Set] [range : Real-Set]
+  [gc/rndd : (Flonum Flonum -> Flonum)] [gc/rndu : (Flonum Flonum -> Flonum)]
+  [ga/rndd : (Flonum Flonum -> Flonum)] [ga/rndu : (Flonum Flonum -> Flonum)]
+  [gb/rndd : (Flonum Flonum -> Flonum)] [gb/rndu : (Flonum Flonum -> Flonum)]))
+<blank-line>
+(: real2d-image (Boolean Boolean
+                 (Flonum Flonum -> Flonum)
+                 (Flonum Flonum -> Flonum)
+                 Real-Set Real-Set -> Real-Set))
+;; Returns a sound approximation of the image of AxB under g (Theorem 8.20)
+(define (real2d-image inc1? inc2? g/rndd g/rndu A B)
+  (define-values (a1 a2 a1? a2?)
+    (match-let ([(Real-Set a1 a2 a1? a2?)  A])
+      (cond [inc1?  (values a1 a2 a1? a2?)]
+            [else   (values a2 a1 a2? a1?)])))
+  (define-values (b1 b2 b1? b2?)
+    (match-let ([(Real-Set b1 b2 b1? b2?)  B])
+      (cond [inc2?  (values b1 b2 b1? b2?)]
+            [else   (values b2 b1 b2? b1?)])))
+  (Real-Set (g/rndd a1 b1) (g/rndu a2 b2) (and a1? b1?) (and a2? b2?)))
+<blank-line>
+(: trijection-preimage (Trijection Real-Set Real-Set Real-Set
+                         -> (Values (U Empty-Set Real-Set)
+                                    (U Empty-Set Real-Set))))
+;; Returns an approximate preimage of C under g restricted to AxB
+;; (Theorem 8.11, Theorem 8.22)
+(define (trijection-preimage g A B C)
+  (match-define (Trijection gc-inc1? gc-inc2? X Y Z
+                            _ _ ga/rndd ga/rndu gb/rndd gb/rndu) g)
+  (define ga-inc1? (xor gc-inc1? gc-inc2?))
+  (define ga-inc2? gc-inc1?)
+  (define gb-inc1? (xor ga-inc1? ga-inc2?))
+  (define gb-inc2? ga-inc1?)
+  (let ([A  (real-set-intersect A X)]
+        [B  (real-set-intersect B Y)]
+        [C  (real-set-intersect C Z)])
+    (if (or (empty-set? A) (empty-set? B) (empty-set? C))
+        (values empty-set empty-set)
+        (values (real-set-intersect
+                 A (real2d-image ga-inc1? ga-inc2? ga/rndd ga/rndu B C))
+                (real-set-intersect
+                 B (real2d-image gb-inc1? gb-inc2? gb/rndd gb/rndu C A))))))
+\end{schemedisplay}
+\bottomhrule
+\caption[Computing images and preimages under two-dimensional real functions]{Typed Racket code for computing images and preimages under two-dimensional real functions that are surjective and strictly increasing or decreasing in each axis.}
+\label{fig:trijection-implementation}
+\end{figure*}
 
-First, we define
+Figure~\ref{fig:trijection-implementation} lists code that computes sound image and preimage approximations under two-dimensional real functions that are surjective and strictly increasing or decreasing in each axis.
+Such functions are represented by instances of \scheme{Trijection}.
+Each instance contains two \scheme{Boolean} values indicating whether each axis is increasing, its axis domains, its range, an implementation with rounding down and up, and two axial inverse implementations with rounding down and up.
+For example, the implementations of addition and subtraction are
+\begin{center}\singlespacing
+\begin{schemedisplay}
+(define add-trij
+  (Trijection #t #t reals reals reals
+              fl+/rndd fl+/rndu
+              flrev-/rndd flrev-/rndu
+              fl-/rndd fl-/rndu))
+<blank-line>
+(define sub-trij
+  (trijection-second-inverse add-trij))
+\end{schemedisplay}
+\end{center}
+where \scheme{flrev-/rndd} implements $add_a~\pair{b,c} := c - b$ with rounding down.
+
+\subsection{Piecewise Monotone Primitives}
+\label{sec:piecewise-monotone-primitives}
+
+Using $\ifpre$, it is easy to provide primitives that are piecewise monotone with finitely many pieces.
+We first need predicates to distinguish the parts, so we define
+\begin{equation}
+\begin{aligned}
+	&negative?\pre : \Re \preto Bool \\
+	&negative?\pre\ :=\ predicate\pre~(-\infty,0]~(0,+\infty)
+\end{aligned}
+\end{equation}
+as well as $positive?\pre$ in the same way.
+
+From $sqr^+\pre$ (nonnegative square) and $neg\pre$ (negation) primitives, we define
+\begin{equation}
+\begin{aligned}
+	sqr\pre&\ :=\ \ifpre~negative?\pre~(neg\pre~\comppre~sqr^+_{pre})~sqr^+\pre
+\\
+	sqr\ppre&\ :=\ \eta\ppre~sqr\pre
+\end{aligned}
+\end{equation}
+We then extend $\meaningofconv{\cdot}\ppre$ by the rule $\meaningofconv{sqr~\mathit{e}}\ppre\ :=\ \meaningofconv{\mathit{e}}\ppre~\compppre~sqr\ppre$.
+Equivalently, we could provide $sqr^+$, $neg$ and $negative?$ as primitives and define
+\begin{equation}
+	sqr~a\ :=\ strict!if~(negative?~a)~(sqr^+~(neg~a))~(sqr^+~a)
+\end{equation}
+as a standard library function for probabilistic programs.
+
+From implementations of multiplication restricted to each open quadrant, or $mul^{++}\pre$, $mul^{+-}\pre$, $mul^{-+}\pre$ and $mul^{--}\pre$, we can define multiplication on all of $\Re \times \Re$ with
+\begin{equation}
+\begin{aligned}
+	mul\pre &\ := \
+		\lzfcsplit{\ifpre~
+			&(fst\pre~\comppre~positive?\pre) \\
+			&(\lzfcsplit{\ifpre~
+				&(snd\pre~\comppre~positive?\pre) \\
+				&mul^{++}\pre \\
+				&(\lzfcsplit{\ifpre~
+					\lzfcsplit{&(snd\pre~\comppre~negative?\pre) \\
+						&mul^{+-}\pre \\
+						&(const\pre~0)))}
+				}
+			} \\
+			&...\ \text{[similar code using $mul^{-+}\pre$ and $mul^{--}\pre$]}\ ...
+		}
+\\
+	mul\ppre &\ :=\ \eta\ppre~mul\pre
+\end{aligned}
+\end{equation}
+and extend $\meaningofconv{\cdot}\ppre$ by the rule $\meaningofconv{\mathit{e_1} \cdot \mathit{e_2}}\ppre\ :=\ \meaningofconv{\pair{\mathit{e_1},\mathit{e_2}}}\ppre~\compppre~mul\ppre$.
+
+
+\section{Sampling Methods}
+
+Chapter~\ref{ch:preimage1} defines the preimage refinement algorithm (Definition~\ref{def:preimage-refinement}), which repeatedly splits a partition of the program domain, restricts the program to each part, and refines each part by computing a preimage.
+While it appears to converge for programs that terminate with probability $1$, it is inefficient.
+Good accuracy requires fine discretization, which is \emph{exponential} in the number of discretized axes.
+For example, a nonrecursive program that contains only 10 uses of $random$ would need to partition 10 axes of $\Omega$.
+Splitting each axis into only 4 disjoint intervals yields a partition of $\Omega$ of size $4^{10} = 1,048,576$.
+
+Fortunately, Bayesian practitioners tend to be satisified with sampling methods, which are usually more efficient than enumeration methods.
+To approximately answer conditional queries, it suffices to sample within the preimage of the condition set.
+More precisely, if $g := \meaningofconv{\mathit{p}}\pmap$, we can answer almost any query $\Pspec{B' | B}$ by sampling within $A := preimage~g~B$, if the probability of $A$ is positive.
+
+\begin{figure*}[tb!]\centering
+\subfloat[Exact preimage of $B$]{%
+\label{fig:preimage-refinement:exact}%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-00}%
+}%
+\betweenrefinementfigurehspace%
+\subfloat[Parts sampled from a rectangular cover instead of enumerated]{%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-sample}%
+}%
+\betweenrefinementfigurehspace%
+\subfloat[Points sampled within the parts]{%
+\includegraphics[width=\subfigurewidth]{figures/refinement/constrained-norm-norm-source-sample-point}%
+}
+
+\caption[Preimage refinement sampling]{A more efficient alternative to the preimage refinement algorithm.
+Instead of enumerating a rectangular cover, its parts are sampled, and each part is then sampled from.
+Points that lie outside the exact preimage (which is easy to test) are rejected.
+}
+\label{fig:preimage-refinement-sampling}
+\end{figure*}
+
+It is easy to sample within $A$ by sampling within $\Omega$ and rejecting samples not in $A$.
+To determine whether samples are in $A$, we can use the interpretation of the program $\mathit{p}$ as a bottom* arrow computation $f := \meaningofconv{\mathit{p}}_\pbot$.
+Unfortunately, the time required to accept a fixed number of samples also tends to be exponential in the number of dimensions.
+To solve this problem, we sample within a rectangular cover of $A$, as computed by preimage refinement, instead of within $\Omega$.
+But we do not need to enumerate the cover's parts, as Figure~\ref{fig:preimage-refinement-sampling} illustrates: for each sample, we first sample a part, and then sample a value within the part.
+
+\subsection{Partitioned Sampling}
+
+More generally, without considering probabilistic programming at all, we want to sample values in a probability space $X,P$ by first sampling a set from a \emph{partition} of $X$ and then sampling from that set.\footnote{This is not \emph{stratified} sampling, which samples a fixed number of times from each partition.}
+
+First, to restrict probability measures to measurable, positive-probability sets and renormalize them, we define
 \begin{equation}
 \begin{aligned}
 	&condition : Set~X \pto [0,1] \tto Set~X \tto Set~X \pto [0,1] \\
 	&condition~P~A\ :=\ \fun{A' \in domain~P} P~(A' \i A)~{/}~P~A
 \end{aligned}
 \end{equation}
-to restrict a probability measure $P$ to a measurable, positive-probability set $A$ and renormalize it.
 
 \begin{definition}[partitioned sampling]
 \label{def:partitioned-sampling}
@@ -674,14 +1518,14 @@ Second, it assumes sampling according to $condition~P~(s~n)$ is easy, which is a
 
 But suppose we could easily sample a partition index according to a different distribution over $N$, and according to a different distribution over part $s~n$ for each $n \in N$. Doing so and returning weighted samples to adjust for the differences in distribution comprises \mykeyword{partitioned importance sampling}.
 
-First, we define
+First, to restrict a probability measure $P$ to a measurable set $A$ \emph{without} renormalizing it, we define
 \begin{equation}
 \begin{aligned}
 	&subcond : Set~X \pto [0,1] \tto Set~X \tto Set~X \pto [0,1] \\
 	&subcond~P~A\ :=\ \fun{A' \in domain~P} P~(A' \i A)
 \end{aligned}
 \end{equation}
-to restrict a probability measure $P$ to a measurable set $A$ \emph{without} renormalizing it; i.e. it returns a subprobability measure.
+This returns a \keyword{subprobability measure}: a measure whose largest output is less than $1$.
 
 \begin{definition}[partitioned importance sampling]
 \label{def:partitioned-importance-sampling}
@@ -703,7 +1547,7 @@ To sample from $X$ according to $P$,
 \end{definition}
 
 The function $diff^+~(subcond~P~(s~n))~(Q~n)$, with type $X \to [0,+\infty)$, is a \keyword{Radon-Nikod\'ym\footnote{Pronounced ``RADon neekohDIM,'' and named after Austrian mathematician Johann Radon and Polish mathematician Otto Nikod\'ym.} derivative}.
-If $P$ has density $f$, $Q~n$ has density $g$ with respect to the same base measure (e.g. same-dimensional length, area or volume), and $a \in s~n$ implies $g~a > 0$, then\footnote{The equality in~\eqref{eqn:diff-is-actually-easy} holds $(Q~n)$-almost everywhere.}
+If $P$ has density $f$, $Q~n$ has density $g$, and $a \in s~n$ implies $g~a > 0$, then\footnote{The equality in~\eqref{eqn:diff-is-actually-easy} holds $(Q~n)$-almost everywhere.}
 \begin{equation}
 	diff^+~(subcond~P~(s~n))~(Q~n)~a\ =\ if~(a \in s~n)~(f~a~{/}~g~a)~0
 \label{eqn:diff-is-actually-easy}
@@ -712,24 +1556,8 @@ Chapter~\ref{ch:sampling-algorithm-proofs} has definitions and more details.
 We use $diff^+$ in a more general sense, but in this section, it is usually fine to think of its return values as quotients of densities.
 
 An importance sampling algorithm is correct when all expected values computed using its weighted samples are the equal to the true expected values.
-The next theorem states that this is true of partitioned importance sampling under reasonable conditions, which are analogous to the support of $subcond~P~(s~n)$ being no larger than that of $Q~n$.
-
-\begin{theorem}[partitioned importance sampling correctness]
-\label{thm:partitioned-importance-sampling-correctness}
-Let $X$, $P$, $N$, $s$, $p$, and $Q$ as in Definition~\ref{def:partitioned-importance-sampling} (partitioned importance sampling) such that $subcond~P~(s~n) \ll Q~n$ for all $n \in N$. Define $P_N : Set~N \to [0,1]$ by extending $p$ to a measure.
-
-If $g : X \to \Re$ is a $P$-integrable mapping, and
-\begin{equation}
-\begin{aligned}
-	&g' : N \times X \to \Re \\
-	&g'~\pair{n,a}\ :=\ g~a \cdot \dfrac{1}{p~n} \cdot diff^+~(subcond~P~(s~n))~(Q~n)~a
-\end{aligned}
-\end{equation}
-then $int~g'~(P_N \times Q)~(N \times X)\ =\ int~g~P~X$.
-\end{theorem}
-\begin{proof}
-See Chapter~\ref{ch:sampling-algorithm-proofs}.
-\end{proof}
+This is true of partitioned importance sampling under reasonable conditions, which are analogous to the support of $subcond~P~(s~n)$ being no larger than that of $Q~n$.
+The formal statement of the theorm and its proof are in Chapter~\ref{ch:sampling-algorithm-proofs}.
 
 Partitioned importance sampling allows quite a lot of freedom: parts can be chosen with arbitrary nonzero probability, and each part can have its own candidate distribution, which may be defined on a superset of the part.
 
@@ -742,7 +1570,7 @@ Partitioned importance sampling allows quite a lot of freedom: parts can be chos
 \subfloat[Resampled by weight]{
 \includegraphics[width=3in]{figures/pimp-sampling-weighted}
 }
-\caption[ ]{Partitioned importance sampling used to sample uniformly in a partition of the unit square, using two overlapping candidate distributions.}
+\caption[Sampling uniformly in a partioned unit square]{Partitioned importance sampling used to sample uniformly in a partition of the unit square, using two overlapping candidate distributions.}
 \label{fig:pimp-sampling-2d}
 \end{figure}
 
@@ -769,13 +1597,15 @@ It directly represents only $N$ and $p$, but we will find even this to be infeas
 
 Two properties make the preceeding example simple.
 First, the partition has finitely many parts.
-Second, the measures $subcond~P~(s~n)$ and $Q~n$ have densities with respect to the same base measure, which ensures $diff^+~(subcond~P~(s~n))~(Q~n)$ exists and is easy to compute.
+Second, the measures $subcond~P~(s~n)$ and $Q~n$ have densities, which ensures $diff^+~(subcond~P~(s~n))~(Q~n)$ exists and is easy to compute.
 
 When sampling in the domain of programs, neither property holds in general.
 
 \subsection{Partitioning Probabilistic Program Domains}
 
-For the random source part $R := J \to [0,1]$ of probabilistic language domains, which consists of infinite binary trees of reals, it is not clear that Theorem~\ref{thm:partitioned-importance-sampling-correctness} is applicable.
+[XXX: rename R to $\Omega$ in the following]
+
+For the random source part $R := J \to [0,1]$ of probabilistic language domains, which consists of infinite binary trees of reals, it is not clear that partitioned importance sampling is applicable.
 The main problem is that infinite-dimensional Radon-Nikod\'ym derivatives do not generally exist.
 
 Fortunately, they \emph{can} exist if the two measures differ in only finitely many axes.
@@ -1030,7 +1860,7 @@ We can then extend this algorithm to use preimage computation to sample in arbit
 \label{fig:collecting-semantics:sample-trace}
 }
 
-\caption[]{Branch index collecting semantics.}
+\caption[Branch index collecting semantics]{Branch index collecting semantics.}
 \label{fig:collecting-semantics}
 \end{figure*}
 
@@ -1298,4 +2128,104 @@ XXX: extension: sampling a weighted point using refinement
 
 XXX: extension: not sampling any decision as $\bot$ when sampling in $T_+$; characterize the programs for which this extension doesn't terminate; explain options to detect or fix
 
+\section{Examples}
+
+
 \mathversion{normal}
+
+
+% Moved from Chapter 7
+\begin{comment}
+Good accuracy requires fine discretization, which is \emph{exponential} in the number of discretized axes.
+For example, a nonrecursive program that contains only 10 uses of $random$ would need to partition 10 axes of $\Omega$, the set of random sources.
+Splitting each axis into only 4 disjoint intervals yields a partition of $\Omega$ of size $4^{10} = 1,048,576$.
+
+Fortunately, Bayesian practitioners tend to be satisified with sampling methods, which are usually more efficient than exact methods based on enumeration.
+
+Let $g : X \mapto Y$ be the interpretation of a program as a mapping arrow computation.
+A Bayesian is primarily interested in the probability of $B' \subseteq Y$ given some condition set $B \subseteq Y$.
+This can be approximated using \keyword{rejection sampling}.
+If $A := preimage~(g~X)~B$ and $A' := preimage~(g~X)~B'$, and $xs$ is a list of samples from any superset of $A$ that has at least one element in $A$, then
+\begin{equation}
+	Pr[B'|B] \ \approx \ \frac{length~(filter~(\in A' \i A)~xs)}{length~(filter~(\in A)~xs)}
+\label{eqn:sampling-approx-conditional}
+\end{equation}
+where ``$\approx$'' (rather loosely) denotes convergence as the length of $xs$ increases.
+The probability that any given element of $xs$ is in $A$ is often extremely small, so it would clearly be best to sample only within $A$.
+While we cannot do that, we can easily sample from a partition covering $A$.
+
+For a fixed number $\mathit{d}$ of uses of $random$, $\mathit{n}$ samples, and $\mathit{m}$ repartitions that split each rectangle in two, enumerating and sampling from a covering partition has time complexity $\mathit{O}(2^\mathit{md} + \mathit{n})$.
+Fortunately, we do not have to enumerate the rectangles in the partition: we sample them instead, and sample one value from each rectangle, which is $\mathit{O(mdn)}$.
+
+We cannot directly compute $a \in A$ or $a \in A' \i A$ in~\eqref{eqn:sampling-approx-conditional}, but we can use the fact that $A$ and $A'$ are preimages, and use the interpretation of the program as a bottom arrow computation $f : X \botto Y$:
+\begin{equation}
+\begin{aligned}
+	filter~(\in A)~xs
+		&\ = \ filter~(\in preimage~(g~X)~B)~xs
+\\
+		&\ = \ filter~(\fun{a}{g~X~a \in B})~xs
+\\
+		&\ = \ filter~(\fun{a}{f~a \in B})~xs
+\end{aligned}
+\end{equation}
+Substituting into~\eqref{eqn:sampling-approx-conditional} gives
+\begin{equation}
+	Pr[B'|B] \ \approx \ \frac{length~(filter~(\fun{a}{f~a \in B' \i B})~xs)}{length~(filter~(\fun{a}{f~a \in B})~xs)}
+\end{equation}
+which converges to the probability of $B'$ given $B$ as the number of samples $xs$ from the covering partition increases.
+
+For simplicity, the preceeding discussion does not deal with projecting preimages from the domain of programs $(\Omega \times T) \times \set{\pair{}}$ onto the set of random sources $\Omega$.
+Shortly, Dr. Bayes samples rectangles from covering partitions of $(\Omega \times T) \times \set{\pair{}}$ subsets, weights each rectangle by the inverse of the probability with which it is sampled, and projects onto $\Omega$.
+This alogorithm is a variant of \keyword{importance sampling}~\cite[Section 12.4]{cit:degroot-2012book-probability}, where the candidate distribution is defined by the sampling algorithm's partitioning choices, and the target distribution is $P$.
+
+\begin{lrbox}{\codebox}
+\begin{varwidth}{\textwidth}
+\singlespacing
+\begin{schemedisplay}
+(struct/drbayes collision (time point normal))
+<blank-line>
+(define/drbayes (ray-plane-intersect p0 v n d)
+  (let ([denom  (- (vec-dot v n))])
+    (if (positive? denom)
+        (let ([t  (/ (+ d (vec-dot p0 n)) denom)])
+          (if (positive? t) (collision t (vec+ p0 (vec-scale v t)) n) #f))
+        #f)))
+<blank-line>
+\end{schemedisplay}
+\end{varwidth}
+\end{lrbox}
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\subfloat[Random paths from a single light source, conditioned on passing through an aperture.]{
+\begin{minipage}{0.49\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/ray-tracing}
+\end{minipage}
+\label{fig:ray-tracing-paths}
+}
+\tab\tab
+\subfloat[Random paths that pass through the aperture, projected onto a plane and accumulated.]{
+\begin{minipage}{0.43\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/ray-tracing-projection}
+\end{minipage}
+\label{fig:ray-tracing-projection}
+}
+
+\subfloat[Part of the ray tracer implementation. Sampling involves computing approximate preimages under functions like this.]{
+\usebox{\codebox}
+\label{fig:ray-plane-intersect}
+}
+\caption[Stochastic ray tracing in Dr. Bayes]{Stochastic ray tracing in Dr. Bayes is little more than physics simulation.}
+\label{fig:ray-tracing}
+\end{figure*}
+
+\figref{fig:ray-tracing} shows the result of using Dr. Bayes for stochastic ray tracing~\cite{cit:veach-1997siggraph-mlt}.
+In this instance, photons are cast from a light source in a uniformly random direction and are reflected by the walls of a square room, generating paths.
+The objective is to sample, with the correct distribution, only those paths that pass through an aperture.
+The smaller the aperture, the smaller the probability a path passes through it, and the more focused the resulting image.
+
+All efficient implementations of stochastic ray tracing to date use sophisticated, specialized sampling methods that bear little resemblance to the physical processes they simulate.
+The proof-of-concept ray tracer, written in Dr. Bayes, is little more than a simple physics simulation and a conditional query.
+\end{comment}

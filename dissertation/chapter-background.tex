@@ -1,4 +1,4 @@
-This work brings together Bayesian practice and functional programming theory, and bridges them using measure-theoretic probability.
+Our work bridges Bayesian practice and functional programming theory using measure-theoretic probability.
 
 In this chapter, we attempt to give enough background to motivate and explain Bayesian practice and functional programming theory.
 We only \emph{motivate} measure-theoretic probability here.
@@ -631,8 +631,8 @@ As an example of use, at DrRacket's Read-Eval-Print Loop (REPL), we get
 \begin{center}
 \singlespacing
 \begin{schemedisplay}
-          > (interp (add (add 4 5) 90))
-          99
+> (interp (add (add 4 5) 90))
+99
 \end{schemedisplay}
 \end{center}
 as expected.
@@ -789,7 +789,7 @@ Compositionality allows most proofs of program properties to be done by structur
 
 When the results of applying $\meaningof{\cdot}$ are computable, because it is compositional, it is often easy to implement it as local syntax transformation or compilation.
 \figref{fig:add-denotational:implementation} shows a Racket implementation of $\meaningof{\cdot}$ as a transformation from meaningless parenthetical syntax (an \scheme{add} function does not exist) to runnable Racket syntax.
-The syntax transformer is barely more than a transcription of the semantic function's definition, with a little extra code to signal to Racket that it is to be applied to the syntax of expressions before compiling or evaluating them (i.e. \scheme{define-syntax} instead of \scheme{define}) and to identify the symbol \scheme{add} as terminal symbol.
+The syntax transformer is barely more than a transcription of the semantic function's definition, with a little extra code to signal to Racket that it is to be applied to the syntax of expressions before compiling or evaluating them (i.e. \scheme{define-syntax} instead of \scheme{define}) and to identify the symbol \scheme{add} as a terminal symbol.
 
 The results of compilation seem to be equivalent to the results of interpretation:
 \begin{center}
@@ -923,7 +923,7 @@ The \keyword{set monad} operates on set-valued computations and is defined by th
 	\mathit{bind_{set}}~A~f&\ =\ \bigcup_{v \in A} f~v
 \end{aligned}
 \end{equation}
-Evidently, from a semantic function $\meaningof{\cdot}_a$ parameterized on a monad $a$ we should expect $\meaningof{v}_\mathit{set} = \mathit{return_{set}}~v = \set{v}$.
+Evidently, from a semantic function $\meaningof{\cdot}_a$ parameterized on a monad $a$ we should expect $\meaningof{v}_\mathit{set} = \mathit{return_{set}}~v \equiv \set{v}$.
 How to use $\mathit{bind_{set}}$ is less clear, however.
 It apparently applies $f$ to the objects in set $A$ to yield a set for each, and collects these sets' members in a big union.
 Turning the set comprehension in the definition of $\meaningof{\mathsf{add}~e_1~e_2}$ into an indexed union (as in $\mathit{bind_{set}}$) makes its use clearer:
@@ -1119,7 +1119,7 @@ During abstract interpretation, expressions are not evaluated on concrete values
 As with concrete interpretation, abstract interpretation is specified by a semantics.
 As with concrete semantics, any of a language's abstract semantics can be defined using rules or semantic functions.
 Type systems and type checkers are typically defined by rules with premises and conclusions similar to reduction rules.
-Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a semantic function, we give a small example of that approach here.
+Because Chapters~\ref{ch:preimage1} and~\ref{ch:preimage2} define abstract interpretations using semantic functions, we give a small example of that approach here.
 
 \newcommand{\Count}[1]{\mathcal{L}\!\meaningof{#1}}
 
@@ -1142,8 +1142,8 @@ Because Chapter~\ref{ch:preimage1} defines an abstract interpretation using a se
 
 \figref{fig:add-choose-abstract} defines $\Count{\cdot}$, which defines an abstract semantics for the addition language with $\mathsf{choose}$.
 (The prefix $\mathcal{L}$ means nothing mathematically; it simply differentiates this semantic function from the others we have defined.)
-The abstract values are the lengths of lists or cardinalities of sets; i.e. natural numbers.
-The abstract meaning of a term is a \emph{bound} on the number of nondeterministic values computed.
+The abstract values are the lengths of lists or cardinalities of finite sets; i.e. natural numbers.
+The abstract meaning of a term is an \emph{upper bound} on the number of nondeterministic values it computes.
 For example, the abstract meaning of $\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)$ is
 \begin{equation}
 \begin{aligned}
@@ -1162,7 +1162,7 @@ Indeed, $\meaningof{\mathsf{add}~(\mathsf{choose}~4~5)~(\mathsf{choose}~4~5)}_\m
 This example demonstrates a pervasive fact about abstract semantics: almost every abstract semantics trades precision to get efficiency, tractability, or even computability.
 Certainly $\left|\set{8,9,10}\right| \neq 4$.
 
-Usually, we need abstract interpretations to be \keyword{sound}, which roughly means that the abstract values are always a conservative approximation.
+Usually, we need abstract interpretations to be \keyword{sound}, which roughly means that the abstract values are always a conservative approximation of the concrete values.
 (There is a way to formalize this notion using Galois connections, but that brings in more complexity than we need.)
 When abstraction interpretations must be sound, the abstract semantics must have a soundness theorem relating it to a concrete semantics, such as the following.
 
@@ -1188,7 +1188,7 @@ For all $e \in E$, $\mathit{length}~\meaningof{e}_\mathit{list} = \Count{e}$.
 By structural induction on $e$.
 \end{proof}
 
-Having both soundness and precision is unusual, however.
+Having both soundness and precision is unusual.
 
 Abstract interpretation is often used for program analysis in which determining precise properties is only semidecidable or is undecidable.
 An example is determining which functions are applied at every application site in a program written in a $\lambda$-calculus.

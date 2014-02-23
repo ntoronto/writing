@@ -83,7 +83,9 @@ We use ``$\metastx$'' to define syntax; e.g. $\Forall{x \in A}{P(x)}\ \metastx\ 
 
 We already have Axiom 0 (empty set). Now for the rest.
 
-\begin{axiom}[extensionality] Define $A \subseteq B\ \metadef\ \Forall{x \in A}{x \in B}$ and assume $A = B$ if $A$ and $B$ mutually are subsets; i.e.
+\begin{axiom}[extensionality]
+\label{axm:extensionality}
+Define $A \subseteq B\ \metadef\ \Forall{x \in A}{x \in B}$ and assume $A = B$ if $A$ and $B$ mutually are subsets; i.e.
 assume $\Forall{A\,B}{(A \subseteq B \band B \subseteq A \imp A = B)}$.
 \qed
 \end{axiom}
@@ -91,7 +93,7 @@ assume $\Forall{A\,B}{(A \subseteq B \band B \subseteq A \imp A = B)}$.
 The converse follows from substituting $A$ for $B$ or $B$ for $A$.
 
 \begin{axiom}[foundation]
-\label{axm:founcation}
+\label{axm:foundation}
 Define $A \disjoint B\ \metadef\ \Forall{x}{(x \in A \imp x \notin B)}$ (``$A$ and $B$ are disjoint'') and assume $\Forall{A}{(A = \emptyset) \bor \Exists{x \in A}{x \disjoint A}}$.
 \qed
 \end{axiom}
@@ -265,7 +267,7 @@ Figure~\ref{fig:finite-grammar} shows \ftargetlang's grammar. Expressions $e$ ar
 
 In set theory, $\U\ \set{A} = A$ holds for all $A$, so $\U$ can extract the element from a singleton. In \targetlang, the encoding of $\U\ \set{\mathit{A}}$ reduces to $A$ only if $A$ is an encoded set. Therefore, the primitives must include $\mathsf{take}$, which extracts $A$ from $\set{A}$. In particular, extracting a lambda from an ordered pair requires $\mathsf{take}$.
 
-We use De Bruijn indexes with $0$ referring to the innermost binding. Because we will define \targetlang terms as well-founded sets, by Axiom~\ref{axm:founcation}, countably many indexes is sufficient for \targetlang as well as \ftargetlang.
+We use De Bruijn indexes with $0$ referring to the innermost binding. Because we will define \targetlang terms as well-founded sets, by Axiom~\ref{axm:foundation}, countably many indexes is sufficient for \targetlang as well as \ftargetlang.
 
 \begin{figure*}[tb]\centering
 \begin{equation*}

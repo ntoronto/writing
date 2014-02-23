@@ -438,7 +438,7 @@
 \newcommand{\lazymap}{\arrowlazy\map}
 
 \newcommand{\pre}{_\mathrm{pre}}
-\DeclareMathOperator{\preto}{\arrow_{\mspace{-22mu}\pre}}
+\DeclareMathOperator{\preto}{\arrow_{\mspace{-20mu}\pre}}
 \newcommand{\liftpre}{\arrowlift\pre}
 \newcommand{\arrpre}{\arrowarr\pre}
 \newcommand{\comppre}{\arrowcomp\pre}
@@ -591,6 +591,21 @@
 \newcommand{\dash}{\text{-}}
 
 %
+% Haskell syntax
+%
+
+\makeatletter
+\newcommand{\codesize}{\@setfontsize\small{11.5pt}{13pt}}
+\makeatother
+
+\usepackage{minted}
+\usemintedstyle{vs}
+\newminted{haskell}{%
+fontsize=\codesize,%
+%frame=single%
+}
+
+%
 % Racket syntax (must be last - or at least \defschememathescape must be - see last line)
 %
 
@@ -605,9 +620,8 @@
 \def\constantfont#1{\textcolor{constantcolor}{#1}}
 \def\datafont#1{\textcolor{parenthesiscolor}{#1}}
 
-\makeatletter
-\def\mycodehook{\tt\color{parenthesiscolor}\@setfontsize\small{11.5pt}{13pt}}
-\makeatother
+\def\mycodehook{\tt\color{parenthesiscolor}\codesize}
+
 \let\schemecodehook\mycodehook
 \setlength{\leftcodeskip}{\parindent}
 
@@ -632,6 +646,6 @@
 \setspecialsymbol{Ω}{\va{$\mathtt{\Omega}$}}
 \setspecialsymbol{ω}{\va{$\mathtt{\omega}$}}
 
-\setkeyword{define/drbayes struct/drbayes}
+\setkeyword{define/drbayes struct/drbayes define-type define-singleton-type U Rec -> : struct: case-> define-predicate match match* ? match-define λ Real Boolean Pair Null Flonum define-values Promise Values match-let}
 
 \defschememathescape{$}

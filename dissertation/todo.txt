@@ -1,18 +1,24 @@
+Chapter 2
+ * References
+
 Chapter 8
- * Intro picture: how did we get here?
- * Write intro to Chapter 8: Implementation ("you are here")
- * Write Section 8.1 (set representation)
- * Pictures of lattice operators
- * Write Section 8.3 (primitive implementation)
  * Finish Section 8.4, following the XXX notes in it
- * Move DrBayes implementation section from Chapter 7 to Chapter 8
  * Examples and uses of finished implementation
 
-Future work ideas:
+More future work ideas:
  * Partial-order reduction
  * Nonparametric Bayesian models
- * Conditioning on extensional function values
- 
+ * Direct support for extensional functions, including conditioning
+ * Zero-probability conditions (transformations that move the limit inward)
+ * Conditions for convergence of measures
+ * Transformations that ensure convergence in measure or reduce dependency problem
+ * Proof of semantic intent for recursive theories with uncountable distributions
+ * Using preimage computation to verify floating-point programs
+ * Axial inverses for parameterized distributions like Gamma
+ * Errors
+ * Probabilistically verifying program properties; i.e. truly directed randomized testing
+ * Inversion groups of higher order for program simplification
+
 Add citations in future work
 
 Schedule defense
