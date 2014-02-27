@@ -2269,10 +2269,11 @@ Figure~\ref{fig:uniform-sample-source:uniform} shows the result of sampling once
 
 Suppose we had sampled within the preimage of $[-0.001,0.001]$, or indeed $[-\epsilon,\epsilon]$ for any $\epsilon > 0$.
 The proportion of accepted samples drops with $\epsilon$.
-We can mitigate this problem using finer partitions of $proj~j~\Omega'$, but there is a better solution.
+We can mitigate this problem using finer partitions of $proj~j~\Omega'$.
+However, there is a solution that does not require finer partitions and accepts more samples than any repartitioning.
 
 The key insight is that the singleton interval $[b,b] = \set{b}$ is also a rectangle.
-For each axis $j \in J'$, $sample!source$ may choose a $b \in proj~j~\Omega'$, update $\Omega'$ using $unproj~j~Omega'~\set{b}$, and use $refine$ to get better bounds for sampling the other axes.
+To sample within a part, for each axis $j \in J'$, we choose a $b \in proj~j~\Omega'$, update $\Omega'$ using $unproj~j~Omega'~\set{b}$, and use $refine$ to get better bounds for sampling the other axes.
 
 The following function implements the idea.
 \begin{equation}
@@ -2294,11 +2295,13 @@ The following function implements the idea.
 \end{aligned}
 \end{equation}
 Here, $[J]$ is the type of lists of $J$, or $\pair{J,\pair{J,... \pair{J,\pair{}}}}$.
-The caller is expected to linearize $J'$ into $js : [J]$, the indexes of random values that are actually used while running the program.
-Dr. Bayes's implementation of $sample!part$ returns $js$ in addition to the covering rectangle and its probability.
+The caller is expected to linearize $J'$, the indexes of random values that are actually used while running the program, as $js : [J]$.
+(Dr. Bayes's implementation of $sample!part$ returns $js$ in addition to the covering rectangle and its probability.)
+The density of the sampled $\omega$ is computed as $\prod_{j \in J'} 1{/}(m~(proj~j~\Omega'_j))$, where $\Omega'_j$ are the ever-shrinking inputs to $sample!source^*$.
+Roughly, it is the joint density of \emph{dependent} uniform random variables evaluated at $restrict~\omega~J'$.
 
-Figure~\ref{fig:uniform-sample-source:nonuniform} shows the results of using Dr. Bayes's implementation of $sample!source^*$ to sample within the parts of the same partition.
-No samples are rejected.
+Figure~\ref{fig:uniform-sample-source:nonuniform} shows the result of using Dr. Bayes's implementation of $sample!source^*$ to sample within parts.
+No samples are rejected: in all cases, choosing an $\omega_0$ and updating $\Omega'$ with $\set{\omega_0}$ allows preimage refinement to determine the range of values for $\omega_1$ for which $\omega$ is in the preimage set.
 
 XXX: extension: no $\bot$ branch choices when sampling in $T_+$; characterize the programs for which this extension doesn't terminate; explain options to detect or fix (does this go here?)
 
