@@ -998,6 +998,8 @@
     % single-spaced and we'll set up single spacing as the default in maketitle
     % where spacing matters.
     \doublespace
+    %\setlength{\parindent}{\baselineskip}
+    %\setlength{\parskip}{0.25\baselineskip}
 }%
 %
 \newcommand{\@subtitle}{}

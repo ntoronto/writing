@@ -1603,37 +1603,42 @@ When sampling in the domain of programs, neither property holds in general.
 
 \subsection{Partitioning Probabilistic Program Domains}
 
-[XXX: rename R to $\Omega$ in the following]
-
-For the random source part $R := J \to [0,1]$ of probabilistic language domains, which consists of infinite binary trees of reals, it is not clear that partitioned importance sampling is applicable.
-The main problem is that infinite-dimensional Radon-Nikod\'ym derivatives do not generally exist.
+For the random source part $\Omega := J \to [0,1]$ of probabilistic language domains, which consists of infinite binary trees of reals, it is not clear that partitioned importance sampling is applicable.
+The main problem is that infinite-dimensional Radon-Nikod\'ym derivatives do not generally exist. [XXX: weaken this statement]
 
 Fortunately, they \emph{can} exist if the two measures differ in only finitely many axes.
-More precisely, let $P_1 : Set~R \to [0,1]$ and $P_2 : Set~R \to [0,1]$ be probability measures, and $J' \subseteq J$ be a finite set of tree indexes.
-Suppose $P_1$ can be factored into a distribution $P_1'$ over $J' \to [0,1]$ and a distribution over $(J \w J') \to [0,1]$, and $P_2'$ can be similarly factored into $P_2'$ and \emph{the same} distribution over $(J \w J') \to [0,1]$.
+More precisely, let $P_1 : Set~\Omega \to [0,1]$ and $P_2 : Set~\Omega \to [0,1]$ be probability measures, and $J' \subseteq J$ be a finite set of tree indexes.
+Suppose $P_1$ can be factored into a distribution $P_1'$ over finite prefixes $J' \to [0,1]$ and a distribution over suffixes $(J \w J') \to [0,1]$, and $P_2'$ can be similarly factored into $P_2'$ and \emph{the same} distribution over suffixes.
 Then, under reasonable conditions (which are analogous to the support of $P_1'$ being no larger than that of  $P_2'$), $diff^+~P_1~P_2$ exists and can be computed using $diff^+~P_1'~P_2'$.
-Chapter~\ref{ch:sampling-algorithm-proofs} contains a formal statement of this fact and a proof.
+Chapter~\ref{ch:sampling-algorithm-proofs} contains a formal statement and proof.
 
-To ensure $subcond~P~(s~n)$ and $Q~n$ differ in only finitely many axes, we partition $R$ according to branch traces.
-Each branch trace corresponds with a program that reads any $r \in R$ at only finitely many indexes $J' \subseteq J$.
+To ensure $subcond~P~(s~n)$ and $Q~n$ differ in only finitely many axes, we partition $\Omega$ according to branch traces.
+Each branch trace corresponds with a program that reads any $\omega \in \Omega$ at only finitely many indexes $J' \subseteq J$.
 [XXX: connect idea better]
 
-In the remainder of this subsection, assume a fixed program $\mathit{p}$. Let $f := \meaningofconv{\mathit{p}}_\pbot : \pair{\pair{R,T},\pair{}} \pbotto Y$ be its interpretation as a bottom* arrow computation, with maximal domain $A^*$.
+In the remainder of this subsection, assume a fixed program $\mathit{p}$. Let $f := \meaningofconv{\mathit{p}}_\pbot : \pair{\pair{\Omega,T},\pair{}} \pbotto Y$ be its interpretation as a bottom* arrow computation, with maximal domain $A^*$.
 Define $T^* := image~(fst~\arrowcomp~snd)~A^*$ as its \mykeyword{maximal branch trace set} and
-$R^* := image~(fst~\arrowcomp~fst)~A^*$ as its \mykeyword{maximal random source set}.
+$\Omega^* := image~(fst~\arrowcomp~fst)~A^*$ as its \mykeyword{maximal random source set}.
 
-We need a notion of the random sources that agree with a given branch trace $t \in T$; i.e. those $r \in R$ for which $f~\pair{\pair{r,t},\pair{}} \neq \bot$.
+We need a notion of the random sources that agree with a given branch trace $t \in T$; i.e. those $\omega \in \Omega$ for which $f~\pair{\pair{\omega,t},\pair{}} \neq \bot$.
 
 \begin{definition}[induced random sources]
 \label{def:induced-random-sources}
-Let $t \in T$ be a branch trace. The \mykeyword{random sources induced by $t$} are a subset of $R$ defined by
-$R' := \setb{r \in R}{\pair{\pair{r,t},\pair{}} \in A^*}$.
-%\begin{equation}
-	%image~(fst~\arrowcomp~fst)~(preimage~(g~((R \times \set{t}) \times X))~Y)
-%\end{equation}
+Let $t \in T$ be a branch trace. The \mykeyword{random sources induced by $t$} are a subset of $\Omega$ defined by
+$\Omega' := \setb{\omega \in \Omega}{f~\pair{\pair{\omega,t},\pair{}} \neq \bot}$.
 \end{definition}
 
+Equivalently, $\Omega'$ is the set of $\omega \in \Omega$ for which $\pair{\pair{\omega,t},\pair{}} \in A^*$.
+
 [XXX: graph of induced partition from program $if~(random < random)~true~false$?]
+
+\begin{theorem}
+\label{thm:t-max-induce-nonempty}
+Let $t \in T$ induce $\Omega'$. $\Omega' \neq \emptyset$ if and only if $t \in T^*$.
+\end{theorem}
+\begin{proof}
+By definition of $T^*$, $\Omega' \neq \emptyset$ if and only if there is an $\omega \in \Omega'$ such that $\pair{\pair{\omega,t},\pair{}} \in  A^*$.
+\end{proof}
 
 Using $T$ as the partition index set and defining the partition's parts as induced random sources \emph{almost} works, in the sense that the required Radon-Nikod\'ym derivatives exist.
 Unfortunately, we cannot use $T$ or $T^*$ as the partition index set because many branch traces can induce the same random sources.
@@ -1653,47 +1658,103 @@ In fact, there are infinitely many branch traces in $T^*$ that induce the same r
 We need to find a subset of branch traces whose induced random sources are disjoint.
 The main idea is to define equivalence classes of branch traces that induce the same random sources, and use the ``smallest'' branch trace in each class as a part index.
 
-First, we need to be sure that such equivalence classes can induce a partition.
-
-\begin{theorem}
-Let $t_1,t_2 \in T^*$.
-If $t_1$ induces $R_1'$ and $t_2$ induces $R_2'$, then $R_1' = R_2'$ or $R_1' \i R_2' = \emptyset$.
-\end{theorem}
-\begin{proof}
-XXX: do this
-\end{proof}
-
 To identify the ``smallest'' trace in each class, we must define an ordering over them.
 One fairly natural way is to say a branch trace is smaller than another when it describes fewer branch decisions; i.e. its tree has fewer non-$\bot$ elements.
 Two branch traces that differ by returning respectively $true$ and $false$ for the same $j$ may represent different execution paths, so they must be incomparable.
 
 \begin{definition}[brach trace partial order]
-$t_1 \leq t_2$ when for all $j \in J$, if $t_1~j \neq t_2~j$, then $t_1~j = \bot$.
+$t_1 \leq t_2$ when for all $j \in J$, $t_1~j = \bot$ or $t_1~j = t_2~j$.
 \end{definition}
 
-If $T^*$ is partitioned into equivalence classes of traces that induce the same random sources, each part in the partition contains a least member with respect to $(\leq)$.
+To find the minimum of a set of equivalent traces, it helps to be able to compute the greatest lower bound, or infimum.
+We claim that this function does so:
+\begin{equation}
+\begin{aligned}
+	&trace!inf : Set~T \tto T \\
+	&trace!inf~T'\ :=\ \fun{j \in J}
+		\lzfccase{proj~j~T'}{
+			\set{b} & b \\
+			else & \bot
+		}
+\end{aligned}
+\end{equation}
 
-\begin{theorem}
-Let $t \in T^*$ induce $R'$, and let $T'$ be the largest subset of $T^*$ that induces $R'$.
-$T'$ has a least member $t_*$.
+\begin{theorem}[trace infimum]
+Let $T' \subseteq T$ and $t_* := trace!inf~T'$.
+Then
+\begin{itemize}
+	\item For all $t' \in T'$, $t_* \leq t'$.
+	\item For all $t \in T$, if for all $t' \in T'$, $t \leq t'$, then $t \leq t_*$.
+\end{itemize}
 \end{theorem}
 \begin{proof}
-Define $t_* \in T$ by
-\begin{equation}
-	t_*\ :=\ \lzfccond{
-		\Forall{t' \in T'} t'~j = true & true \\
-		\Forall{t' \in T'} t'~j = false & false \\
-		else & \bot}
-\end{equation}
-Thus, $t_* \leq t'$ for all $t' \in T'$, or $t_*$ is a lower bound for $T'$.
+Let $t' \in T'$ and $j \in J$.
+If $proj~j~T' = \set{b}$ for $b \in Bool_\bot$, then $t_*~j = t'~j = b$.
+Otherwise, $t_*~j = \bot$.
+Thus $t_* \leq t'$.
 
-Let $r \in R'$.
-By construction, every conditional subcomputation at index $j \in J$ agrees with $t_*~j$.
-Therefore $f~\pair{\pair{r,t_*},\pair{}} \neq \bot$, so $\pair{\pair{r,t_*},\pair{}} \in A^*$, and thus $t_* \in T'$.
+Let $t \in T$ and suppose that for all $t' \in T'$, $t \leq t'$.
+Let $j \in J$.
+If $proj~j~T' = \set{b}$, then there are two cases: $t~j = \bot$, or $t~j = t_*~j = b$.
+Otherwise there exists a $t' \in T'$ such that $t~j \neq t'~j$, so $t~j = \bot$.
+Thus $t \leq t_*$.
 \end{proof}
 
-An easy consequence is $T' = \setb{t' \in T^*}{t_* \leq t'}$. [XXX: is it easy?]
-Thus, each least member represents a set of larger branch traces that induce the same set of random sources.
+Any two comparable traces in $T^*$ induce the same random sources.
+
+\begin{theorem}[comparable implies equivalent]
+\label{thm:comparable-implies-same-sources}
+Let $t_1,t_2 \in T^*$ induce $\Omega_1$, $\Omega_2$.
+If $t_1 \leq t_2$ or $t_2 \leq t_1$, then $\Omega_1 = \Omega_2$.
+\end{theorem}
+\begin{proof}
+It suffices to consider $t_1 \leq t_2$; the $t_2 \leq t_1$ case follows from reflexivity of $(=)$.
+
+Suppose $\omega \in \Omega_1$, so $f~\pair{\pair{\omega,t_1},\pair{}} \neq \bot$.
+Let $J' \subseteq J$ such that $j \in J'$ if and only if $\pair{\omega,t_1}$ agrees with the $\convifpbot$ subcomputation at index $j$.
+For all $j \in J'$, $t_1~j \neq \bot$, so $t_2~j = t_1~j$ by definition of $(\leq)$.
+Therefore, $\pair{\omega,t_2}$ also agrees with every $\convifpbot$ subcomputation at every index $j \in J'$, so $f~\pair{\pair{\omega,t_2},\pair{}} \neq \bot$.
+Therefore $\omega \in \Omega_2$, so $\Omega_1 \subseteq \Omega_2$.
+
+Suppose $\omega \notin \Omega_1$.
+Let $J' \subseteq J$ such that $j \in J'$ if and only if $t_1~j \neq \bot$.
+Because $f~\pair{\pair{\omega,t_1},\pair{}} = \bot$, there exists a $j \in J'$ such that the $\convifpbot$ subcomputation at index $j$ disagrees with $\pair{\omega,t_1}$.
+Because $t_1~j = t_2~j$ by definition of $(\leq)$, the $\convifpbot$ subcomputation at index $j$ also disagrees with $\pair{\omega,t_2}$, so $f~\pair{\pair{\omega,t_2},\pair{}} = \bot$.
+Therefore $\omega \notin \Omega_2$, so $\Omega_2 \subseteq \Omega_1$.
+\end{proof}
+
+\begin{corollary}[infimum in $T^*$ implies equivalent]
+Let $t_1,t_2 \in T^*$ induce $\Omega_1$,$\Omega_2$, and define $t_* := trace!inf~\set{t_1,t_2}$.
+If $t_* \in T^*$, then $\Omega_1 = \Omega_2$.
+\end{corollary}
+
+If $T^*$ is partitioned into equivalence classes of traces that induce the same random sources, each part in the partition contains a smallest member with respect to $(\leq)$.
+
+\begin{theorem}
+Let $t \in T^*$ induce $\Omega'$, $T'$ be the largest subset of $T^*$ that induces $\Omega'$, and $t_* := trace!inf~T'$.
+Then $t_* \in T'$.
+\end{theorem}
+\begin{proof}
+Let $\omega \in \Omega'$.
+By definition of $trace!inf$, every $\convifpbot$ subcomputation agrees with $\pair{\omega,t_*}$.
+Therefore $f~\pair{\pair{\omega,t_*},\pair{}} \neq \bot$, so $t_*$ induces $\Omega'$.
+\end{proof}
+
+\begin{theorem}[infimum not in $T^*$ implies disjoint]
+Let $t_1,t_2 \in T^*$ induce $\Omega_1$,$\Omega_2$, and define $t_* := trace!inf~\set{t_1,t_2}$.
+If $t_* \notin T^*$, then $\Omega_1 \i \Omega_2 = \emptyset$.
+\end{theorem}
+\begin{proof}
+Let $T_1$,$T_2$ be the largest subsets of $T^*$ that induce $\Omega_1$, $\Omega_2$.
+Let $t_{1*} := trace!inf~T_1$ and $t_{2*} := trace!inf~T_2$.
+Because $t_* \notin T^*$, $t_{1*} \neq t_{2*}$.
+
+Let $\omega \in \Omega_1$.
+For every $j \in J$ for which $t_{1*}~j \neq \bot$, there is an $\convifpbot$ subcomputation at index $j$ that agrees with $\pair{\omega,t_{1*}}$.
+But because $t_{2*} \neq t_{1*}$, there exists a $j \in J$ for which an $\convifpbot$ subcomputation at index $j$ disagrees with $\pair{\omega,t_{2*}}$.
+Therefore $\omega \notin \Omega_2$.
+By a symmetric argument, $\omega \in \Omega_2$ implies $\omega \notin \Omega_1$.
+\end{proof}
 
 We can get our sought-after index set by defining the set of smallest branch traces.
 
@@ -1705,35 +1766,46 @@ The set of \mykeyword{minimal branch traces} $T_*$ is the set of minimal element
 \end{definition}
 
 \begin{theorem}
-\label{thm:minimal-induces-partition}
-$T_*$ induces a partition of $R^*$.
+$T_*$ induces $\Omega^*$.
 \end{theorem}
 \begin{proof}
-XXX: todo
+Let $t \in T^*$ induce $\Omega'$ and $T'$ be the largest subset of $T^*$ that induces $\Omega'$.
+Its minimum $t_* := trace!inf~T'$ is in $T_*$.
 \end{proof}
 
-We can infer from Theorem~\ref{thm:minimal-induces-partition} that a program's minimal branch trace set $T_*$ contains only the actual branches taken when running the program on every $r \in R^*$.
-Therefore, one way to sample from $T_*$ with the correct probability---at least, for programs that halt with probability $1$---would be to choose an $r \in R$ uniformly, and run the program on $r$ while recording each branch decision.
+\begin{theorem}[$T_*$ partitions]
+\label{thm:minimal-induces-partition}
+Let $t_1,t_2 \in T_*$ induce respectively $\Omega_1$ and $\Omega_2$.
+If $t_1 \neq t_2$, then $\Omega_1 \i \Omega_2 = \emptyset$.
+\end{theorem}
+\begin{proof}
+Let $t_* := trace!inf~\set{t_1,t_2}$.
+Because $t_1$ and $t_2$ are minimal, $t_* \notin T^*$.
+By Theorem~XXX, $\Omega_1 \i \Omega_2 = \emptyset$.
+\end{proof}
+
+We can thus sample a partition index $t \in T_*$, which induces a unique part from a partition of $\Omega^*$.
+
+A program's minimal branch trace set $T_*$ contains only the actual branches taken when running the program on every $\omega \in \Omega^*$.
+Therefore, one way to sample from $T_*$ with the correct probability---at least, for programs that halt with probability $1$---would be to choose an $\omega \in \Omega$ uniformly, and run the program on $\omega$ while recording each branch decision.
 
 But this sampling scheme has problems similar to those of partitioned sampling (Definition~\ref{def:partitioned-sampling}).
-First, it assumes the probabilities of branch traces, which are the probabilities of the $R^*$ subsets they induce, are easy to compute.
-Second, we are interested in sampling from an \emph{arbitrarily low-probability subset} of $R^*$, which may be covered by the partition induced by an \emph{arbitrarily low-probability subset} of $T_*$.
+First, it assumes the probabilities of branch traces, which are the probabilities of the $\Omega^*$ subsets they induce, are easy to compute.
+Second, we are interested in sampling from an \emph{arbitrarily low-probability subset} of $\Omega^*$, which may be covered by the partition induced by an \emph{arbitrarily low-probability subset} of $T_*$.
 
 It appears we have a chicken-and-egg problem, in that
 \begin{enumerate}
-	\item Sampling in a small subset of $R^*$ requires sampling in a small subset of $T_*$.
-	\item Sampling in a small subset of $T_*$ requires sampling in a small subset of $R^*$.
+	\item Sampling in a small subset of $\Omega^*$ requires sampling in a small subset of $T_*$.
+	\item Sampling in a small subset of $T_*$ requires sampling in a small subset of $\Omega^*$.
 \end{enumerate}
-Fortunately, if we allow ourselves subsets of a slightly larger set than $T_*$, and allow ourselves to sample within overapproximating \emph{covers} of $R^*$ subsets, we can use approximate preimage computation to sample from $T_*$ and $R^*$ subsets simultaneously.
+Fortunately, if we allow ourselves subsets of a larger set than $T_*$, and allow ourselves to sample within overapproximating \emph{covers} of $\Omega^*$ subsets, we can use approximate preimage computation to sample from $T_*$ and $\Omega^*$ subsets simultaneously.
 
 \subsection{Approximate Partitions of Probabilistic Program Domains}
 
-We first define the set of branch traces that is slightly larger than $T_*$.
-
-The idea is to define a set of \emph{feasible} branch traces $T_+$ that is derived only from the \emph{shape} of a program, not its actual executions.
-We must then ensure that every additional branch trace (i.e. every $t \in T_+ \w T_*$) induces $\emptyset$, so that $T_+$ induces a partition.
-After that, we define an algorithm for sampling from $T_+$, which does not require running a probabilistic program on any $r \in R$, and prove the algorithm correct.
-We can then extend this algorithm to use preimage computation to sample in arbitrarily good approximations of small subsets of $T_*$ and $R^*$.
+The idea is to define a set of branch traces $T_+$ that is derived only from the \emph{shape} of a program, not its actual executions.
+We ensure that $T_* \subseteq T_+$, and that every $t \in T_+ \w T_*$ induces $\emptyset$, so that $T_+$ induces the same partition as $T_*$.
+We define an algorithm for sampling from $T_+$, which does not require running a probabilistic program on any $\omega \in \Omega$.
+We then extend this algorithm to use preimage computation to sample in arbitrarily good approximations of small subsets of $T_*$ and $\Omega^*$.
 
 \begin{figure*}[!tb]\centering
 \smallmathfont
@@ -1753,28 +1825,28 @@ We can then extend this algorithm to use preimage computation to sample in arbit
 \\[-6pt]
 	&\begin{aligned}[t]
 		&(\arrowcomp\pbi) : (J \tto Idxs) \tto (J \tto Idxs) \tto (J \tto Idxs) \\
-		&(k_1~\arrowcomp\pbi~k_2)~j \ :=\ \pair{k_1~(left~j), k_2~(right~j)}
+		&(i_1~\arrowcomp\pbi~i_2)~j \ :=\ \pair{i_1~(left~j), i_2~(right~j)}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
 		&(\arrowpair\pbi) : (J \tto Idxs) \tto (J \tto Idxs) \tto (J \tto Idxs) \\
-		&(k_1~\arrowcomp\pbi~k_2)~j \ :=\ \pair{k_1~(left~j), k_2~(right~j)}
+		&(i_1~\arrowcomp\pbi~i_2)~j \ :=\ \pair{i_1~(left~j), i_2~(right~j)}
 	\end{aligned} \\
 \end{aligned}
 &\tab\tab\tab
 \begin{aligned}[t]
 	&\begin{aligned}[t]
 		&\arrowif\pbi : (J \tto Idxs) \tto (J \tto Idxs) \tto (J \tto Idxs) \tto (J \tto Idxs) \\
-		&\arrowif\pbi~k_1~k_2~k_3~j \ := \ 
+		&\arrowif\pbi~i_1~i_2~i_3~j \ := \ 
 			\lzfclet{
-				idxs_2 & \fun{0} k_2~(left~(right~j)) \\
-				idxs_3 & \fun{0} k_3~(right~(right~j))
-			}{\pair{k_1~j, if!idxs~j~idxs_2~idxs_3}}
+				idxs_2 & \fun{0} i_2~(left~(right~j)) \\
+				idxs_3 & \fun{0} i_3~(right~(right~j))
+			}{\pair{i_1~j, if!idxs~j~idxs_2~idxs_3}}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
 		&\arrowlazy\pbi : (1 \tto (J \tto Idxs)) \tto (J \tto Idxs) \\
-		&\arrowlazy\pbi~k~j \ := \ k~0~j
+		&\arrowlazy\pbi~i~j \ := \ i~0~j
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
@@ -1789,65 +1861,31 @@ We can then extend this algorithm to use preimage computation to sample in arbit
 \label{fig:collecting-semantics:arrow}
 }
 
-\subfloat[The $\lzfclang$ function $traces$ turns a lazy tree of feasible branch decisions into a set of feasible branch traces.]{
+\subfloat[The stochastic function $sample!traces$ samples a $T'$, and returns $T'$ and its probability.]{
 \begin{minipage}{0.98\textwidth}
 \begin{equation}
 \begin{aligned}
-	&traces : Idxs \tto Set~T
+	&sample!traces : Idxs \to \pair{\Re,Rect~T}
 \\
-	&traces~idxs\ :=\ \U_{n \in \Nat} traces^*~n~idxs~[* \mapsto \bot]
+	&sample!traces~idxs\ :=\ sample!traces^*~idxs~\pair{1,T}
 \\[6pt]
-	&traces^* : \Nat \tto Idxs \tto T \tto Set~T
+	&sample!traces^* : Idxs \tto \pair{\Re,Rect~T} \tto \pair{\Re,Rect~T}
 \\
 	&\lzfcsplit[@{}l@{}l@{}]{
-	&traces^*~n~\pair{}~t&\ :=\ \set{t}
+		&sample!traces^*~\pair{}~pt &\ :=\ pt
 \\
-	&traces^*~n~\pair{idxs_1,idxs_2}~t&\ :=\ 
-		\lzfclet{
-			T' & traces^*~n~idxs_1~t
-		}{\U_{t' \in T'} traces^*~n~idxs_2~t'}
-\\
-	&traces^*~0~(if!idxs~j~idxs_2~idxs_3)~t&\ :=\ \set{t}
-\\
-	&traces^*~n~(if!idxs~j~idxs_2~idxs_3)~t&\ :=\ 
-		\lzfcsplit{
-			&traces^*~(n-1)~(idxs_2~0)~t[j \mapsto true]\ \u \\
-			&traces^*~(n-1)~(idxs_3~0)~t[j \mapsto false]\ \u \\
-			&\set{t}}
-	}
-\end{aligned}
-\end{equation}
-\vspace{3pt}
-\hrule
-\end{minipage}
-\label{fig:collecting-semantics:traces}
-}
-
-\subfloat[The stochastic function $sample!trace$ samples $t$ from the set returned by $traces$, and returns $t$ and its probability. It is directly implementable in any $\lambda$-calculus with probabilistic choice.]{
-\begin{minipage}{0.98\textwidth}
-\begin{equation}
-\begin{aligned}
-	&sample!trace : Idxs \to \pair{\Re,T}
-\\
-	&sample!trace~idxs\ :=\ sample!trace^*~idxs~\pair{1,[* \mapsto \bot]}
-\\[6pt]
-	&sample!trace^* : Idxs \tto \pair{\Re,T} \tto \pair{\Re,T}
-\\
-	&\lzfcsplit[@{}l@{}l@{}]{
-		&sample!trace^*~\pair{}~pt &\ :=\ pt
-\\
-		&sample!trace^*~\pair{idxs_1,idxs_2}~pt &\ :=\ 
+		&sample!traces^*~\pair{idxs_1,idxs_2}~pt &\ :=\ 
 			\lzfclet{
-				pt' & sample!trace^*~idxs_1~pt
-			}{sample!trace^*~idxs_2~pt'}
+				pt' & sample!traces^*~idxs_1~pt
+			}{sample!traces^*~idxs_2~pt'}
 \\
-		&sample!trace^*~(if!idxs~j~idxs_2~idxs_3)~\pair{p_t,t} &\ :=\ 
+		&sample!traces^*~(if!idxs~j~idxs_2~idxs_3)~\pair{p_t,T'} &\ :=\ 
 			\lzfclet{
-				\pair{p_b,b} & sample!branch~\set{true,false,\bot} \\
-				pt' & \pair{p_t \cdot p_b, t[j \mapsto b]}
+				\pair{p_b,b} & sample!branch~Bool_\bot \\
+				pt' & \pair{p_t \cdot p_b, unproj~j~T'~\set{b}}
 			}{\lzfccase{b}{
-				true & sample!trace^*~(idxs_2~0)~pt' \\
-				false & sample!trace^*~(idxs_3~0)~pt' \\
+				true & sample!traces^*~(idxs_2~0)~pt' \\
+				false & sample!traces^*~(idxs_3~0)~pt' \\
 				\bot & pt'
 				}
 			}
@@ -1857,278 +1895,393 @@ We can then extend this algorithm to use preimage computation to sample in arbit
 \vspace{3pt}
 \hrule
 \end{minipage}
-\label{fig:collecting-semantics:sample-trace}
+\label{fig:collecting-semantics:sample-traces}
 }
 
 \caption[Branch index collecting semantics]{Branch index collecting semantics.}
 \label{fig:collecting-semantics}
 \end{figure*}
 
-Defining $T_+$ in terms of a program's abstract branching shape requires an additional nonstandard interpretation.
-\figref{fig:collecting-semantics:arrow} defines the \mykeyword{branch index} arrow.
+Defining $T_+$ in terms of a program's branching shape requires an additional abstract interpretation.
+\figref{fig:collecting-semantics:arrow} defines the \mykeyword{indexes arrow}.
 Its type is $J \tto Idxs$, which does not refer to a domain or codomain type of program values because its computations do not receive or compute program values.
 Instead, they build lazy trees of possible branching decisions, ignoring the actual values of $if$ conditions.
 For example, lifted, pure functions are interpreted as $\fun{j} \pair{}$, which takes the function's computation index and returns no decisions.
-Composition and pairing of subcomputations $k_1$ and $k_2$ both return $\pair{k_1~(left~j),k_2~(right~j)}$: a node with two children that contain the feasible branch decisions in their subcomputations.
+Composition and pairing of subcomputations $i_1$ and $i_2$ both return $\pair{i_1~(left~j),i_2~(right~j)}$: a node with two children that contain the feasible branch decisions in their subcomputations.
 
 Only $ifte\pbi$ does more than simple structural recursion: it returns $if!idxs~j~idxs_2~idxs_3$ to represent a decision at computation index $j$.
 The children $idxs_2$ and $idxs_3$ are lazy, abstract representations of the $if$'s branches.
 Like a concrete execution, a branch trace sampler is expected to compute and recur through only one of them.
 
-\figref{fig:collecting-semantics:traces} defines the function $traces$, which transforms these lazy trees of type $Idxs$ into sets of branch traces.
-To ensure $trace$ always terminates, it is defined using a depth-limited helper function, which it calls with every depth $n \in \Nat$, and collects the results in a countable union.
-It is thus unimplementable, but we will use it only to precisely define the range of a random value.
+Figure~\ref{fig:collecting-semantics:sample-traces} defines $sample!traces$, which, to make its extension for use with preimage refinement easier, samples \emph{rectangles} of branch traces given an $idxs : Idxs$.
+It returns a pair $\pair{p_t,T'}$, where $T'$ is the sampled rectangle and $p_t$ is the probability with which it was chosen.
+It assumes a stochastic procedure $sample!branch : Set~Bool_\bot \tto \pair{\Re,Bool_\bot}$, where $sample!branch~B$ returns any member of $B$ with some nonzero, constant probability.
+At index $j$, for the branch choice $\pair{p_b,b} := sample!branch~Bool_\bot$, $T'$ is restricted using $unproj~j~T'~\set{b}$.
 
-We define a program's feasible branch traces using the standard first-order semantic function $\meaningofconv{\cdot}_a$ with arrow $a = idxs^*$.
+Although $sample!traces$ returns rectangles, it is easy to transform one into a single trace using $trace!inf$; i.e. $trace!inf~(snd~(sample!traces~idxs))$ samples a branch trace.
+
+Let $idxs := \meaningofconv{\mathit{p}}\pbi~j_0$.
 
 \begin{definition}[feasible branch traces]
-A program $\mathit{p}$'s \mykeyword{feasible branch traces} are those in the set $T_+ := traces~(\meaningofconv{\mathit{p}}\pbi~j_0)$.
+The \mykeyword{feasible branch traces} $T_+$ are those $t \in T$ for which $\Pspec{t = trace!inf~(snd~(sample!traces~idxs))} > 0$.
 \end{definition}
 
-If we are to sample $t \in T_+$ and then sample within the $R'$ induced by $t$, we must ensure that $T_+$ includes $T_*$ and induces a partition.
+Because $sample!traces^*$ imposes a total order on evaluation, any terminating application of it induces a total order on the indexes $j$ in applications matching $if!idxs~j~idxs_2~idxs_3$.
+Let $j_1, j_2, ..., j_n$ be those indexes, with corresponding branch choices $b_1,b_2,...,b_n$.
+Define $T'_1,T'_2,...,T'_n$ by $T'_0 := T$ and $T'_i := unproj~j_i~T'_{i-1}~\set{b_i}$.
 
-\begin{theorem}
-Let $t \in T$ induce $R'$. $R' \neq \emptyset$ if and only if $t \in T^*$. [XXX: needed?]
+\begin{theorem}[$sample!traces$ soundness]
+$T_* \subseteq T_+$.
 \end{theorem}
 \begin{proof}
-$R' \neq \emptyset$ if and only if there is an $r \in R'$ such that $\pair{\pair{r,t},\pair{}} \in A^*$.
+Let $t \in T_*$.
+It suffices to show that there exists an $n$ and a sequence of branch choices $b_1,b_2,...,b_n$ for which $t = trace!inf~T'_n$.
+
+First, we prove by induction the seemingly weaker statement that there exist $n$ and branch choices for which $t \in T'_n$.
+Let $j_1,j_2,...,j_n$ be the in-order indexes at which $t~j_i \neq \bot$.
+Clearly $t \in T'_0 = T$.
+If $t \in T'_{i-1}$, then $b_i := t~j_i$ implies $t \in T'_i = unproj~j_i~T'_{i-1}~\set{b_i}$.
+
+For any $j \in \set{j_1,j_2,...,j_n}$, $\set{t~j} = proj~j~T'_n$.
+For any other $j$, $t~j = \bot$ and $proj~j~T'_n = Bool_\bot$.
+By definition of $trace!inf$, therefore $t = trace!inf~T'_n$.
 \end{proof}
 
-\begin{theorem}
-For all $t \in T_+$, either $t \in T_*$ or $t$ induces $\emptyset$.
+For $T_+$ to induce a partition, every $t \in T_+ \w T_*$ must induce $\emptyset$.
+
+\begin{theorem}[$sample!traces$ non-$\emptyset$-unique]
+For all $t \in T_+$, if $t \notin T_*$ then $t$ induces $\emptyset$.
 \end{theorem}
 \begin{proof}
-XXX: todo
+Let $j_1,j_2,...,j_n$ and $b_1,b_2,...,b_n$ for a terminating evaluation of $sample!traces^*~idxs~\pair{1,T}$.
+
+Suppose $T'_n \i T_* = \emptyset$.
+Then there exists an $i$ such that $T'_{i-1} \i T_* \neq \emptyset$ and $T'_i \i T_* = \emptyset$.
+Thus $b_i \notin proj~j_i~T_*$, so $f$ does not agree with any $t \in T'_i$.
+
+Let $t := trace!inf~T'_n$, which by definition of $trace!inf$ and $sample!traces^*$ is in $T'_n$.
+Because $T'_n \subseteq T'_i$, $f$ does not agree with $t$, so $t$ induces $\emptyset$.
 \end{proof}
 
-\begin{corollary}
-$T_+$ induces a partition of $R^*$.
+\begin{corollary}[$sample!traces$ partitioning]
+$T_+$ induces a partition of $\Omega^*$.
 \end{corollary}
 
-XXX: now we define a stochastic procedure for sampling in $T_+$
 
-XXX: apologize for being less precise (e.g. stochastic procedures look like $\lzfclang$ but aren't; we assume every operation is lifted to receive a random source as input, etc.)
+To be used for partitioned importance sampling, the probability returned by $sample!traces$ must be correct.
 
-XXX: suppose we have a stochastic procedure $sample!branch : Set~Bool_\bot \tto \pair{\Re,Bool_\bot}$, where $sample!branch~B$ returns any member of $B$ with some nonzero, constant probability
-
-\figref{fig:collecting-semantics:sample-trace} defines $sample!trace$, a stochastic procedure defined in terms of $sample!branch$.
-Given an $idxs : Idxs$, it returns a member of $traces~idxs$ and its probability.
-In other words, for a program $\mathit{p}$, the probability that $\pair{p_t,t} = sample!trace~(\meaningofconv{\mathit{p}}\pbi~j_0)$ is $p_t$, and $t \in T_+$.
-Further, every $t \in T_+$ has a constant, nonzero probability of being chosen.
-
-Of course, we must prove these facts.
-
-XXX: move the following soundness and completeness proofs to Chapter 10, or define $T_+$ in terms of $sample!trace$ to make the proofs unnecessary; whether the latter will work (or whether it will work better) will probably become clear when I do the missing proof above
-
-\begin{theorem}[$sample!trace^*$ soundness]
-For all $t \in T$ and $idxs: Idxs$, there exists an $n \in \Nat$ such that $snd~(sample!trace^*~idxs~\pair{p_t,t}) \in traces^*~n~idxs~t$.
+\begin{theorem}[$sample!traces$ correctness]
+If $\pair{p_t',T'} := sample!traces~idxs$, then $\Pspec{T'} = p_t'$.
 \end{theorem}
 \begin{proof}
-By structural induction on $Idxs$.
-
-Case $idxs = \pair{}$.
-For all $n \in \Nat$, these two statements are equivalent by substituting definitions of $sample!trace^*$ and $traces^*$:
-\begin{equation}
-\begin{aligned}
-	snd~(sample!trace^*~\pair{}~\pair{p_t,t}) &\in traces^*~n~\pair{}~t \\
-	t &\in \set{t}
-\end{aligned}
-\end{equation}
-
-Case $idxs = \pair{idxs_1,idxs_2}$.
-Let
-\begin{equation}
-\begin{aligned}
-	\pair{p_t',t'}&\ :=\ sample!trace^*~idxs_1~\pair{p_t,t} \\
-	\pair{p_t'',t''}&\ :=\ sample!trace^*~idxs_2~\pair{p_t',t'}
-\end{aligned}
-\end{equation}
-as in the definition of $sample!trace^*$.
-By hypothesis, there exists an $n' \in \Nat$ such that $t' \in traces^*~n'~idxs_1~t$.
-Again by hypothesis, there exists an $n'' \in \Nat$ such that $t'' \in traces^*~n''~idxs_2~t'$.
-Let $n := max~n'~n''$.
-
-Case $idxs = if!idxs~j~idxs_2~idxs_3$.
-Let
-\begin{equation}
-\begin{aligned}
-	\pair{p_b,b}&\ :=\ sample!branch~\set{true,false,\bot} \\
-	pt' &\ :=\ \pair{p_t \cdot p_b, t[j \mapsto b]}
-\end{aligned}
-\end{equation}
-as in the definition of $sample!trace^*$, and let $\pair{p_t',t'}\ =\ pt'$.
-If $b = true$, by hypothesis, there exists an $n' \in \Nat$ such that $snd~(sample!trace^*~(idxs_2~0)~pt') \in traces^*~n'~(idxs_2~0)~t'$; similarly for $b = false$. Let $n := n' + 1$, so $n' = n - 1$.
-If $b = \bot$, then $t' = t$, and $t \in \set{t}$ for all $n \in \Nat$.
+Let $p_{b_1},p_{b_2},...,p_{b_n}$ be the probabilities returned from $sample!branch$ for $b_1,b_2,...,b_n$.
+The probability of $b_1,b_2,...,b_n$ is thus $p_t' := p_{b_1} \cdot p_{b_2} \cdot ... \cdot p_{b_n}$.
+Because the transformation from $b_1,b_2,...,b_n$ to $T'_n$ is injective, $\Pspec{T'_n} = p_t'$.
 \end{proof}
 
-\begin{corollary}[$sample!trace$ soundness]
-For all $idxs : Idxs$, $snd~(sample!trace~idxs) \in traces~idxs$.
-\end{corollary}
+Further, $sample!traces$ should terminate with probability $1$.
 
-\begin{theorem}[$sample!trace^*$ completeness]
-For all $idxs : Idxs$, $t \in T$ and $n \in \Nat$, $t' \in traces^*~n~idxs~t$ implies $Pr[snd~(sample!trace^*~idxs~\pair{p_t,t}) = t'] > 0$ (or just $Pr[t'] > 0$).
+\begin{theorem}[$sample!traces$ termination]
+$sample!traces~idxs$ terminates with probability $1$.
 \end{theorem}
 \begin{proof}
-By structural induction on $Idxs$.
-
-Case $idxs = \pair{}$.
-By definition of $traces^*$, $t' \in traces^*~n~\pair{}~t$ if and only if $t' \in \set{t}$, or $t' = t$.
-By definition of $sample!trace^*$, $Pr[snd~(sample!trace^*~idxs~\pair{p_t,t}) = t] = 1$.
-
-Case $idxs = \pair{idxs_1,idxs_2}$.
-Let
-\begin{equation}
-\begin{aligned}
-	T'&\ :=\ traces^*~n~idxs_1~t \\
-	T''&\ :=\ \U_{t' \in T'} traces^*~n~idxs_2~t'
-\end{aligned}
-\end{equation}
-as in the definition of $traces^*$. Let
-\begin{equation}
-\begin{aligned}
-	\pair{p_t',t'}&\ :=\ sample!trace^*~idxs_1~\pair{p_t,t} \\
-	\pair{p_t'',t''}&\ :=\ sample!trace^*~idxs_2~\pair{p_t',t'}
-\end{aligned}
-\end{equation}
-as in the definition of $sample!trace^*$.
-Suppose $t'' \in T''$.
-Then there exists a $t' \in T'$ such that $t'' \in traces^*~n~idxs_2~t'$.
-By hypothesis, $Pr[t'] > 0$, therefore by hypothesis, $Pr[t''] > 0$.
-
-Case $idxs = if!idxs~j~idxs_2~idxs_3$.
-Let
-\begin{equation}
-\begin{aligned}
-	\pair{p_b,b}&\ :=\ sample!branch~\set{true,false,\bot} \\
-	pt' &\ :=\ \pair{p_t \cdot p_b, t[j \mapsto b]}
-\end{aligned}
-\end{equation}
-as in the definition of $sample!trace^*$, and let $\pair{p_t',t'}\ =\ pt'$.
-
-If $n = 0$, then let
-\begin{equation}
-\begin{aligned}
-	T'&\ :=\ traces^*~0~idxs~t = \set{t}
-\end{aligned}
-\end{equation}
-as in the definition of $traces^*$.
-Suppose $t' \in T'$, equiv. $t' = t$, so $Pr[t'] > 0$ iff $Pr[t] > 0$.
-Because $Pr[b = \bot] > 0$ and $t[j \mapsto \bot] = t$, $Pr[t] > 0$.
-
-If $n > 0$, then expand $traces^*~n~idxs~t$ to
-\begin{equation}
-\begin{aligned}
-	T_{true}'&\ :=\ traces^*~(n-1)~(idxs_2~0)~t[j \mapsto true]
-\\
-	T_{false}'&\ :=\ traces^*~(n-1)~(idxs_3~0)~t[j \mapsto false]
-\\
-	T_\bot'&\ :=\ \set{t}
-\\
-	T'&\ :=\ T_{true}' \u T_{false}' \u T_\bot'
-\end{aligned}
-\end{equation}
-as in the definition of $traces^*$.
-Suppose $t' \in T'$.
-If $t' \in T_{true}'$, then because $Pr[b = true] > 0$, by hypothesis, $Pr[t'] > 0$; similarly for $t' \in T_{false}'$ and $t' \in T_\bot'$.
+For each branch choice $b_i$, there is a nonzero probability that $b_i = \bot$, which is a recursion base case.
 \end{proof}
 
-\begin{corollary}[$sample!trace$ completeness]
-For all $idxs : Indx$, $t \in traces~idxs$ implies $Pr[snd~(sample!trace~idxs) = t] > 0$.
-\end{corollary}
 
-\begin{theorem}[$sample!trace^*$ correctness]
-Let $idxs : Idxs$, $t \in T_+$, $p_t \in [0,1]$, and $\pair{p_t',t'} := sample!trace^*~idxs~\pair{p_t,t}$.
-If $Pr[t] = p_t$, then $Pr[t'] = p_t'$.
-\end{theorem}
-\begin{proof}
-By structural induction on $Idxs$.
-
-Case $idxs = \pair{}$.
-By definition of $sample!trace^*$, $\pair{p_t',t'} = \pair{p_t,t}$.
-Clearly $Pr[t] = p_t$ implies $Pr[t'] = p_t'$.
-
-Case $idxs = \pair{idxs_1,idxs_2}$.
-Let
+We finally have a way to use partitioned importance sampling to sample within the preimage of some set $B$.
+Define
 \begin{equation}
-\begin{aligned}
-	\pair{p_t',t'}&\ :=\ sample!trace^*~idxs_1~\pair{p_t,t} \\
-	\pair{p_t'',t''}&\ :=\ sample!trace^*~idxs_2~\pair{p_t',t'}
-\end{aligned}
+	f\ :=\ \meaningofconv{\mathit{p}}_\pbot~j_0
+\hspace{0.5in}
+	h'\ :=\ {\meaningofconv{\mathit{p}}}'\ppre~j_0
+\hspace{0.5in}
+	idxs\ :=\ \meaningofconv{\mathit{p}}\pbi~j_0
 \end{equation}
-as in the definition of $sample!trace^*$.
-By hypothesis, $Pr[t] = p_t$ implies $Pr[t'] = p_t'$, which (by hypothesis) implies $Pr[t''] = p_t''$.
+to interpret $\mathit{p}$ as a bottom arrow computation, an approximating preimage arrow computation, and a lazy tree of feasible branch decisions.
+Define $refine~A := ap\ppre'~(h'~A)~B$.
+Then
+\begin{enumerate}
+	\item Let $\pair{p_t,T'} := sample!traces~idxs$.
+	\item Let $t := trace!inf~T'$.
+	\item Let $A' := refine~((\Omega \times \set{t}) \times \set{\pair{}})$.
+	\item Let $\Omega' := image~(fst~\arrowcomp~fst)~A'$. If $\Omega' = \emptyset$, reject.
+	\item Choose $\omega \in \Omega'$ according to $Q~t$. If $f~\pair{\pair{\omega,t},\pair{}} \notin B$, reject.
+	\item Compute weight $w := \dfrac{1}{p_t} \cdot diff^+~(subcond~P~\Omega'')~(Q~t)~\omega$, where $\Omega''$ is the set of random sources induced by $t$.
+\end{enumerate}
+Computing $diff^+~(subcond~P~\Omega'')~(Q~t)$ does not require $\Omega''$, as we will demonstrate shortly.
 
-Case $idxs = if!idxs~j~idxs_2~idxs_3$.
-Let
-\begin{equation}
-\begin{aligned}
-	\pair{p_b,b}&\ :=\ sample!branch~\set{true,false,\bot} \\
-	pt' &\ :=\ \pair{p_t \cdot p_b, t[j \mapsto b]}
+Samples are rejected for two reasons.
+The first is when $\Omega' = \emptyset$ because $sample!trace$ overapproximates.
+The second is when $\omega \in \Omega'$ but $\omega \notin \Omega''$ because $h'$ overapproximates.
+To reduce the rejection rate, we must reduce overapproximation as much as possible.
+We can address both causes by partitioning $\Omega$ more finely than the partition induced by branch traces.
+Doing so requires an update to the indexes arrow and another sampling algorithm.
+
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{align*}
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		Idxs \ ::= &\ \pair{} \gor \pair{Idxs,Idxs} \\
+					&\gor if!idxs~J~(1 \tto Idxs)~(1 \tto Idxs) \\
+					&\gor random!idxs~J \\
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrowarr\pbi : (x \tto y) \tto (J \tto Idxs) \\
+		&\arrowarr\pbi~f~j\ :=\ \pair{}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\arrowcomp\pbi) : (J \tto Idxs) \tto (J \tto Idxs) \tto (J \tto Idxs) \\
+		&(i_1~\arrowcomp\pbi~i_2)~j \ :=\ \pair{i_1~(left~j), i_2~(right~j)}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&(\arrowpair\pbi) : (J \tto Idxs) \tto (J \tto Idxs) \tto (J \tto Idxs) \\
+		&(i_1~\arrowcomp\pbi~i_2)~j \ :=\ \pair{i_1~(left~j), i_2~(right~j)}
+	\end{aligned} \\
 \end{aligned}
-\end{equation}
-as in the definition of $sample!trace^*$, and let $\pair{p_t',t'}\ =\ pt'$.
-By definition of $sample!branch$, $Pr[b] = p_b$.
-Because $b$ and $t$ are independently chosen and $t'$ can be generated by no other execution path, $Pr[t'] = Pr[t] \cdot Pr[b] = p_t \cdot p_b$.
-If $b = true$, then in $\pair{p_t'',t''} := sample!trace^*~(idxs_2~0)~pr'$, by hypothesis, $Pr[t''] = p_t''$; similarly for $b = false$.
-\end{proof}
+&\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		&\arrowif\pbi : (J \tto Idxs) \tto (J \tto Idxs) \tto (J \tto Idxs) \tto (J \tto Idxs) \\
+		&\arrowif\pbi~i_1~i_2~i_3~j \ := \ 
+			\lzfclet{
+				idxs_2 & \fun{0} i_2~(left~(right~j)) \\
+				idxs_3 & \fun{0} i_3~(right~(right~j))
+			}{\pair{i_1~j, if!idxs~j~idxs_2~idxs_3}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&\arrowlazy\pbi : (1 \tto (J \tto Idxs)) \tto (J \tto Idxs) \\
+		&\arrowlazy\pbi~i~j \ := \ i~0~j
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&random\pbi : J \tto Idxs \\
+		&random\pbi~j \ := \ random!idxs~j
+	\end{aligned} \\
+\end{aligned}
+\end{align*}
+\bottomhrule
+\caption[ ]{The final indexes arrow, which collects information about feasible branches and random choices.}
+\label{fig:collecting-semantics-final}
+\end{figure*}
 
-\begin{corollary}[$sample!trace$ correctness]
-If $\pair{p_t,t} := sample!trace~idxs$, then $Pr[t] = p_t$.
-\end{corollary}
+\begin{figure*}[!tb]\centering
+\smallmathfont
+\begin{equation*}
+	f\ :=\ \meaningofconv{\mathit{p}}_\pbot~j_0
+\hspace{0.5in}
+	h'\ :=\ {\meaningofconv{\mathit{p}}}'\ppre~j_0
+\hspace{0.5in}
+	idxs\ :=\ \meaningofconv{\mathit{p}}\pbi~j_0
+\end{equation*}
+where $f : Rect~\pair{\pair{\Omega,T},\pair{}} \botto Y$
 
-XXX: sampling from a \emph{subset} of $T_+$ that induces a part of the partition of $R^*$:
-\begin{equation}
+\begin{equation*}
 \begin{aligned}
-	&sample!part : Idxs \tto \pair{\Re,Rect~\pair{R,T}} \tto \pair{\Re,Rect~\pair{R,T}} \\
-	&\lzfcsplit{
-	&sample!part~idxs~\pair{p,R \times T}\ := \\
-	&\tab
-	\lzfccase{\pair{idxs, \pair{p, refine~(R \times T)}}}{
-		\pair{\pair{}, pr} & pr
+	&refine : Rect~\pair{\Omega,T} \tto Rect~\pair{\Omega,T} \\
+	&refine~A\ :=\ image~fst~(ap\ppre'~(h'~(A \times \set{\pair{}}))~B) \\
+\\[-6pt]
+	&sample!part : Idxs \tto \pair{\Re,Rect~\pair{\Omega,T}} \tto \pair{\Re,Rect~\pair{\Omega,T}} \\
+	&\lzfcsplit[@{}l@{}l@{}]{
+		&sample!part~idxs~\pair{p_n,\emptyset} &\ :=\ \pair{0,\emptyset}
 \\
-		\pair{\pair{idxs_1,idxs_2}, pr} &
+		&sample!part~\pair{}~pr &\ :=\ pr
+\\
+		&sample!part~\pair{idxs_1,idxs_2}~pr &\ :=\ 
 			\lzfclet{
 				pr' & sample!part~idxs_1~pr
 			}{sample!part~idxs_2~pr'}
 \\
-		\pair{if!idxs~j~idxs_2~idxs_3, \pair{p,R \times T}} &
+		&sample!part~(random!idxs~j)~\pair{p_n, \Omega' \times T'} &\ :=\ 
 			\lzfclet{
-				\pair{p_b,b} & sample!branch~(proj~j~T) \\
-				pr' & \pair{p \cdot p_b, R \times unproj~j~T~\set{b}}
+				\pair{p_i,B} & sample!real!part~(proj~j~\Omega') \\
+			}{\pair{p_n \cdot p_i, refine~(unproj~j~\Omega'~B \times T')}}
+\\
+		&sample!part~(if!idxs~j~idxs_2~idxs_3)~\pair{p_n, \Omega' \times T'} &\ :=\ 
+			\lzfclet{
+				\pair{p_b,b} & sample!branch~(proj~j~T') \u \set{\bot} \\
+				pr' & \pair{p_n \cdot p_b, refine~(\Omega' \times unproj~j~T'~\set{b})}
 			}{\lzfccase{b}{
 				true & sample!part~(idxs_2~0)~pr' \\
 				false & sample!part~(idxs_3~0)~pr' \\
-				\bot & \pair{p \cdot p_b,\emptyset}
+				\bot & pr'
 				}
 			}
-	}
+	}\\
+\\[-6pt]
+	&sample!preimage~Idxs \tto \pair{\Omega_\bot, \Re} \\
+	&\lzfcsplit{
+	&sample!preimage~idxs\ := \\
+	&\tab
+	\lzfclet{
+		\pair{p_n, A} & sample!part~idxs~\pair{1, refine~(\Omega \times T)}
+	}{\lzfccase{A}{
+		\emptyset & \pair{\bot, 0} \\
+		\Omega' \times T' & \lzfclet{
+			\pair{q_\omega, \omega} & sample!source~(\Omega' \times T') \\
+			t & trace!inf~T' \\
+			w & if~(f~\pair{\pair{\omega,t},\pair{}} \in B)~(1{/}p_n \cdot 1{/}q_\omega)~0
+		}{\pair{\omega,w}}}}
 	}
 \end{aligned}
-\end{equation}
+\end{equation*}
+\bottomhrule
+\caption[Preimage refinement sampling]{Sampling from the preimage of $B$ under the program $\mathit{p}$ interpreted as a random variable, using preimage refinement and a uniform candidate distribution.}
+\label{fig:preimage-refinement-sampling}
+\end{figure*}
 
-XXX: sampling a weighted point from $Rect~\pair{R,T}$:
+Figure~\ref{fig:collecting-semantics-final} shows an updated indexes arrow.
+The $Idxs$ type has one more variant, constructed by $random!idxs : J \tto Idxs$.
+The only difference between the remainder of the code and that in Figure~\ref{fig:collecting-semantics:arrow} is $random\pbi~j := random!idxs~j$ instead of $random\pbi~j := \pair{}$.
+
+The proofs of the preceeding theorems indicate the properties the new partition sampler must have.
+\begin{itemize}
+	\item It must be sound: for any $t \in T_*$, with positive probability, it constructs a $T'$ whose infimum is $t$.
+	\item It must partition: if it constructs a $T'$ whose infimum is not in $T_*$, $T'$ must induce $\emptyset$.
+	\item It must terminate: branch choices must be $\bot$ with positive probability.
+	\item All branch trace sets must have minimum traces (i.e. no set-valued branch choices).
+	\item The combination of choices made must correspond with exactly one output.
+\end{itemize}
+
+Figure~\ref{fig:preimage-refinement-sampling} defines the \mykeyword{preimage refinement sampling algorithm}, in which $sample!part$ is an extension of $sample!traces^*$.
+The key differences are
+\begin{itemize}
+	\item It samples from a rectangular cover of a partition of $\Omega \times T$ instead of from a rectangular equivalence class of traces.
+	\item It handles $random!idxs~j$ by applying $sample!real!part$ to $proj~j~\Omega'$.
+	\item It uses $refine$ to shrink the part's covering rectangle after every choice.
+	\item It stops immediately if it receives $\emptyset$, which $refine$ may return.
+\end{itemize}
+We assume that for each input, $sample!real!part : Rect~\Re \tto \pair{\Re, Rect~\Re}$ computes a deterministic partition, assigns each part a nonzero probability, and returns the correct probability for the part it chooses.
+If so, $sample!part$ is sound, it partitions, and it terminates; all branch sets have minimum traces, its transformation from random choices to parts is injective, and it returns the correct probabilities.
+
+Besides $sample!part$, Figure~\ref{fig:preimage-refinement-sampling} defines $sample!preimage$, which returns weighted samples of points in the preimage of $B$ under program $\mathit{p}$'s interpretation as a function.
+It does so by partitioned importance sampling.
+It first uses $sample!part$ to return a rectangle covering a part in the partition and the probability with which the part was sampled.
+If the part is $\emptyset$, it returns $\bot$ weighted by $0$.
+If the part is nonempty, it samples from the random sources and weights the sample.
+For sample $\omega$ and trace $t$, if $f~\pair{\pair{\omega,t},\pair{}} \notin B$ then $\pair{\omega,t}$ is not in the preimage of $B$, so it weights $\omega$ by $0$, which is equivalent to rejecting it.
+
+If the sample's image is in $B$, $sample!preimage$ computes the sample's weight as $1{/}p_n \cdot 1{/}q_\omega$.
+To correctly do partitioned importance sampling, the weight should be $1{/}p_n \cdot diff^+~(subcond~P~\Omega'')~(Q~n)~\omega$, where $p_n$ is the probability of choosing the part.
+The leading term is thus correct, so we need to show $1{/}q_\omega = diff^+~(subcond~P~\Omega'')~(Q~n)~\omega$.
+
+To state the theorem, we need some definitions.
+Let $h := \meaningofconv{\mathit{p}}\ppre~j_0$ be the interpretation of $\mathit{p}$ as a preimage arrow computation, and $\Omega'' := image~(fst~\arrowcomp~fst)~(ap\pre~(h~(\Omega' \times T') \times \set{\pair{}})~B)$ be the exact part under its covering rectangle $\Omega'$.
+Let $J' \subseteq J$ such that $j \in J'$ if and only if $sample!part$ is applied to $random!idxs~j$.
+This is the set of indexes of random values in any $\omega \in \Omega''$ that are actually used while running the program, and it is finite.
+Let $n$ be the partition index of the part covered by $\Omega' \times T'$.
+
+\begin{theorem}
+Let $Q~n$ have a density $q$ when restricted to indexes $J'$ and be uniform on $J \w J'$.
+Suppose $sample!source~(\Omega' \times T')$ chooses $\omega \in \Omega'$ according to $Q~n$.
+If $\omega \in \Omega''$, then $diff^+~(subcond~P~\Omega'')~(Q~n)~\omega\ =\ 1{/}(q~(restrict~\omega~J'))$.
+\end{theorem}
+\begin{proof}
+This is a straightforward application of Theorem~\ref{thm:infinite-radon-nikodym}, so we need only meet the conditions.
+Because $J'$ is finite,
+\begin{itemize}
+	\item The subprobability measure $subcond~P~\Omega''$ can be factored into $P' : Set~(J' \to [0,1]) \tto [0,1]$ and a uniform probability measure on $J \w J' \to [0,1]$.
+	\item The probability measure $Q~n$ can be factored into $Q' : Set~(J' \to [0,1]) \tto [0,1]$ and the same uniform probability measure.
+\end{itemize}
+A density for $P'$ that is uniform on $\Omega''$ is
 \begin{equation}
 \begin{aligned}
-			\lzfclet{
-				\pair{r,q} & sample!point~R \\
-				t & \The{t \in T} \Forall{t' \in T} t \leq t' \\
-				b & f~\pair{\pair{r,t},\pair{}} \\
-				w & if~(b \in B)~(1~{/}~p \cdot 1~{/}~q)~0
-			}{\pair{r,w}}
+	&p : (J' \to [0,1]) \to [0,+\infty) \\
+	&p~\omega\ :=\ if~(\omega \in \Omega'')~1~0
 \end{aligned}
 \end{equation}
+By assumption, the density of $Q'$ is $q : (J' \to [0,1]) \to [0,+\infty)$.
+Therefore, if $\omega \in \Omega''$,
+\begin{equation}
+	diff^+~(subcond~P~\Omega'')~(Q~n)~\omega
+		\ =\ \frac{p~(restrict~\omega~J')}{q~(restrict~\omega~J')}
+		\ =\ \frac{1}{q~(restrict~\omega~J')}
+\end{equation}
+\end{proof}
 
-XXX: the least $t \in T$, or $\The{t \in T} \Forall{t' \in T} t \leq t'$, is easy to compute: set each unrestricted axis to $\bot$
+Thus, if $sample!source~(\Omega' \times T') = \pair{q~(restrict~\omega~J'), \omega}$, then preimage refinement sampling is correct.
 
-XXX: decide what theorems are needed and prove them
+\subsection{Random Source Sampling}
 
-XXX: extension: interval splitting
+An easy way to ensure preimage refinement sampling is correct is to sample uniformly, so that the density at every $\omega \in \Omega'$ is the reciprocal of the volume of $\Omega'$.
+Let $m : Set~\Re \pto [0,+\infty]$ be Lebesgue measure on $\Re$.
+Define
+\begin{equation}
+\begin{aligned}
+	&sample!source : Rect~\pair{\Omega, T} \tto \pair{\Re,\Omega} \\
+	&sample!source~(\Omega' \times T')\ :=\ 
+		\lzfclet{
+			q_\omega & 1~{/}~\prod_{j \in J}~m~(proj~j~\Omega') \\
+			\omega & \fun{j \in J} sample!uniform~(proj~j~\Omega')
+		}{\pair{q_\omega, \omega}}
+\end{aligned}
+\end{equation}
+Because $Rect~\pair{\Omega,T}$ is defined so that only finitely many axes of $\Omega'$ are strict subsets of $[0,1]$, $q_\omega$ is well-defined whenever the volume of $\Omega'$ is nonzero.\footnote{In practice, we do not have to consider this case. The implementation of $sample!source$ may return reciprocal densities, so it returns the volume of $\Omega'$, which is always well-defined.}
+In particular, $m~(proj~j~\Omega') < 1$ if $j \in J'$, otherwise $1$.
 
-XXX: extension: sampling a weighted point using refinement
+An implementation of $sample!source$ cannot compute a product over all $J$, nor construct a mapping with domain $J$.
+The representations of $Rect~\Omega$ and $\omega \in \Omega$ given in Figures~\ref{fig:tree-rectangle-implementation} and~\ref{fig:tree-representation} make getting around this easy.
+The function \scheme{omega-set-sample} in Figure~\ref{fig:tree-representation} implements $\fun{j \in J} sample!uniform~(proj~j~\Omega')$ by building a lazy tree.
+Further, because rectangles may have only finitely many nonfull axes, it is easy to write a total recursive function to compute $\prod_{j \in J}~m~(proj~j~\Omega')$ to measure the volumes of $\Omega$ rectangles.
+The measure of an \scheme{Omega-Node} instance is the product of its axis's measure and the measures of its subtrees.
+The measure of \scheme{univ-omega-set} is \scheme{1}.
 
-XXX: extension: not sampling any decision as $\bot$ when sampling in $T_+$; characterize the programs for which this extension doesn't terminate; explain options to detect or fix
+\begin{figure*}[tb!]\centering
+\subfloat[$sample!part$ results]{%
+\label{fig:preimage-refinement:exact}%
+\includegraphics[width=\subfigurewidth]{results/uniform-sample-source-rects}%
+}%
+\betweenrefinementfigurehspace%
+\subfloat[Uniform $sample!source$]{%
+\includegraphics[width=\subfigurewidth]{results/uniform-sample-source-points}%
+}%
+\betweenrefinementfigurehspace%
+\subfloat[Nonuniform $sample!source$]{%
+\includegraphics[width=\subfigurewidth]{results/nonuniform-sample-source-points}%
+}
+\caption[]{500 samples taken using Dr. Bayes's implementation of $sample!partition$.
+Subfigures (b) and (c) demonstrate the difference between a uniform and nonuniform $sample!source$ implementation.
+In (b), 255 samples are accepted; in (c), all 500 samples are accepted.}
+\label{fig:uniform-sample-source}
+\end{figure*}
+
+
+Figure~\ref{fig:uniform-sample-source} shows the result of sampling within the preimage of $\Re \times \Re \times [-0.05,0.05]$ under the interpretation of this program as a random variable:
+\begin{center}\singlespacing
+\begin{schemedisplay}
+(define/drbayes e
+  (let ([x  (random)]
+        [y  (random)])
+    (list x y (- x y))))
+\end{schemedisplay}
+\end{center}
+
+XXX: need a nonuniform sampler
+
+XXX: key insight: a singleton is a rectangle, so we can sample $a$ and $unproj~j~\Omega'~\set{a}$ and use $refine$ to get bounds for other random values
+
+XXX: code
+
+XXX: extension: no $\bot$ branch choices when sampling in $T_+$; characterize the programs for which this extension doesn't terminate; explain options to detect or fix
 
 \section{Examples}
+
+normal-normal
+
+normal-normal with circular condition
+
+thermometer
+
+normal-normals, apparent quadratic time vs. n*log(n) time depending on data layout
+
+
+
+
 
 
 \mathversion{normal}

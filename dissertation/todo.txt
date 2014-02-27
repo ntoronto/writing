@@ -18,6 +18,10 @@ More future work ideas:
  * Errors
  * Probabilistically verifying program properties; i.e. truly directed randomized testing
  * Inversion groups of higher order for program simplification
+ * Use algebra that I started to develop in Chapter 10 to analyze probabilistic programs
+ * lambda-ZFC with binary probabilistic choice
+ * Formalize lambda-ZFC type system
+ * Classical nondeterminism
 
 Add citations in future work
 
