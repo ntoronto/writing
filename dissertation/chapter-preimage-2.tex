@@ -2104,7 +2104,7 @@ where $f : Rect~\pair{\pair{\Omega,T},\pair{}} \botto Y$
 \\
 		&sample!part~(if!idxs~j~idxs_2~idxs_3)~\pair{p_n, \Omega' \times T'} &\ :=\ 
 			\lzfclet{
-				\pair{p_b,b} & sample!branch~(proj~j~T') \u \set{\bot} \\
+				\pair{p_b,b} & sample!branch~(proj~j~T' \u \set{\bot}) \\
 				pr' & \pair{p_n \cdot p_b, refine~(\Omega' \times unproj~j~T'~\set{b})}
 			}{\lzfccase{b}{
 				true & sample!part~(idxs_2~0)~pr' \\
@@ -2151,10 +2151,11 @@ The proofs of the preceeding theorems indicate the properties the new partition 
 Figure~\ref{fig:preimage-refinement-sampling} defines the \mykeyword{preimage refinement sampling algorithm}, in which $sample!part$ is an extension of $sample!traces^*$.
 The key differences are
 \begin{itemize}
-	\item It samples from a rectangular cover of a partition of $\Omega \times T$ instead of from a rectangular equivalence class of traces.
-	\item It handles $random!idxs~j$ by applying $sample!real!part$ to $proj~j~\Omega'$.
+	\item It samples from a rectangular cover of a partition of $\Omega \times T$ instead of from a rectangular partition of $T$.
+	\item For $random!idxs~j$, it uses $sample!real!part$ to sample from a partition of $proj~j~\Omega'$.
 	\item It uses $refine$ to shrink the part's covering rectangle after every choice.
 	\item It stops immediately if it receives $\emptyset$, which $refine$ may return.
+	\item It chooses branches from $proj~j~T' \u \set{\bot}$ instead of $Bool_\bot$, which allows $refine$ to rule out branch choices that disagree with $\Omega'$.
 \end{itemize}
 We assume that for each input, $sample!real!part : Rect~\Re \tto \pair{\Re, Rect~\Re}$ computes a deterministic partition, assigns each part a nonzero probability, and returns the correct probability for the part it chooses.
 If so, $sample!part$ is sound, it partitions, and it terminates; all branch sets have minimum traces, its transformation from random choices to parts is injective, and it returns the correct probabilities.
@@ -2233,41 +2234,73 @@ The measure of \scheme{univ-omega-set} is \scheme{1}.
 
 \begin{figure*}[tb!]\centering
 \subfloat[$sample!part$ results]{%
-\label{fig:preimage-refinement:exact}%
+\label{fig:uniform-sample-source:rect}%
 \includegraphics[width=\subfigurewidth]{results/uniform-sample-source-rects}%
 }%
 \betweenrefinementfigurehspace%
-\subfloat[Uniform $sample!source$]{%
+\subfloat[$sample!source$ results]{%
+\label{fig:uniform-sample-source:uniform}
 \includegraphics[width=\subfigurewidth]{results/uniform-sample-source-points}%
 }%
 \betweenrefinementfigurehspace%
-\subfloat[Nonuniform $sample!source$]{%
+\subfloat[$sample!source^*$ results]{%
+\label{fig:uniform-sample-source:nonuniform}
 \includegraphics[width=\subfigurewidth]{results/nonuniform-sample-source-points}%
 }
 \caption[]{500 samples taken using Dr. Bayes's implementation of $sample!partition$.
-Subfigures (b) and (c) demonstrate the difference between a uniform and nonuniform $sample!source$ implementation.
+Subfigures (b) and (c) demonstrate the difference between the uniform $sample!source$ and nonuniform $sample!source^*$.
 In (b), 255 samples are accepted; in (c), all 500 samples are accepted.}
 \label{fig:uniform-sample-source}
 \end{figure*}
 
 
-Figure~\ref{fig:uniform-sample-source} shows the result of sampling within the preimage of $\Re \times \Re \times [-0.05,0.05]$ under the interpretation of this program as a random variable:
+Figure~\ref{fig:uniform-sample-source} shows the result of sampling within the preimage of $[-0.05,0.05]$ under the interpretation of this program as a random variable:
 \begin{center}\singlespacing
 \begin{schemedisplay}
 (define/drbayes e
   (let ([x  (random)]
         [y  (random)])
-    (list x y (- x y))))
+    (- y x)))
 \end{schemedisplay}
 \end{center}
+Figure~\ref{fig:uniform-sample-source:rect} shows the results returned by the implementation of $sample!part$: sampled parts from a rectangle covering the true preimage, which surrounds the line $\omega_1 = \omega_0$.
+(There are many duplicates.)
+Figure~\ref{fig:uniform-sample-source:uniform} shows the result of sampling once within each part uniformly; in this case, 255 out of 500 samples are inside the preimage set.
 
-XXX: need a nonuniform sampler
+Suppose we had sampled within the preimage of $[-0.001,0.001]$, or indeed $[-\epsilon,\epsilon]$ for any $\epsilon > 0$.
+The proportion of accepted samples drops with $\epsilon$.
+We can mitigate this problem using finer partitions of $proj~j~\Omega'$, but there is a better solution.
 
-XXX: key insight: a singleton is a rectangle, so we can sample $a$ and $unproj~j~\Omega'~\set{a}$ and use $refine$ to get bounds for other random values
+The key insight is that the singleton interval $[b,b] = \set{b}$ is also a rectangle.
+For each axis $j \in J'$, $sample!source$ may choose a $b \in proj~j~\Omega'$, update $\Omega'$ using $unproj~j~Omega'~\set{b}$, and use $refine$ to get better bounds for sampling the other axes.
 
-XXX: code
+The following function implements the idea.
+\begin{equation}
+\begin{aligned}
+	&sample!source^* : [J] \tto \pair{\Re,Rect~\pair{\Omega, T}} \tto \pair{\Re,\Omega} \\
+	&\lzfcsplit[@{}l@{}l@{}]{
+	&sample!source^*~\pair{}~\pair{q_\omega,\Omega' \times T'}&\ :=\ 
+		\lzfclet{
+			\omega & \fun{j \in J} sample!uniform~(proj~j~\Omega')
+		}{\pair{q_\omega, \omega}}
+\\
+	&sample!source^*~\pair{j,js}~\pair{q_\omega,\Omega' \times T'}&\ :=\ 
+		\lzfclet{
+			B & proj~j~\Omega' \\
+			b & sample!uniform~B \\
+			A' & refine~(unproj~j~\Omega'~\set{b} \times T')
+		}{sample!source^*~js~\pair{q_\omega \cdot 1{/}(m~B),A'}}
+	}
+\end{aligned}
+\end{equation}
+Here, $[J]$ is the type of lists of $J$, or $\pair{J,\pair{J,... \pair{J,\pair{}}}}$.
+The caller is expected to linearize $J'$ into $js : [J]$, the indexes of random values that are actually used while running the program.
+Dr. Bayes's implementation of $sample!part$ returns $js$ in addition to the covering rectangle and its probability.
 
-XXX: extension: no $\bot$ branch choices when sampling in $T_+$; characterize the programs for which this extension doesn't terminate; explain options to detect or fix
+Figure~\ref{fig:uniform-sample-source:nonuniform} shows the results of using Dr. Bayes's implementation of $sample!source^*$ to sample within the parts of the same partition.
+No samples are rejected.
+
+XXX: extension: no $\bot$ branch choices when sampling in $T_+$; characterize the programs for which this extension doesn't terminate; explain options to detect or fix (does this go here?)
 
 \section{Examples}
 
