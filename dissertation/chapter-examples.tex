@@ -66,7 +66,7 @@ When asked for any number of samples in the preimage of any nonempty set, Dr. Ba
 \end{schemedisplay}
 \end{center}
 How long sampling takes depends on the probability with which $\bot$ is chosen for branches: a lower probability of $\bot$ increases the average number of loops before $\bot$ is chosen, resulting in longer wait times.
-Any probability of $\bot$ below $\frac{1}{3}$ is reasonable, and we generally use $\frac{1}{5}$.
+Any probability of $\bot$ below $\frac{1}{3}$ seems reasonable, and we generally use $\frac{1}{5}$.
 
 The following program returns \scheme{0} with probability $\frac{1}{2}$, and otherwise loops forever:
 \begin{center}\singlespacing
@@ -739,7 +739,7 @@ With $8$ observations, we compute
 \end{center}
 where \scheme{ms} is the list of boolean theory choices, in which \scheme{#t} represents choosing quadratic.
 Thus, we are $95\%$ confident that the probability of the quadratic theory, given the $8$ observations, is between $0.85$ and $0.89$.
-Given $16$ observations, the estimated probability of the quadratic theory is a solid $1$.
+Given $16$ observations, the probability of the quadratic theory is approximately $1$.
 
 
 \section{Theories Without Density Models}
@@ -784,7 +784,7 @@ Suppose we see the thermometer pegged at $100$.
 What is the distribution of the outside temperature?
 
 Figure~\ref{fig:thermometer-results} plots a density estimate of the image of samples taken in the preimage of $\Re \times [100,100]$.
-The distribution is skewed left, as we might expect: its mode is approximately $102$, and the temperatures below $102$ that can cause the thermometer to read $100$ have lower probability than the temperatures above $102$ that can cause it.
+The distribution is skewed left, as we might expect: its mode is approximately $102$, and the temperatures below $102$ that can cause the thermometer to display $100$ have lower probability than the temperatures above $102$ that can cause it.
 The distribution is wide, corresponding with the fact that reading the maximum value does not tell us much about the probability of temperatures above the maximum value.
 
 With $95\%$ probability, the outside temperature is between about $98.4$ and $114.5$:
@@ -987,7 +987,7 @@ If $\set{\omega_0}$ is drawn from the left of the part cover in (b), refinement 
 \end{figure*}
 
 For the normal-normal theory encoding with the circular condition, we requested 50000 samples and received 42144.
-A much simpler program exhibits the same behavior:
+A much simpler program exhibits similar behavior:
 \begin{center}\singlespacing
 \begin{schemedisplay}
 (define/drbayes dependency-problem

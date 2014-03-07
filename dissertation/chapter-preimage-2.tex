@@ -7,12 +7,17 @@
 To maintain generality, the preceeding chapter leaves out some details; in particular, how to
 \begin{enumerate}
 	\item Represent and compute with abstract sets.
-	\item Compute approximate preimages under real primitives (especially $\Re \times \Re \to \Re$ functions).
+	\item Compute approximate preimages under real functions.
 	\item Use preimage refinement to compute conditional probabilities efficiently.
 \end{enumerate}
-In this chapter, we provide these details.
+Figure~\ref{fig:implementation-components} puts these in a dependency graph in which nodes are modules in an implementation.
+The boxes with dotted outlines are the subject of this chapter.
 
-XXX: diagram with implementation components and dependencies
+\begin{figure*}[b!]\centering
+\includegraphics[width=4.75in]{figures/implementation-components}
+\caption[Implementation dependency graph]{The components in an implementation, with dependence represented by arrows.}
+\label{fig:implementation-components}
+\end{figure*}
 
 \section{Abstract Sets and Concrete Values}
 
@@ -1748,6 +1753,7 @@ Therefore $f~\pair{\pair{\omega,t_*},\pair{}} \neq \bot$, so $t_*$ induces $\Ome
 \end{proof}
 
 \begin{theorem}[infimum not in $T^*$ implies disjoint]
+\label{thm:infimum-not-in-T*}
 Let $t_1,t_2 \in T^*$ induce $\Omega_1$,$\Omega_2$, and define $t_* := trace!inf~\set{t_1,t_2}$.
 If $t_* \notin T^*$, then $\Omega_1 \i \Omega_2 = \emptyset$.
 \end{theorem}
@@ -1788,7 +1794,7 @@ If $t_1 \neq t_2$, then $\Omega_1 \i \Omega_2 = \emptyset$.
 \begin{proof}
 Let $t_* := trace!inf~\set{t_1,t_2}$.
 Because $t_1$ and $t_2$ are minimal, $t_* \notin T^*$.
-By Theorem~XXX, $\Omega_1 \i \Omega_2 = \emptyset$.
+By Theorem~\ref{thm:infimum-not-in-T*}, $\Omega_1 \i \Omega_2 = \emptyset$.
 \end{proof}
 
 We can thus sample a partition index $t \in T_*$, which induces a unique part from a partition of $\Omega^*$.
@@ -2488,6 +2494,28 @@ We are fairly certain that partitioned importance sampling is correct even when 
 
 \section{Conclusions}
 
-XXX: segue, possibly give components diagram again
+\begin{figure*}[tb!]\centering
+\includegraphics[width=4.75in]{figures/implementation-components-2}
+\caption[Implementation dependency graph]{The implementation components that make up Dr. Bayes and their dependence structure.}
+\label{fig:implementation-components-2}
+\end{figure*}
+
+Figure~\ref{fig:implementation-components-2} again shows the components in the implementation of Dr. Bayes.
+
+Chapter~\ref{ch:preimage1} defined the semantic function that transforms programs into their meanings.
+It derived the approximating preimage* arrow and proved it terminating and correct, provided representations of abstract sets and operations on them are correct, as well as any lifts of primitive functions.
+
+In this chapter, we detailed the implementation of a simple abstract set library.
+Many of its functions are derived from lattice and set properties.
+We additionally verified through randomized testing that 21 sufficient lattice and membership properties hold.
+
+We began a general theory of approximate function inversion, and used it to derive correct computations of preimages under one-argument, real bijections such as square roots, and two-argument trijections such as addition on $\Re \times \Re$ and multiplication on open quadrants.
+The theory allows simultaneous implementation for functions related by inversion and axial inversion.
+More complicated functions are built from simpler pieces using arrow combinators.
+
+We developed a partitioned importance sampling algorithm and proved that it preserves expected values.
+We proved that our implementation of it is correct and terminates, and developed extensions that reduce the rejection rate of sampling within a part, and allow part sampling to avoid reaching $\emptyset$ the same way twice.
+
+With Dr. Bayes implemented and verified, it is time to try programming in it.
 
 \mathversion{normal}
