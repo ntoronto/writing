@@ -261,17 +261,17 @@ Instances of the two most important rules are
 The second rule is the \keyword{chain rule for densities}, and it justifies constructing the joint density $f_{X,Y}$ from the density $f_X$ and the conditional density $f_{Y|X}$.
 
 The rules for densities can be used to derive \keyword{Bayes' law for densities}: if $f_Y(y) > 0$, then, starting from the right-hand side of the chain rule,
-\begin{equation}
-\begin{aligned}
+\begin{displaybreaks}
+\begin{align*}
 	f_{Y}(y) \cdot f_{X|Y}(x \given y)&\ =\ f_{X}(x) \cdot f_{Y|X}(y \given x)
-\\
+\\*
 	f_{X|Y}(x \given y)&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{f_{Y}(y)}
-\\
+\numberthis\\
 	&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{\displaystyle\int_{-\infty}^{+\infty} f_{X,Y}(x,y)\,dx}
 \\
 	&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{\displaystyle\int_{-\infty}^{+\infty} f_{X}(x) \cdot f_{Y|X}(y \given x)\,dx}
-\end{aligned}
-\end{equation}
+\end{align*}
+\end{displaybreaks}
 The last form is conveniently in terms of $f_{X}$ and $f_{Y|X}$, which we have on-hand.
 
 Using Bayes' law for densities, we can draw conclusions about $X$ given knowledge about $Y$.

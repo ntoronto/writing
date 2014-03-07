@@ -1,3 +1,4 @@
+%\usepackage{showframe}
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
 \usepackage{xspace}
@@ -14,6 +15,9 @@
 \usepackage{amscd}
 \usepackage{bbm}
 \usepackage{mathtools}
+\usepackage{caption}
+
+\renewcommand{\captionfont}{\footnotesize}
 
 \usepackage{xparse}
 \makeatletter
@@ -53,8 +57,6 @@
 % BEGIN SPACE HACKS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%\usepackage{showframe}
-
 \makeatletter
 \renewcommand\normalsize{%
    \@setfontsize\normalsize\@@ptsize{14.5pt}%
@@ -83,9 +85,9 @@
 \makeatother
 
 \usepackage{enumitem}
-\setlist{noitemsep,topsep=2pt}
-\setitemize{noitemsep,topsep=2pt}
-\setenumerate{noitemsep,topsep=2pt}
+\setlist{noitemsep,topsep=0pt,leftmargin=36pt}
+\setitemize{noitemsep,topsep=0pt}
+\setenumerate{noitemsep,topsep=0pt}
 
 \newcommand{\smallmathfont}{\small}
 
@@ -94,7 +96,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Hide subsections in TOC
-\setcounter{tocdepth}{1}
+%\setcounter{tocdepth}{1}
 
 \newcounter{maththing}\numberwithin{section}{chapter}
 
@@ -645,6 +647,8 @@ fontsize=\codesize,%
 \setspecialsymbol{omega}{\va{$\mathtt{\omega}$}}
 \setspecialsymbol{Ω}{\va{$\mathtt{\Omega}$}}
 \setspecialsymbol{ω}{\va{$\mathtt{\omega}$}}
+\setspecialsymbol{mu}{\va{$\mu$}}
+\setspecialsymbol{sigma}{\va{$\sigma$}}
 
 \setkeyword{define/drbayes struct/drbayes define-type define-singleton-type U Rec -> : struct: case-> define-predicate match match* ? match-define λ Real Boolean Pair Null Flonum define-values Promise Values match-let}
 

@@ -22,6 +22,10 @@ More future work ideas:
  * lambda-ZFC with binary probabilistic choice
  * Formalize lambda-ZFC type system
  * Classical nondeterminism
+ * Partial-order reduction in the tree search
+ * Looking a bit past if
+ * Detect abstract termination and set drbayes-always-terminate? automatically
+ * Rare events, adjusting sampler using Monte Carlo variance
 
 Add citations in future work
 

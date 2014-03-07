@@ -68,7 +68,7 @@ There seems to be no way to simplify difficulty~\ref{problem:measurability}, so 
 The outcome is worth it: all probabilistic programs are measurable, regardless of the inputs on which they do not terminate.
 This includes uncomputable programs; for example, those that contain real equality tests and limits.
 We believe this result is the first of its kind, and is general enough to apply to almost all past and future work on probabilistic programming languages.
-To maintain the flow of this chapter, we put it off until Chapter~\ref{ch:measurability}.
+To maintain the flow of this chapter, we put it off until Appendix~\ref{ch:measurability}.
 
 For difficulty~\ref{problem:higher-orderness}, we have discovered that the ``first-orderness'' of arrows~\cite{cit:hughes-2000scp-arrows} is a perfect fit for the ``first-orderness'' of measure theory.
 
@@ -1529,9 +1529,9 @@ For example, let $J$ be the set of lists of $\set{0,1}$, $j_0 := \pair{}$, and $
 Alternatively, let $J$ be the set of dyadic rationals in $(0,1)$ (i.e. those with power-of-two denominators), $j_0 := \tfrac{1}{2}$ and
 \begin{equation}
 \begin{aligned}
-	left~(p/q) &\ := \ (p-\tfrac{1}{2})/q
+	left~(p{/}q) &\ := \ (p-\tfrac{1}{2})~{/}~q
 \\
-	right~(p/q) &\ := \ (p+\tfrac{1}{2})/q
+	right~(p{/}q) &\ := \ (p+\tfrac{1}{2})~{/}~q
 \end{aligned}
 \end{equation}
 With this alternative, left-to-right evaluation order can be made to correspond with the natural order $(<)$ over $J$.
@@ -2008,7 +2008,7 @@ Second, projecting a program's preimages onto $\Omega$ results in a measurable s
 If $A \subseteq (\Omega \times T) \times \set{\pair{}}$ is measurable, then $image~(fst~\arrowcomp~fst)~A$ is measurable.
 \end{theorem}
 
-The proofs of these theorems are in Chapter~\ref{ch:measurability}.
+The proofs of these theorems are in Appendix~\ref{ch:measurability}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2139,7 +2139,7 @@ We additionally define $Rect~Bool ::= \powerset~Bool$.
 It is easy to show the collection of all rectangular families is closed under products, projections, and $unproj$.
 
 \begin{figure*}[tb!]\centering
-\includegraphics[width=4.5in]{figures/random-tree-rect}
+\includegraphics[width=3.5in]{figures/random-tree-rect}
 \caption[A finite model of a rectangular subset of $\Omega$]{A finite binary tree model of $unproj~(left~j_0)~(unproj~j_0~\Omega~[0,\frac{1}{4}))~(\frac{3}{4},1]$. Because of $\Omega$'s self-similarity, and because rectangles of $J \to [0,1]$ are defined so that only finitely many projections are not $[0,1]$, every rectangular subset of $\Omega$ has a finite binary tree model.}
 \label{fig:omega-rect-tree}
 \end{figure*}
@@ -2624,6 +2624,6 @@ In total, there are 20 cases, plus 11 for the original (and very simple) proof b
 In contrast, the corresponding theorems with separate semantic functions would require seven proofs by structural induction over at least 11 rules (12 for programs that access the random store), for a total of at least 77 cases. This reduction in complexity by semantic abstraction would have been difficult without targeting \lzfclang, which allows such arrows to carry out uncountably infinite computations.
 
 Further, because the approximating semantics targets a computable \lzfclang sublanguage, it is directly implementable.
-The next chapter details creating a \emph{practical} implementation.
+The next chapter details creating a practical implementation.
 
 \mathversion{normal}

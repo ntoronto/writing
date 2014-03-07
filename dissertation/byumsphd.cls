@@ -563,7 +563,7 @@
 \newlength{\@prefacemargingapsingle}
 \newlength{\@prefacemargingapdouble}
 \setlength{\@assumedcharwidth}{6pt}
-\setlength{\@defaultindent}{6\@assumedcharwidth}
+\setlength{\@defaultindent}{4\@assumedcharwidth}
 \setlength{\@blankline}{\baselineskip}
 %
 % This is the margin gap between the top of the paper and single-spaced text.  It defines a margin that is a total of 2 inches from the top

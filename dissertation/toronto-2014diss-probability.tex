@@ -1,4 +1,9 @@
-\documentclass[phd,electronic,twosidetoc,letterpaper,chaptercenter,parttop,lof]{byumsphd}
+% Electronic format
+\documentclass[phd,letterpaper,lof,chaptercenter,parttop,electronic]{byumsphd}
+
+% Book format
+%\documentclass[phd,letterpaper,lof,chaptercenter,parttop,hardcopy,twosidetoc]{byumsphd}
+
 % Author: Chris Monson
 %
 % This document is in the public domain
@@ -147,7 +152,7 @@
 % out if these already exist.
 \newcommand{\Title}{Trustworthy, Useful Languages for Probabilistic Modeling and Inference}
 \newcommand{\Author}{Neil Toronto}
-\newcommand{\GraduationMonth}{March}
+\newcommand{\GraduationMonth}{April}
 \newcommand{\GraduationYear}{2014}
 
 % Set up the internal PDF information so that it becomes part of the document
@@ -214,7 +219,7 @@ We also model and answer questions about processes that are either difficult or 
 }
 
 \documentkeywords{%
-	Bayesian, Probability, Domain-Specific Languages, Functional Programming, Semantics
+	Bayesian, Probability, Domain-Specific Languages, Functional Programming, Semantics, Measure Theory
 }
 
 % Fermat: I have discovered a truly marvellous proof of this, which this margin is too narrow to contain
@@ -250,7 +255,7 @@ This is truly marvellous in a way that words are too narrow to contain.
 
 I thank my children, for praying for me every day, and for being sweet, loving, talented, and so very interesting.
 
-I thank my God and Savior, whose justice and mercy makes life meaningful and beautiful.
+Lastly, I thank my God and Savior, whose justice and mercy make life meaningful and beautiful.
 }
 
 \department{Computer Science}
@@ -339,6 +344,24 @@ This chapter is derived from work published at the 22\textsuperscript{nd} \emph{
 \input{chapter-preimage-2.tex}
 
 
+\chapter{Example Programs}
+\label{ch:examples}
+
+\input{chapter-examples.tex}
+
+
+\chapter{Related Work}
+
+\input{chapter-related-work.tex}
+
+
+\chapter{Conclusions and Future Work}
+
+\input{chapter-conclusions.tex}
+
+
+\appendix
+
 \chapter{Measurability Theorems}
 \label{ch:measurability}
 
@@ -351,14 +374,6 @@ This chapter is derived from work published at the 22\textsuperscript{nd} \emph{
 \input{chapter-sampling-proofs.tex}
 
 
-\chapter{Related Work}
-
-\input{chapter-related-work.tex}
-
-
-\chapter{Conclusions and Future Work}
-
-\input{chapter-conclusions.tex}
 
 %\appendix
 %\chapter{Proofs}
