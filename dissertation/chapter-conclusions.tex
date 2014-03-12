@@ -12,42 +12,64 @@ The approximating semantics interprets programs as computations that compute con
 We demonstrated that the language is useful by implementing the approximating semantics and encoding typical Bayesian theories.
 We also encoded theories without density models, which can only be interpreted using measure theory.
 
-In short, we developed trustworthy, useful languages for Bayesian modeling and inference by founding them solidly on functional programming theory and measure-theoretic probability.
+In short, we have proved the thesis by developing trustworthy, useful languages for Bayesian modeling and inference, founding them solidly on functional programming theory and measure-theoretic probability.
 
 \section{Future Work}
 
-Future work falls into two categories: expressiveness and optimization.
+There are four main categories of future work: adding expressiveness to Dr. Bayes, reducing its runtime costs, providing more and better guarantees, and branching out into related research areas.
 
 \subsection{Expressiveness}
 
-Adding a new feature and its semantics to a Turing-equivalent language makes the language more \keyword{expressive} if the only way to encode the new feature in the original language with the original semantics is by a global transformation~[XXX: cite Felleisen].
+Adding a new feature and its semantics to a Turing-equivalent language makes the language more \keyword{expressive} if the only way to encode the new feature in the original language with the original semantics is by a global transformation~\cite{cit:felleisen-1990scp-expressive}.
 
 An example is adding lambdas.
-For a first-order language like we have defined, adding lambdas requires closure conversion and defunctionalization: turning every lambda value into a data structure containing bound variable values and a function pointer, and changing every application site to apply a global dispatching function that decodes such closures~[XXX: cite].
+For a first-order language like we have defined, adding lambdas requires closure conversion and defunctionalization: turning every lambda value into a data structure containing bound variable values and a function pointer, and changing every application site to apply a global dispatching function that decodes such closures~\cite{cit:danvy-2001-defunctionalization}.
 It may be simpler, more efficient, or more elegant to add lambda terms to the language itself, despite the fact that ensuring higher-order application is measurable is difficult.
 
-Other examples of expressive new features are mutation, exceptions and parameters~[XXX: cite] (or more generally continuations~[XXX: cite] and continuation marks~[XXX: cite]).
-Once lambdas are available, these can be encoded by globally transforming programs into monadic computations~[XXX: cite; include Kimball].
+Other examples of expressive new features are mutation, and exceptions and parameters, or more generally continuations~\cite{cit:staram-1990-control} and continuation marks~\cite{cit:clements-2006diss}.
+Once lambdas are available, these can be encoded by globally transforming programs~\cite{cit:danvy-2007-one-pass-cps,cit:germane-ms-thesis}.
 We want to know whether such global transformations are the simplest, most efficient, or most elegant ways to extend our probabilistic language's expressiveness.
 
 Non-examples are loops and other constructs that are merely syntactic sugar, which can be implemented using local transformations.
 We will be able to provide all such features by making Racket syntax transformers available to programs.
 
-It is not clear that lambdas are the best recursive abstraction for encoding Bayesian theories.
-Lambdas are good for creating abstractions because their bodies and the computations they carry out are generally unobservable.
-However, these facts may cause them to not meet Bayesian needs very well: Bayesians define theories in order to study them, and often to discover the behavior of a process cannot be directly observed.
-Abstracting such processes using lambdas would require returning every intermediate value.
-We do not know what the right recursive abstraction is for such cases, let alone whether it can be implemented using a local transformation.
+We saw in Chapter~\ref{ch:examples} that functions may be too opaque by default for abstracting the high-level structure of Bayesian theories.
+It is possible that functional objects are the right abstraction, or units~\cite{cit:findler-1998icfp-units}, which are like modules but have runtime parameters.
+It is also possible that Bayesian theories need an entirely new kind of recursive abstraction.
 This dimension of probabilistic language design clearly needs study.
+
+\begin{comment}
+Besides adding direct support for distributions traditionally used in Bayesian modeling such as the gamma distribution, we would like to directly support so-called nonparametric modeling.
+The motivation behind nonparametric theories is extremely flexible inference.
+Their common feature is selecting among infinitely many theories; for example, fitting a polynomial of any degree or even a general $\Re \to \Re$ function to observed data.
+Their prior distributions are typically infinite-dimensional, meaning that
+\begin{itemize}
+	\item They are developed by people who know measure theory because they have no density models.
+	\item 
+\end{itemize}
+
+many can be written as recursive programs that produce lazy lists; e.g. the Chinese Restaurant process
+
+flexible priors
+
+parameterizing 
+
+Dirichlet, Gaussian
+
+Brownian motion and other time-series
+
+direct support for functions with infinite domains (e.g. $\Nat$, $\Rat$ or $\Re$)
+
+XXX: by measurability theorem, classical nondeterminism with at most countably many choices is compatible with probabilistic theories
+
+\end{comment}
 
 In our experience, probabilistic programs are more difficult to debug than other kinds of programs.
 Therefore, one way to increase expressiveness while reducing errors is by adding a type system.
-A type system similar to Typed Racket~[XXX: cite] would be a good choice.
-Because Typed Racket was originally meant for converting untyped programs into typed programs by adding a few annotations, it has true union types, and \keyword{occurrence typing}, which allows identifiers to have different types in each branch of a conditional based on the result of its test expression.
+A type system similar to Typed Racket's~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} would be a good choice.
+Because Typed Racket was originally meant for converting untyped programs into typed programs by adding a few annotations, it has true union types, and occurrence typing, which allows identifiers to have different types in each branch of a conditional based on the result of its test expression.
 Occurrence typing is similar to how the forward phase in preimage computation applies the interpretation of each \emph{true} branch to the preimage of $\set{true}$ under the test, and the \emph{false} branch to the preimage of $\set{false}$.
 Union types are similar to our representation of disjoint unions of sets of tagged data structures.
-
-In fact, there are many similarities between preimage computation and type checking and inference, which we plan to investigate.
 
 \subsection{Optimization}
 
@@ -55,27 +77,153 @@ A type system would not only help reduce programmer error, but would provide inf
 For example, because our implementation's sets are monomorphic, every set operation must dispatch to a more specific operation based on the runtime data types of its arguments.
 If a type system determined that a certain computation consumed and produced only pairs, such dispatch would be unnecessary.
 
-Importance sampling is known to suffer from high variance in its estimates when used on high-dimensional models~[XXX: cite].
-The higher the variance, the more samples are necessary to get good estimates.
-A major piece of future optimization work is to use different sampling algorithms, such as Markov Chain Monte Carlo (MCMC)~[XXX: cite].
-We expect the split-and-refine part of sampling to be particularly amenable, because it divides the program domain into an at-most-countable partition.
-Markov-chain sampling of parts from this partition may easily sidestep a common problem with MCMC methods: that they often mix poorly when sampling within narrow, non-convex shapes.
-In any case, to use MCMC, we would need to solve this problem, because the preimages of conditions in typical Bayesian queries are narrow and non-convex.
-
 Our semantics trades efficiency for simplicity by threading a constant, tree-shaped random source.
 This makes each $random$ computation linear-time in the depth it appears in the completely inlined program, which can turn functions that should be linear-time into quadratic-time.
 Passing subtrees instead would make $random$ constant-time, restoring these functions' apparent time complexity.
 Passing subtrees would also allow combinators to detect lack of change in their received subtrees and return cached values.
 
-Besides rectangles, we intend to try other simple, but more expressive set representations, such as parallelotopes~\cite{cit:amato-2012tcs-parallelotopes}.
-For representing sets of strings, regular expressions look promising~[XXX: cite paper from CS 686], as does the idea of using \emph{abstract} regular expressions to represent sets of lengths and other integral values.
+Even better than simply returning cached values would be to leverage recent advances in incremental computation~\cite{cit:hammer-2014-adapton}.
+Smarter incrementalization could share results, take advantage of commutativity, avoid recomputing ``switched off'' values when they are needed again, and recompute only parts of execution that lead to changes in output.
+There are certainly ways to take advantage of the forward-backward nature of preimage computation, and it should provide interesting challenges as well.
+Further, we believe preimage computation is a particularly good application for incremental computation, because the potential expense of set operations, especially on high-dimensional products, should easily offset the extra bookkeeping and logic required to avoid recomputing them.
 
-Model equivalence in distribution extends readily to uncountable spaces.
-It defines a standard for measure-theoretic optimizations, which can only be done in the exact semantics.
-Examples of optimizations we could prove correct and implement using this equivalence are variable collapse, a probabilistic analogue of constant folding that can increase efficiency by an order of magnitude, and a probabilistic analogue of constraint propagation to speed up conditional queries.
+Importance sampling was originally developed to reduce Monte Carlo variance for queries in which sampling according to a random variable's actual distribution results in high variance.
+As in most uses in Bayesian inference, we currently use importance sampling to make up for the fact that we cannot sample according to the target distribution; i.e. a uniform distribution restricted to a condition's preimage.
+Using importance sampling this way often increases Monte Carlo variance, with ``often'' becoming ``usually'' with added complexity and higher dimension, so that ever more samples are required.
+Using importance sampling to actually reduce variance on a per-query basis is therefore an attractive idea.
+It has been done on-the-fly in Bayesian inference~\cite{cit:cheng-2000-adaptive-importance}, as the sampler collects information about the task.
 
-More broadly, we hope to advance Bayesian practice by providing rich modeling languages with an efficient, correct implementations, which allow general recursion and every computable, probabilistic condition.
+Another (but not exclusive) possibility is to try Markov Chain Monte Carlo (MCMC) sampling~\cite[Chapter 12]{cit:degroot-2012book-probability}, which eventually converges to behavior equivalent to sampling directly from a target distribution.
+We expect the split-and-refine part of sampling to be particularly amenable, because it divides the program domain into an at-most-countable partition.
+Sampling its parts may sidestep a common problem with MCMC methods: that they often ``mix'' poorly when sampling within narrow, non-convex shapes.
+In any case, to use MCMC, we would need to solve this problem, because the preimages of conditions in typical Bayesian queries are narrow and non-convex.
 
-%features: nonparametric Bayesian modeling, conditioning on functions, 
+Any sampling method improves if we can leverage detailed knowledge of the target distribution, the query, and their relationship.
+This seems like a perfect fit for static analysis and precise nonstandard interpretation such as automatic differentiation~\cite{cit:elliott-2009icfp-differentiation}.
+We believe probabilistic programming is an especially good area for them because
+\begin{itemize}
+	\item Probabilistic programs are complete programs that do not interact with the outside world as they run, so advanced whole-program analysis techniques always apply.
+	\item Repeated execution magnifies time and space gains, which can justify agressive tactics.
+	\item Large reductions in Monte Carlo variance can justify expensive, concurrently computed nonstandard interpretations.
+	\item As we have seen, even repeated static analysis (e.g. preimage computation) is useful.
+\end{itemize}
+Basically, inference is so difficult that we can justify throwing anything at it that runs in reasonable time and results in modest gains or provides useful information for a sampler.
+
+Static analysis defined in terms of the exact semantics can identify transformations for probabilistic programs that can only be justified as preserving exact distributions.
+One example is variable collapse; e.g. for binomial-distributed random variables:
+\begin{center}
+\scheme{(+ (binomial n p) (binomial m p))} \tab $\longrightarrow$ \tab \scheme{(binomial (+ n m) p)}
+\end{center}
+Chapter~\ref{ch:countable-models}'s model equivalence in distribution, which extends readily to uncountable spaces, defines a standard for such optimizations.
+Distribution-preserving transformations could also allow Dr. Bayes to support zero-probability conditions by propagating them upward.
+Doing so would likely require continuity analysis~\cite{cit:chaudhuri-2010-continuity}.
+
+We could also use static analysis to address the dependency problem, by transforming expressions with multiple occurrences of an identifier into equivalent expressions with one.
+Even simple transformations such as changing \scheme{(* x x)} to \scheme{(sqr x)} and simple factoring would be helpful.
+More complicated transformations, such as changing \scheme{(/ x (+ x y))} to \scheme{(/ 1 (+ 1 (/ y x)))}, require deciding probabilistic conditions such as $\Pspec{x = 0} = 0$, or branching on range checks as in \scheme{(if (= x 0) 0 (/ 1 (+ 1 (/ y x))))}.
+
+Partitioning approaches to solving the dependency problem include adaptive partitioning, and partitioning the program domain into parts on which the program is monotone.
+The latter would allow computing preimages using axial inversion groups that are like trijections, but of higher order, which would need to be automatically derived.
+Monotone partitioning may be helped by the fact that Dr. Bayes's primitives are already piecewise monotone.
+
+Another possibility is trying more expressive set representations.
+For example, parallelotopes~\cite{cit:amato-2012tcs-parallelotopes} are high-dimensional parallelograms and can thus express linear dependence, and they are as easy to sample from as rectangles.
+
+Symbols and characters can already be represented in Dr. Bayes as user-defined data types, but direct support would be better.
+Sets of strings may be represented by products of character sets, but finite-state automata look more promising~\cite{cit:shannon-2007-strings}.
+For sets of integers, we intend to try abstracting the string set representation.
+Doing so would guarantee that the \scheme{string-length} primitive's image and preimage computations are precise, and may do the same for indexing operations.
+
+The self-adjusting probabilistic tree search presented in Chapter~\ref{ch:preimage2} tends to avoid sampling the empty set and reduce variance, but its memory use scales exponentially in the number of \scheme{if} and \scheme{random} expressions.
+To address it, we intend to try partial-order reduction~[XXX: cite] and sharing equivalent subtrees in a similar way to ordered binary decision diagrams (OBDDs)~\cite{cit:meinel-1998book-obdd}.
+For some programs, it may be enough to store only subtrees that are explored with high probability; for example, by storing subtrees in a Least-Frequently Used (LFU) cache~\cite{cit:maffeis-1993-cache}.
+
+\subsection{Guarantees}
+
+%We still need to prove that the self-adjusting tree search extension that causes leaf probabilities to converge to stated probabilities is correct.
+
+At the most basic level, we would like to formalize the informal type system we use with \lzfclang, to put our type-level reasoning on solid footing.
+An implementation of the type system would let us run \lzfclang code abstractly; i.e. by checking the types.
+We could also formalize \lzfclang and the informal type system in Coq~\cite{cit:coq-manual}.
+
+Less ambitiously, we would like to formalize implementation details in Coq and extract proofs of their properties as verified programs.
+The best first candidate is the abstract set library, which is large and complicated, and whose functions are already mostly derived from lattice properties.
+
+Chapter~\ref{ch:countable-models} contains a theorem of semantic intent: that the interpretation of discrete Bayesian theories as monadic computations that build measure-theoretic models is correct.
+In this case, ``correctness'' means random variables have the stated conditional distributions and are no more interdependent than is necessary to have those distributions.
+In contrast, in Chapter~\ref{ch:examples}, we manually interpret Bayesian theories as Dr. Bayes code and implicitly appeal to syntactic similarity; for example, of this theory and encoding:
+\begin{center}
+\vspace{-\baselineskip}
+\begin{minipage}[t]{2in}
+\mathversion{normal}
+\begin{equation*}
+\begin{aligned}
+	X&\ \sim\ \mathrm{Normal}(0,1) \\
+	Y&\ \sim\ \mathrm{Normal}(X,1)
+\end{aligned}
+\end{equation*}
+\mathversion{sans}
+\end{minipage}
+\hspace{0.5in}
+\begin{minipage}[t]{2.5in}\singlespacing
+\begin{schemedisplay}
+(let* ([x  (normal 0 1)]
+       [y  (normal x 1)])
+  ...)
+\end{schemedisplay}
+\end{minipage}
+\end{center}
+We also appeal to the fact that we observe the expected results.
+This level of rigor is appropriate for demonstrating usefulness, and Dr. Bayes's semantics is correct on its own terms.
+But correctness with respect to Bayesian notation requires a mechanical transformation to the let-calculus defined in Chapter~\ref{ch:preimage1} and another theorem of semantic intent.
+
+Chapter~\ref{ch:preimage1} defines the preimage refinement algorithm, which partitions the domain of probabilistic programs more and more finely, and uses approximate preimage computation to fit a rectangular cover to a preimage set.
+We do not yet know the conditions under which the measure of the rectangular cover approaches the measure of the preimage set.
+Finding and proving these conditions would help us determine when preimage refinement \emph{sampling}, along with the self-adjusting tree search, can be expected to eventually sample covers of only positive-measure parts.
+
+Dr. Bayes's semantics and sampler guarantee that sampling always terminates, even if it does not always return the requested number of samples.
+When programs terminate with probability $1$ \emph{abstractly}---i.e. they never evaluate expressions that cannot escape infinite loops---the implementation can sample more efficiently.
+Currently, users must tell Dr. Bayes whether to do so using the \scheme{drbayes-always-terminate?} parameter.
+This seems like something Dr. Bayes should be able to decide automatically by analyzing the call graph, allowing it to guarantee termination with less user involvement.
+
+\subsection{Branching Out}
+
+Though we developed approximate preimage computation only so we could implement a measure-theoretic semantics, there are many similarities between it and type checking and inference~[XXX: cite TAPL].
+Roughly, computing approximate images corresponds to type checking, and computing approximate preimages corresponds to type inference.
+The main differences are
+\begin{itemize}
+	\item Preimage computation operates only on \emph{monomorphic} abstract values, while type checking and inference often operate on \emph{polymorphic} abstract values.
+	\item Preimage computation does not abstractly evaluate $if$ very precisely, while type checking and inference do not abstractly evaluate function application very precisely
+	(though each strategy avoids infinite recursion during analysis).
+	\item Preimage computation overapproximates non-error conditions, while type checking and inference overapproximate error conditions.
+\end{itemize}
+It would be extremely interesting to define hybrids of these two approaches to analysis.
+We would especially like to define preimage computation so that it can operate on polymorphic sets, and use the results of type checking and inference to make image and preimage computation more precise.
+
+Preimage computation is also similar to computing weakest preconditions~[XXX: cite Dijkstra], particularly strengthened weakest preconditions~[XXX: cite].
+The main differences are
+\begin{itemize}
+	\item Preimage computation does not join the results of analyzing $if$ branches, but analyzes each combination of possible branches (i.e. each branch trace) separately.
+	\item Preimage computation's pre- and post- ``conditions'' are members of a fixed family of abstract sets, while in computing weakest preconditions they are symbolic propositions about program values (and are often defined in terms of propositions found in the program, such as $if$ test expressions).
+\end{itemize}
+One striking similarity is regarding programs as functions, though in computing preconditions the functions are from program states to program states; i.e. they are monadic, not applicative.
+Again, we would like to define hybrids to try to leverage the strengths of each approach.
+
+State-of-the-art probabilistic program verification is quite ad-hoc, with little to no control over randomized searches for preconditions that produce errors, nor even weak guarantees that errors are found with high probability.
+We showed in Chapter~\ref{ch:examples} that Dr. Bayes can find errors with high probability, and how we have used it to verify floating-point functions.
+It works because probabilistic program verification can be recast as Bayesian inference.
+But it is not Bayesian inference, and the main differences are
+\begin{itemize}
+	\item In probabilistic verification, we are more interested in the existence of a counterexample to a correctness statement than in sampling from a distribution over them.
+	\item In floating-point analysis in particular, we are additionally interested in finding the strongest possible correctness statements, not just evaluating a single statement whose negation corresponds with one error condition.
+\end{itemize}
+As an example of the second point, in Chapter~\ref{ch:examples}, we had to manually search for the correctness statement ``\scheme{flgeometric-inv-cdf} outputs are within $1.51$ epsilons of exact'' by testing a few different error intervals of the form $(e \cdot \varepsilon,+\infty)$.
+
+Supporting probabilistic program verification better should allow Dr. Bayes to carry out more precise, verified preimage computation.
+We believe it will extend to other verification tasks as well: obviously to verifying the floating-point functions in Racket's \scheme{math} library (which we have already started), but also to verifying concurrent C programs, for example, by transforming them into a version of Dr. Bayes with mutable variables.
+
+In all, the fact that Dr. Bayes is already capable of going beyond typical Bayesian inference, and the fact that approximate preimage computation is similar to but distinct from other widely applied analysis techniques, suggests that we have found ourselves a big hammer.
+We are therefore on the lookout for nails.
+We hope that in pounding them in, for Bayesian practitioners in particular, we can make hard things easy, intractable things simply hard, and unthinkable things thinkable.
 
 \mathversion{normal}

@@ -422,7 +422,7 @@ Functions \scheme{omega-set-project} and \scheme{omega-set-unproject} respective
 
 Figure~\ref{fig:tree-representation} lists an implementation of values in $\Omega$, which are infinite binary trees, as a lazy data structure.
 The \scheme{Omega-Val} data type represents the $tree!node$ function.
-Instances of \scheme{(Promise A)} are lazy values: they are created using special syntax \scheme{(delay a)} where \scheme{a} is of type \scheme{A}, and are computed and cached using the function \scheme{force}~[XXX: cite?].
+Instances of \scheme{(Promise A)} are lazy values: they are created using special syntax \scheme{(delay a)} where \scheme{a} is of type \scheme{A}, and are computed and cached using the function \scheme{force}.
 Thus, an \scheme{Omega-Val}'s infinite left and right subtrees are represented by \scheme{(Promise Omega-Val)}, which are promises to produce subtrees.
 
 For lazy trees, it is easy to write recursive functions that may not terminate.
@@ -1162,9 +1162,9 @@ As a preimage arrow computation, square root is
 \end{aligned}
 \end{equation}
 Suppose $A = [\frac{1}{2},\frac{1}{2}]$, and that the implementation mistakenly computes $image~sqrt^+~[\frac{1}{2},\frac{1}{2}]$ as $[0.7071067811865476,0.7071067811865476]$.
-The number $0.7071067811865476$ is the closest 64-bit floating-point number to $\sqrt{\frac{1}{2}}$; i.e. the implementation's floating-point square root is compliant with the IEEE 754 floating-point standard~[XXX: cite].
+The number $0.7071067811865476$ is the closest 64-bit floating-point number to $\sqrt{\frac{1}{2}}$; i.e. the implementation's floating-point square root is compliant with the IEEE 754 floating-point standard~\cite{cit:ieee-754-2008}.
 
-Now suppose that, on the reverse phase, we compute the preimage of $\Re$ under $restrict~sqrt^+~[\frac{1}{2},\frac{1}{2}]$.
+Suppose that on the reverse phase, we compute the preimage of $\Re$ under $restrict~sqrt^+~[\frac{1}{2},\frac{1}{2}]$.
 By Lemma~\ref{lem:invertible-function-preimages}, the implementation of $pre$ should compute
 \begin{equation}
 \begin{aligned}
@@ -1183,8 +1183,8 @@ The IEEE 754 floating-point standard mandates a settable rounding mode, and that
 Unfortunately, there is no portable way to set the rounding mode.
 In Racket, we have a few other options.
 \begin{enumerate}
-	\item Use \scheme{math/bigfloat}, which wraps the MPFR arbitrary-precision floating-point library~[XXX: cite], which \emph{does} provide a way to set the rounding mode for its operations.
-	\item Use the \scheme{math/flonum} library's functions for \keyword{double-doubles}, which are two nonoverlapping floating-point numbers that when added together represent a number with a 105-bit significand~[XXX: cite].
+	\item Use \scheme{math/bigfloat}, which wraps the MPFR arbitrary-precision floating-point library~\cite{cit:fousse-2007-mpfr}, which \emph{does} provide a way to set the rounding mode for its operations.
+	\item Use the \scheme{math/flonum} library's functions for \keyword{double-doubles}, which are two nonoverlapping floating-point numbers that when added together represent a number with a 105-bit significand~\cite{cit:shewchuk-1997}.
 	Convert flonums to double-doubles, operate on them, and manually round the high-order number of the result up or down based on the sign of the low-order number.
 	\item Use the \scheme{math/flonum} library's \scheme{flnext} and \scheme{flprev} to bump the endpoints up or down.
 \end{enumerate}
@@ -1310,7 +1310,7 @@ The implementation should compute
 \end{equation}
 but tries to return $(0,-\infty)$, which is the empty set.
 
-In interval arithmetic, the typical solution is to allow \scheme{+0.0} only as a lower endpoint, and \scheme{-0.0} as only as an upper endpoint~[XXX: cite].
+In interval arithmetic, the typical solution is to allow \scheme{+0.0} only as a lower endpoint, and \scheme{-0.0} as only as an upper endpoint~\cite{cit:hickey-2001-interval}.
 We have not determined whether this solution generalizes to nonarithmetic functions, however, so we define
 \begin{center}\singlespacing
 \begin{schemedisplay}
@@ -1625,8 +1625,7 @@ Then, under reasonable conditions (which are analogous to the support of $P_1'$ 
 Appendix~\ref{ch:sampling-algorithm-proofs} contains a formal statement and proof.
 
 To ensure $subcond~P~(s~n)$ and $Q~n$ differ in only finitely many axes, we partition $\Omega$ according to branch traces.
-Each branch trace corresponds with a program that reads any $\omega \in \Omega$ at only finitely many indexes $J' \subseteq J$.
-[XXX: connect idea better]
+Because only finitely branches may be taken, each branch trace corresponds with a program that reads any $\omega \in \Omega$ at only finitely many indexes $J' \subseteq J$.
 
 In the remainder of this subsection, assume a fixed program $\mathit{p}$. Let $f := \meaningofconv{\mathit{p}}_\pbot : \pair{\pair{\Omega,T},\pair{}} \pbotto Y$ be its interpretation as a bottom* arrow computation, with maximal domain $A^*$.
 Define $T^* := image~(fst~\arrowcomp~snd)~A^*$ as its \mykeyword{maximal branch trace set} and
@@ -2325,7 +2324,6 @@ The caller is expected to linearize $J'$, the indexes of random values that are 
 (Dr. Bayes's implementation of $sample!part$ returns $js$ in addition to the covering rectangle and its probability.)
 The density of the sampled $\omega$ is computed as $\prod_{j \in J'} 1{/}(m~(proj~j~\Omega'_j))$, where $\Omega'_j$ are the ever-shrinking inputs to $sample!source^*$.
 Roughly, it is the joint density of \emph{dependent} uniform random variables evaluated at $restrict~\omega~J'$.
-[XXX: name this dependent sampling?]
 
 Figure~\ref{fig:sample-source:nonuniform} shows the result of using Dr. Bayes's implementation of $sample!source^*$ to sample within parts.
 No samples are rejected: in all cases, choosing an $\omega_0$ and updating $\Omega'$ with $\set{\omega_0}$ allows preimage refinement to determine the range of values for $\omega_1$ for which $\omega$ is in the preimage set.

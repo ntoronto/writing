@@ -220,7 +220,7 @@ Such derivatives are named after the following theorem, which gives circumstance
 
 \begin{lemma}[Radon-Nikod\'ym]
 \label{lem:radon-nikodym}
-If $m_1,m_2 : Set~X \pto [0,+\infty]$ are $\sigma$-finite measures and $m_1 \ll m_2$, then $diff^+~m_1~m_2$ exists and $m_1 = int^+~(diff^+~m_1~m_2)~m_2$.
+If $m_1,m_2 : Set~X \pto [0,+\infty]$ are $\sigma$-finite measures and $m_1 \ll m_2$, then $diff^+~m_1~m_2$ exists, is measurable, and $m_1 = int^+~(diff^+~m_1~m_2)~m_2$.
 \end{lemma}
 
 The function $diff^+~m_1~m_2 : X \to [0,+\infty)$ is often called the \emph{density} of $m_1$ with respect to $m_2$, but we call them \emph{derivatives}, reserving \emph{density} for derivatives with respect to Lebesgue measure.
@@ -591,6 +591,5 @@ In particular, if additionally $P'$ and $Q'$ can be defined by densities $p : (J
 		\hspace{0.5in} &&\text{($Q$-a.e.)}
 \end{aligned}
 \end{equation}
-
 
 \mathversion{normal}

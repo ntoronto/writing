@@ -1,32 +1,4 @@
 Chapter 2
  * References
 
-Chapter 8
- * Finish Section 8.4, following the XXX notes in it
- * Examples and uses of finished implementation
-
-More future work ideas:
- * Partial-order reduction
- * Nonparametric Bayesian models
- * Direct support for extensional functions, including conditioning
- * Zero-probability conditions (transformations that move the limit inward)
- * Conditions for convergence of measures
- * Transformations that ensure convergence in measure or reduce dependency problem
- * Proof of semantic intent for recursive theories with uncountable distributions
- * Using preimage computation to verify floating-point programs
- * Axial inverses for parameterized distributions like Gamma
- * Errors
- * Probabilistically verifying program properties; i.e. truly directed randomized testing
- * Inversion groups of higher order for program simplification
- * Use algebra that I started to develop in Chapter 10 to analyze probabilistic programs
- * lambda-ZFC with binary probabilistic choice
- * Formalize lambda-ZFC type system
- * Classical nondeterminism
- * Partial-order reduction in the tree search
- * Looking a bit past if
- * Detect abstract termination and set drbayes-always-terminate? automatically
- * Rare events, adjusting sampler using Monte Carlo variance
-
-Add citations in future work
-
 Schedule defense
