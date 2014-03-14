@@ -1,5 +1,18 @@
 \mathversion{sans}
 
+\begin{comment}
+Jay:
+* I don't get F_k. What does it do?
+* 9.3.3 - did you test the prediction?
+* 9.3.4 - needs a punch line at the end
+* 9.4.1 - in what sense is a camera bounded? it detects light?
+* 9.5 - you need to distinguish between theoretical short-comings and
+engineering ones. Furthermore, you need to distinguish between ones
+that you know how to do (like make a two argument gamma) from ones
+that you don't (like the speed?)
+\end{comment}
+
+
 \begin{quote}
 \textit{Beware of bugs in the above code; I have only proved it correct, not tried it.}
 
@@ -84,8 +97,9 @@ However, we get almost all of them:
 \end{schemedisplay}
 \end{center}
 This is due to the self-adjusting tree search.
-Each $\bot$ branch choice in the fully inlined \scheme{(loop)} results in an empty preimage, so its corresponding leaf in the search tree is removed.
-The required adjustments reduce the probability the sampler chooses $false$ for \scheme{(< (random) 1/2)} in subsequent samples.
+Each $\bot$ branch choice in the fully inlined \scheme{(loop)} results in an empty preimage, which is a search failure, so its corresponding leaf in the search tree is removed.
+Propagating the necessary adustments upward through the path to the removed leaf reduces the probability the sampler chooses $false$ for \scheme{(< (random) 1/2)} in subsequent samples.
+After many such adjustments, its probability becomes very small.
 
 Roughly, the self-adjusting search ``learns'' that \scheme{(loop)} terminates with low probability and usually avoids it.
 The more samples are taken, the lower its probability estimate, though it never reaches zero.
@@ -149,7 +163,7 @@ When set to a larger number, however, splitting the program domain allows preima
 480
 \end{schemedisplay}
 \end{center}
-The only rectangular part covers that allow a later $\bot$ branch choice are those that contain $\omega$ for which \scheme{(< x y)} is true and others for which it is false; i.e. they straddle the line $\omega~j_x = \omega~j_y$ where $j_x$ and $j_y$ are the subcomputation indexes of the interpretations of each \scheme{(random)}.
+The only rectangular part covers that allow a later $\bot$ branch choice are those that contain $\omega$ for which \scheme{(< x y)} is true and others for which it is false; i.e. they straddle the line $\omega~j_x = \omega~j_y$ where $j_x$ and $j_y$ are the indexes of each \scheme{(random)}.
 
 Most of the examples so far require the possibility of $\bot$ branch choices to terminate.
 However, most programs, like \scheme{almost-surely-terminate}, abstractly terminate with probability $1$, and thus do not require it.
@@ -169,9 +183,9 @@ The default value is \scheme{#f}.
 The last chapter demonstrates sampling in a preimage under subtraction (Figure~\ref{fig:sample-source}).
 Addition is no more difficult.
 In fact, by Theorem~\ref{thm:axial-inverse-cyclic-group}, once we have addition or subtraction it is easy to define the other so that it is just as efficient, because each is an axial inverse of the other.
-Alternatively, we could define one from the other using an additional negation primitive and $a - b = a + (-b)$ or $a + b = a - (-b)$.
+Alternatively, we could derive one from the other using an additional negation primitive and $a - b = a + (-b)$ or $a + b = a - (-b)$, but the derived one would be slower.
 
-To help ensure Dr. Bayes is useful, it additionally has comparison primitives, multiplication and division primitives (for which one is easily defined in terms of the other), and various $\Re \pto \Re$ function primitives such as inverse cumulative distribution functions (CDFs) for a few common distributions.
+To help ensure Dr. Bayes is useful, it additionally has comparison primitives, multiplication and division primitives (for which one is easily defined in terms of the other), and various $\Re \pto \Re$ function primitives such as \scheme{sqr}, \scheme{sqrt}, \scheme{log}, \scheme{exp}, and inverse cumulative distribution functions (inverse CDFs) for a few common distributions.
 
 When subtraction and predicates are defined, comparing real numbers is easy.
 For example, if \scheme{negative?} is defined as in~\eqref{eqn:negative-pre}, then because $a < b$ if and only if $a - b < 0$,
@@ -283,7 +297,7 @@ Implementing \scheme{gamma-inv-cdf} requires implementing the following trijecti
 \end{aligned}
 \end{equation}
 $F_p$ and $F_x$ are well-known, and Racket's \scheme{math/distributions} library exports quite accurate implementations of them.
-Unfortunately, as far as we can tell, no one else has ever needed an implementation of $F_k$.
+Unfortunately, as far as we can tell, no one else has ever needed an implementation of $F_k$, which returns the shape parameter $k$ given a probability $p$ and a gamma-distributed value $x$.
 While the numerical analysis required to implement it accurately on its entire domain is beyond the scope of this work, we plan to do it in the future.
 
 As soon as we have \scheme{gamma}, we can encode other distributions important in Bayesian modeling by encoding sampling algorithms for them that are defined in terms of gamma distributions.
@@ -493,7 +507,7 @@ Each observation $y_i$ has its own interval width $\varepsilon_i$.
 
 \begin{figure*}[tb!]\centering
 \includegraphics[width=3in]{figures/nested-rectangles}
-\caption[Nested rectangular conditions]{Nested rectangular conditions: each axis represents an observation {$\mathit{Y_i} \in [y_i-\varepsilon_i,y_i+\varepsilon_i]$}.}
+\caption[Nested rectangular conditions]{Nested rectangular conditions: each axis represents an observation {$\mathit{Y}_i \in [y_i-\varepsilon_i,y_i+\varepsilon_i]$}.}
 \label{fig:nested-rectangles}
 \end{figure*}
 
@@ -750,11 +764,9 @@ where \scheme{ms} is the list of boolean theory choices, in which \scheme{#t} re
 Thus, we are $95\%$ confident that the probability of the quadratic theory, given the $8$ observations, is between $0.85$ and $0.89$.
 Given $16$ observations, the probability of the quadratic theory is approximately $1$.
 
+In general, while Dr. Bayes does not construct density models, it is perfectly capable of expressing and doing inference on theories and queries that have them.
 
 \section{Theories Without Density Models}
-
-While Dr. Bayes has not yet constructed a density model for any of our theories, all of them so far have density models.
-In this section, we demonstrate some useful theories that do not have density models.
 
 \subsection{Bounded Measuring Devices}
 
@@ -1001,7 +1013,7 @@ where \scheme{fllog1p} (abstractly) computes $log1p~x := log~(1+x)$ with high ac
 The preimage of $(3 \cdot \varepsilon,\infty)$ is now $\emptyset$.
 In fact, the preimage of $(1.51 \cdot \varepsilon,\infty)$ is $\emptyset$, meaning that this implementation of \scheme{flgeometric-inv-cdf} returns approximations that are no more than about $1.51$ floating-point numbers away from the exact answers.
 
-It would take more detailed abstractions of floating-point numbers to reason about subnormal numbers, NaNs, signed zeros, and infinities.
+Reasoning about subnormal numbers, NaNs, signed zeros, and infinities will require more detailed abstractions, which we are certain we can encode in Dr. Bayes.
 
 
 \section{Current Shortcomings}

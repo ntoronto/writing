@@ -1,5 +1,24 @@
 \mathversion{sans}
 
+\begin{comment}
+Jay:
+
+* Ch 12 needs to be more explicitly in terms of the thesis statement if
+only in addition to what you have. (i.e. the thing at the end is too
+weak a reference for me.)
+
+* 12.2.1 --- how does this relate to the larger goal of prob thy or is it just sharpening your tool?
+
+* The paragraph of loops doesn't really make sense because it has no
+context---what are Racket transformers? Why do you want these things?
+You're jumping between the scientific progress of expressiveness and
+the convenience of using your language as a Bayesian.
+
+* The "lambdas may not be good" is similarly confused; we don't know why
+you would think that.
+\end{comment}
+
+
 \section{Conclusions}
 
 We started by defining \lzfclang, a call-by-value $\lambda$-calculus with infinite sets and set operations, so that we could interpret Bayesian notation categorically.
@@ -12,7 +31,7 @@ The approximating semantics interprets programs as computations that compute con
 We demonstrated that the language is useful by implementing the approximating semantics and encoding typical Bayesian theories.
 We also encoded theories without density models, which can only be interpreted using measure theory.
 
-In short, we have proved the thesis by developing trustworthy, useful languages for Bayesian modeling and inference, founding them solidly on functional programming theory and measure-theoretic probability.
+In short, we have proved and demonstrated the thesis by developing trustworthy, useful languages for Bayesian modeling and inference, founding them solidly on functional programming theory and measure-theoretic probability.
 
 \section{Future Work}
 
@@ -21,20 +40,22 @@ There are four main categories of future work: adding expressiveness to Dr. Baye
 \subsection{Expressiveness}
 
 Adding a new feature and its semantics to a Turing-equivalent language makes the language more \keyword{expressive} if the only way to encode the new feature in the original language with the original semantics is by a global transformation~\cite{cit:felleisen-1990scp-expressive}.
+Thus, adding expressive features to Dr. Bayes will allow Bayesian theories to be encoded more succinctly and clearly.
 
-An example is adding lambdas.
-For a first-order language like we have defined, adding lambdas requires closure conversion and defunctionalization: turning every lambda value into a data structure containing bound variable values and a function pointer, and changing every application site to apply a global dispatching function that decodes such closures~\cite{cit:danvy-2001-defunctionalization}.
+An example is adding lambdas, which at very least can make repetition more succinct and clear using higher-order functions like \scheme{map}.
+For a first-order language like Dr. Bayes, lambdas may be added by closure conversion and defunctionalization: turning every lambda value into a \keyword{closure}, which contains bound variable values and a function pointer, and changing every application site to apply a global dispatching function that decodes closures~\cite{cit:danvy-2001-defunctionalization}.
 It may be simpler, more efficient, or more elegant to add lambda terms to the language itself, despite the fact that ensuring higher-order application is measurable is difficult.
+Either way---by a global transformation or an extension to the semantics---Dr. Bayes will have lambdas.
+
+With lambdas added, looping constructs become mere syntactic sugar, because they can be implemented by local transformations into recursive functions.
+We plan to provide all possible looping constructs and other local features at once, by making Racket syntax transformers, which perform local transformations, available in Dr. Bayes programs.
 
 Other examples of expressive new features are mutation, and exceptions and parameters, or more generally continuations~\cite{cit:staram-1990-control} and continuation marks~\cite{cit:clements-2006diss}.
 Once lambdas are available, these can be encoded by globally transforming programs~\cite{cit:danvy-2007-one-pass-cps,cit:germane-ms-thesis}.
 We want to know whether such global transformations are the simplest, most efficient, or most elegant ways to extend our probabilistic language's expressiveness.
 
-Non-examples are loops and other constructs that are merely syntactic sugar, which can be implemented using local transformations.
-We will be able to provide all such features by making Racket syntax transformers available to programs.
-
-We saw in Chapter~\ref{ch:examples} that functions may be too opaque by default for abstracting the high-level structure of Bayesian theories.
-It is possible that functional objects are the right abstraction, or units~\cite{cit:findler-1998icfp-units}, which are like modules but have runtime parameters.
+We suggested in Chapter~\ref{ch:examples} that functions may be too opaque by default for abstracting the high-level structure of Bayesian theories.
+It is possible that objects are the right abstraction, or units~\cite{cit:findler-1998icfp-units}, which are like modules but have runtime parameters.
 It is also possible that Bayesian theories need an entirely new kind of recursive abstraction.
 This dimension of probabilistic language design clearly needs study.
 
@@ -65,7 +86,7 @@ XXX: by measurability theorem, classical nondeterminism with at most countably m
 \end{comment}
 
 In our experience, probabilistic programs are more difficult to debug than other kinds of programs.
-Therefore, one way to increase expressiveness while reducing errors is by adding a type system.
+One way to increase expressiveness while reducing errors is by adding a type system.
 A type system similar to Typed Racket's~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} would be a good choice.
 Because Typed Racket was originally meant for converting untyped programs into typed programs by adding a few annotations, it has true union types, and occurrence typing, which allows identifiers to have different types in each branch of a conditional based on the result of its test expression.
 Occurrence typing is similar to how the forward phase in preimage computation applies the interpretation of each \emph{true} branch to the preimage of $\set{true}$ under the test, and the \emph{false} branch to the preimage of $\set{false}$.

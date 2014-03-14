@@ -1,5 +1,12 @@
 \mathversion{sans}
 
+\begin{comment}
+Jay: These sections are a bit too much code with a bit too little
+revelation about the code. Maybe because they are appendix-like it
+doesn't matter. What did you have in mind for them?
+\end{comment}
+
+
 \DeclarePairedDelimiter{\ivl}{[\mspace{-4.5mu}(}{)\mspace{-4.5mu}]}
 
 \section{Introduction}
@@ -1626,17 +1633,61 @@ This is true of partitioned importance sampling under reasonable conditions, whi
 The formal statement of the theorm and its proof are in Appendix~\ref{ch:sampling-algorithm-proofs}.
 
 Partitioned importance sampling allows quite a lot of freedom: parts can be chosen with arbitrary nonzero probability, and each part can have its own candidate distribution, which may be defined on a superset of the part.
+The last property in particular---that candidate distributions for different parts may overlap---is critical for sampling within restricted program domains, because we necessarily sample rectangular covers of parts.
+
+\begin{comment}
+Jay: Is Example 8.29 meant to explain or impress? I think it fails to
+explain a bit.
+
+Me: Primarily to impress (to show off flexibility), secondarily to demonstrate
+that most of the objects in the sampling theorem aren't actually realized in
+programs. Did it achieve my secondary objective?
+
+Jay: The theory doesn't feel cool enough to impress that much. It feels
+like it's going to be simple and I'll understand it, then when I
+don't, it makes the system look worse because it seems confusing.
+\end{comment}
+
+\begin{comment}
+Jay: It is not obvious why (a) and (b) in the figure have
+different darkness. I presume it is density or probability after
+normalizing? (b) gets shallower? Why is that?
+
+Me: They're plots of samples, so the overall darkness depends only on the size
+and transparency of each point. (If you zoom in on either of these plots in
+DrRacket, for example, they look light and sparse.) In each plot,
+technically, only the relative darkness in any given area matters.
+
+I used different point transparencies to make each plot look nice
+separately. If I use the same point transparency for both, plot (b) gets
+pretty dark inside the dashed box. You can think of the reason as density
+renormalization, because plotting the samples using filled, partially
+transparent circles is very similar to estimating the density from samples
+by adding together uniform-height cylinders. More cylinders near any
+coordinate makes its density estimate larger; more filled circles near it
+makes the plot darker there. But drawing with alpha transparency is only
+approximately additive...
+
+I can try using the same alpha for the points in both if you think it'll
+match your expectations better.
+
+Jay: Maybe the real point is that you don't explain in the writing (a) what
+we should expect these graphs to look like and (b) why what they
+actually look like indicates that you did a good job.
+\end{comment}
 
 \begin{figure}[!tb]
 \centering
-\subfloat[Unweighted samples]{
-\includegraphics[width=3in]{figures/pimp-sampling-unweighted}
-}
-\hspace{0.1in}
-\subfloat[Resampled by weight]{
-\includegraphics[width=3in]{figures/pimp-sampling-weighted}
-}
-\caption[Sampling uniformly in a partioned unit square]{Partitioned importance sampling used to sample uniformly in a partition of the unit square, using two overlapping candidate distributions.}
+\subfloat[Samples chosen according to overlapping candidate distributions $Q~left$ and $Q~right$]{%
+\label{fig:pimp-sampling-2d:unweighted}%
+\includegraphics[width=3in]{figures/pimp-sampling-unweighted}%
+}%
+\hspace{0.1in}%
+\subfloat[After resampling candidate samples by weight]{%
+\label{fig:pimp-sampling-2d:resampled}%
+\includegraphics[width=3in]{figures/pimp-sampling-weighted}%
+}%
+\caption[Sampling uniformly in a partioned unit square]{Partitioned importance sampling used to sample uniformly in a partition of the unit square, using two overlapping, overapproximating candidate distributions.}
 \label{fig:pimp-sampling-2d}
 \end{figure}
 
@@ -1644,11 +1695,11 @@ Partitioned importance sampling allows quite a lot of freedom: parts can be chos
 \figref{fig:pimp-sampling-2d} shows the result of partitioned importance sampling in a partition of the unit square.
 In this instance,
 \begin{itemize}
-	\item $X := [0,1] \times [0,1]$ and $P$ is the uniform measure on $X$ (i.e. area).
-	\item $N := \set{left,right}$.
-	\item $p := [left \mapsto 0.4, right \mapsto 0.6]$.
-	\item $s~left = \setb{\pair{x,y} \in X}{y > 2 \cdot x - \frac{1}{2}}$, similarly for $s~right$.
-	\item $Q~left$ is the uniform measure on a superset of $s~left$, and $Q~right$ is a multivariate Gaussian measure centered at $\pair{0.8,0.3}$.
+	\item $X := [0,1] \times [0,1]$ is the unit square and $P$ is uniform measure on $X$ (i.e. area).
+	\item $N := \set{left,right}$ are the partition's part indexes.
+	\item $s~left = \setb{\pair{x,y} \in X}{y > 2 \cdot x - \frac{1}{2}}$ is the left part; $s~right$ is defined similarly.
+	\item $p := [left \mapsto 0.4, right \mapsto 0.6]$ is a non-uniform distribution over part indexes.
+	\item $Q~left$ is the uniform measure on a superset of $s~left$, and $Q~right$ is a multivariate Gaussian centered at $\pair{0.8,0.3}$; note that these candidate distributions overlap.
 \end{itemize}
 The implementation does not actually construct most of these objects. It constructs
 \begin{itemize}
@@ -1658,10 +1709,14 @@ The implementation does not actually construct most of these objects. It constru
 \end{itemize}
 It computes weights using $diff^+~(subcond~P~(s~n))~(Q~n)~a\ =\ f~a~{/}~g~n~a$ when $s?~n~a = true$.
 It directly represents only $N$ and $p$, but we will find even this to be infeasible shortly.
+
+Figure~\ref{fig:pimp-sampling-2d:unweighted} shows the samples taken by choosing a part index $n \in N$, then choosing a point from the candidate distribution $Q~n$.
+Figure~\ref{fig:pimp-sampling-2d:resampled} shows the result of resampling the samples by weight, to demonstrate that the weighted samples represent a uniform distribution over $[0,1] \times [0,1]$.
+The left part has higher variation in coverage: repeated resamples make up for the fact that the candidate samples are sparser there.
 \exampleqed
 \end{example}
 
-Two properties make the preceeding example simple.
+Two properties make the preceeding example relatively simple.
 First, the partition has finitely many parts.
 Second, the measures $subcond~P~(s~n)$ and $Q~n$ have densities, which ensures $diff^+~(subcond~P~(s~n))~(Q~n)$ exists and is easy to compute.
 
@@ -2357,7 +2412,7 @@ The measure of \scheme{univ-omega-set} is \scheme{1}.
 \includegraphics[width=\subfigurewidth]{results/nonuniform-sample-source-points}%
 \end{minipage}%
 }
-\caption[]{$500$ samples using Dr. Bayes's implementations of $sample!part$, $sample!source$ and $sample!source^*$.}
+\caption[Independent vs. dependent uniform sampling]{$500$ samples using Dr. Bayes's implementations of $sample!part$, $sample!source$ and $sample!source^*$.}
 \label{fig:sample-source}
 \end{figure*}
 
@@ -2410,8 +2465,8 @@ The caller is expected to linearize $J'$, the indexes of random values that are 
 The density of the sampled $\omega$ is computed as $\prod_{j \in J'} 1{/}(m~(proj~j~\Omega'_j))$, where $\Omega'_j$ are the ever-shrinking inputs to $sample!source^*$.
 Roughly, it is the joint density of \emph{dependent} uniform random variables evaluated at $restrict~\omega~J'$.
 
-Implementations of $sample!source^*$ rely on $refine$ computing image and preimage approximations whose intervals are outwardly rounded.
-As we showed in Section~\ref{sec:primitive-implementation}, unsound approximations of singleton intervals that are off by even one floating-point value can cause $refine$ to falsely return $\emptyset$.
+Implementations of $sample!source^*$ require $refine$ to compute image and preimage approximations whose intervals are outwardly rounded.
+As we showed in Section~\ref{sec:primitive-implementation}, unsound approximations of singleton intervals that are off by even one floating-point number can cause refinement to falsely return $\emptyset$.
 
 Figure~\ref{fig:sample-source:nonuniform} shows the result of using Dr. Bayes's implementation of $sample!source^*$ to sample within parts.
 No samples are rejected: in all cases, choosing an $\omega_0$ and updating $\Omega'$ with $\set{\omega_0}$ allows preimage refinement to determine the range of values for $\omega_1$ for which $\omega$ is in the preimage set.

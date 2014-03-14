@@ -15,9 +15,9 @@ Church~\cite{cit:church-language-short} is a Scheme-like probabilistic language 
 Kiselyov~\cite{cit:kiselyov-2008uai-monolingual} embeds a probabilistic language in O'Caml for efficient computation.
 It uses continuations to enumerate or sample random variable values, and has a \texttt{fail} construct for the \textit{complement} of conditioning.
 The sampler looks ahead for \texttt{fail} and can handle it efficiently.
-This may be justified by commutativity (Thm.~\ref{thm:commutativity}), depending on interaction with other language features.
+This may be justified by commutativity (Theorem~\ref{thm:commutativity}), depending on interaction with other language features.
 
-Recently, Wingate et al~\cite{cit:wingate-2011nips-nonstandard} have defined the semantics of nonstandard interpretations that enable efficient inference, but do not define languages, and an abstract interpretation much like our indexes arrow that likewise assigns names to random expressions by their position in an execution trace~\cite{cit:wingate-2011ais-lightweight}.
+Recently, Wingate et al~\cite{cit:wingate-2011nips-nonstandard} have defined the semantics of nonstandard interpretations that enable efficient inference, but do not define languages, and a nonstandard interpretation much like our indexes arrow (Figure~\ref{fig:collecting-semantics-final}) that assigns names to random expressions by their position in an execution trace~\cite{cit:wingate-2011ais-lightweight}.
 
 \section{Semantics}
 
@@ -49,9 +49,7 @@ Our general approach---creating an exact semantics and deriving an implementable
 Most functional programming researchers would hesitate to call Chapter~\ref{ch:countable-models}'s approximating semantics abstract, however.
 While the approximations it computes converge, they are not conservative.
 
-The work in Chapter~\ref{ch:preimage1} is much more in line with typical abstract interpretation: $\meaningof{\cdot}\conv\ppre$ is the concrete semantics, ${\meaningof{\cdot}\conv}\ppre'$ is an abstract semantics, the concrete values are arbitrary sets, and the abstract values are rectangles.
-It has many properties common to abstract semantics: it is sound, it labels expressions, the abstract domain is a lattice, and the exact semantics performs infinite computations.
-
+The work in Chapter~\ref{ch:preimage1} is much more in line with typical abstract interpretation: the approximating semantics is sound, it labels expressions, the abstract domain is a lattice, and the exact semantics performs infinite computations.
 However, it is far from typical in other ways.
 It is used to run programs, not for static analysis.
 The abstraction boundaries are the conditional branches of completely unrolled, infinite programs, and are not fixed.
@@ -72,4 +70,4 @@ In our work, no input or output is updated, and preimages are always definable r
 Many multi-paradigm languages~\cite{cit:hanus-2007lp-multi-paradigm}, especially constraint functional languages, bear a strong resemblance to our work.
 In fact, it is easy to add a $\mathsf{fail}$ expression to our semantics, or to transform constraints into boolean program outputs.
 The most obvious difference is evaluation strategy.
-The most important difference is that our interpretation of programs returns \emph{distributions} of constrained outputs, rather than arbitrary single values that meet constraints.
+The most important difference is that our evaluation of programs, to be useful in Bayesian inference, returns \emph{distributions} of constrained outputs, rather than arbitrary single values that meet constraints.

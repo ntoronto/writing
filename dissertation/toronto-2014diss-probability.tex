@@ -189,33 +189,19 @@
 \yeargraduated{\GraduationYear}
 \yearcopyrighted{\GraduationYear}
 
-\begin{comment}
-To be useful in Bayesian practice, a probabilistic language must support conditioning: imposing constraints in a way that preserves the relative probabilities of program outputs.
-Every language to date that supports probabilistic conditioning also 
-
-We develop a semantics for a first-order language with recursion, probabilistic choice and conditioning.
-Distributions over program outputs are defined by the probabilities of their preimages, a measure-theoretic approach that ensures the language is not artificially limited.
-
-Measurability is a basic property similar to continuity that is often neglected, but critical.
-We prove that all probabilistic programs are measurable regardless of nontermination, if the language's primitives are measurable---which includes real arithmetic, inequalities and limits.
-
-Preimages are generally uncomputable, so we derive an approximating semantics for computing rectangular covers of preimages.
-We implement the approximating semantics in Haskell and Typed Racket, and demonstrate its expressive power using stochastic ray tracing.
-\end{comment}
-
 \documentabstract{%
 The ideals of exact modeling, and of putting off approximations as long as possible, make Bayesian practice both successful and difficult.
-Automating it has been taking the form of languages for modeling probabilistic processes and implementations that answer questions about them.
+Languages for modeling probabilistic processes, whose implementations answer questions about them under asserted conditions, promise to ease much of the difficulty.
 
-Unfortunately, very few of these languages have a mathematical specification.
-This makes them difficult to trust: there is no way to distinguish between a bug and a feature, and there is no standard by which to prove optimizations correct.
-Further, because the languages are based on the incomplete theories of probability typically used in Bayesian practice, they place seemingly artificial restrictions on legal programs and queries, such as disallowing unbounded recursion and allowing only simple equality constraints.
+Unfortunately, very few of these languages have mathematical specifications.
+This makes them difficult to trust: there is no way to distinguish between an implementation error and a feature, and there is no standard by which to prove optimizations correct.
+Further, because the languages are based on the incomplete theories of probability typically used in Bayesian practice, they place seemingly artificial restrictions on legal programs and questions, such as disallowing unbounded recursion and allowing only simple equality conditions.
 
 We prove it is possible to make trustworthy probabilistic languages for Bayesian practice by using functional programming theory to define them mathematically and prove them correct.
-The specifications interpret programs using the most complete known theory of probability, so they place no restrictions on programs and allow arbitrary conditions with arbitrarily low probability.
+The specifications interpret programs using the most complete known theory of probability, so they place no restrictions on legal programs and allow arbitrary conditions with arbitrarily low probability.
 
-We demonstrate that the results are useful by implementing the languages, and using them to model and answer questions about typical probabilistic processes.
-We also model and answer questions about processes that are either difficult or impossible to reason about precisely using Bayesian mathematical tools.
+We demonstrate that the languages are useful by implementing them, and using them to model and answer questions about typical probabilistic processes.
+We also model and answer questions about processes that are either difficult or impossible to reason about precisely using typical Bayesian mathematical tools.
 }
 
 \documentkeywords{%
@@ -290,6 +276,9 @@ Lastly, I thank my God and Savior, whose justice and mercy make life meaningful 
 
 \input{chapter-thesis-statement.tex}
 
+\chapter{Related Work}
+
+\input{chapter-related-work.tex}
 
 \chapter{Background}
 \label{ch:background}
@@ -348,11 +337,6 @@ This chapter is derived from work published at the 22\textsuperscript{nd} \emph{
 \label{ch:examples}
 
 \input{chapter-examples.tex}
-
-
-\chapter{Related Work}
-
-\input{chapter-related-work.tex}
 
 
 \chapter{Conclusions and Future Work}
