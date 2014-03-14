@@ -125,7 +125,7 @@ When \scheme{(< x y)}, \scheme{(>= x y)} is impossible, so the program returns \
 Otherwise, \scheme{(< x y)} is impossible, so the program returns \scheme{1}.
 Because \scheme{loop} is never applied, the program terminates.
 
-However, the exact preimage of \scheme{true-set} under the interpretation of \scheme{(< x y)} cannot be represented directly; its rectangular cover is \scheme{univ-omega-set}.
+However, the exact preimage of \scheme{true-set} under the interpretation of \scheme{(< x y)} cannot be represented directly by rectangles, and its smallest cover is \scheme{univ-omega-set}.
 The same is true for the exact preimage of \scheme{true-set} under \scheme{(>= x y)}.
 In general, Dr. Bayes's implementation of $sample!part$ can never rule out all branch choices that lead to \scheme{(loop)}.
 
@@ -277,9 +277,9 @@ Because one parameter is a scale, we can reduce the work to implementing a two-a
 Implementing \scheme{gamma-inv-cdf} requires implementing the following trijection, extended to a compact superdomain.
 \begin{equation}
 \begin{aligned}
-	F_p &: (0,{+\infty}) \times (0,{+\infty}) \to (0,1) \hspace{0.5in}&& \text{Gamma CDF} \\
-	F_x &: (0,{+\infty}) \times (0,1) \to (0,{+\infty}) && \text{Gamma inverse CDF} \\
-	F_k &: (0,1) \times (0,+\infty) \to (0,{+\infty}) && \text{???}
+	F_p &: (0,{\infty}) \times (0,{\infty}) \to (0,1) \hspace{0.5in}&& \text{Gamma CDF} \\
+	F_x &: (0,{\infty}) \times (0,1) \to (0,{\infty}) && \text{Gamma inverse CDF} \\
+	F_k &: (0,1) \times (0,\infty) \to (0,{\infty}) && \text{???}
 \end{aligned}
 \end{equation}
 $F_p$ and $F_x$ are well-known, and Racket's \scheme{math/distributions} library exports quite accurate implementations of them.
@@ -352,7 +352,7 @@ By not defining the language in terms of densities, we have given up the ability
 We will show that not having zero-probability conditions matters little.
 
 But first, from a philosophical standpoint, the condition $\mathit{Y} = 2$ is hard to support: it is an assertion about \emph{all of the countably many digits} of $\mathit{Y}$.
-If finding the distribution of $\mathit{X} \given \mathit{Y} = 2$ is a typical inference task, this amounts to having infinite knowledge about a real-world observation.
+If finding the distribution of $\mathit{X} \given \mathit{Y} = 2$ is a typical inference task, this amounts to claiming infinite knowledge about a real-world observation.
 Still, zero-probability conditions are often convenient, so we intend to investigate supporting them in future work.
 
 To sample within a positive-probability preimage, the condition needs to be wider; e.g. $\mathit{Y} \in [2-\varepsilon,2+\varepsilon]$ where $\varepsilon > 0$ is small.
@@ -923,8 +923,11 @@ The proof-of-concept ray tracer in Dr. Bayes is little more than a simple physic
 
 
 \subsection{Probabilistic Program Verification}
+\label{sec:probabilistic-verification}
 
-If we recast probabilistic program verification~[XXX: cite] as ``find the distribution over program inputs given an error condition,'' it is equivalent to Bayesian inference.
+Recent work in probabilistic verification recasts it as a probabilistic inference task~\cite{cit:gulwani-2007popl-prob-verify}.
+We take this idea further, recasting probabilistic verification more specifically as \emph{finding the distribution over program inputs given an error condition}, in which case it is equivalent to Bayesian inference in particular.
+
 To use Dr. Bayes to compute this conditional distribution for a given program, we
 \begin{enumerate}
 	\item Encode the program in Dr. Bayes in a way that propagates errors.
@@ -939,7 +942,7 @@ Because dependent uniform sampling (i.e. $sample!source^*$ as defined in~\eqref{
 
 While Dr. Bayes's numbers are implemented by floating-point intervals, semantically, they are real numbers.
 We therefore cannot represent floating-point numbers directly in Dr. Bayes---but we do not want to.
-We need to represent \emph{abstract} floating-point numbers, consisting of an exact, real number and a bound on the relative error with which it is approximated.
+We need to represent \emph{abstract} floating-point numbers, each consisting of an exact, real number and a bound on the relative error with which it is approximated.
 We regard numbers with catastrophic relative error (i.e. not in $[0,1)$) as representing any floating-point number, and so define the following two structures.
 \begin{center}\singlespacing
 \begin{schemedisplay}
@@ -983,10 +986,10 @@ We want the distribution of \scheme{x} and \scheme{y} in $(0,1)$ given that the 
 (float-error (flgeometric-inv-cdf (float x 0) (float y 0)))
 \end{schemedisplay}
 \end{center}
-is in $(3 \cdot \varepsilon,+\infty)$, where $\varepsilon \approx 2.22\cdot 10^{-16}$ is the smallest 64-bit floating-point number that can be added to $1.0$ to yield a different floating-point number.
-That is, we want the distribution of exact inputs for which the approximate output is more than about three floating-point numbers away from the exact output.\footnote{Floating-point functions are almost always analyzed assuming exact inputs. Few useful ones \emph{reduce} error.}
+is in $(3 \cdot \varepsilon,\infty)$, where $\varepsilon \approx 2.22\cdot 10^{-16}$ is the smallest 64-bit floating-point number that can be added to $1.0$ to yield a different floating-point number.
+That is, we want the distribution of exact inputs\footnote{Floating-point functions are almost always analyzed assuming exact inputs. Few useful ones \emph{reduce} error.} for which the approximate output is more than about three floating-point numbers away from the exact output.
 
-Dr. Bayes overestimates the preimage of $(3 \cdot \varepsilon,+\infty)$ as approximately $(0,1) \times (\varepsilon,0.284)$ and returns samples within it.
+Dr. Bayes overestimates the preimage of $(3 \cdot \varepsilon,\infty)$ as approximately $(0,1) \times (\varepsilon,0.284)$ and returns samples within it.
 Knowing a few common floating-point tricks, we define
 \begin{center}\singlespacing
 \begin{schemedisplay}
@@ -995,8 +998,8 @@ Knowing a few common floating-point tricks, we define
 \end{schemedisplay}
 \end{center}
 where \scheme{fllog1p} (abstractly) computes $log1p~x := log~(1+x)$ with high accuracy.
-The preimage of $(3 \cdot \varepsilon,+\infty)$ is now $\emptyset$.
-In fact, the preimage of $(1.51 \cdot \varepsilon,+\infty)$ is $\emptyset$, meaning that this implementation of \scheme{flgeometric-inv-cdf} returns approximations that are no more than about $1.51$ floating-point numbers away from the exact answers.
+The preimage of $(3 \cdot \varepsilon,\infty)$ is now $\emptyset$.
+In fact, the preimage of $(1.51 \cdot \varepsilon,\infty)$ is $\emptyset$, meaning that this implementation of \scheme{flgeometric-inv-cdf} returns approximations that are no more than about $1.51$ floating-point numbers away from the exact answers.
 
 It would take more detailed abstractions of floating-point numbers to reason about subnormal numbers, NaNs, signed zeros, and infinities.
 
@@ -1014,7 +1017,7 @@ With Dr. Bayes's current primitives, we can find no good way to encode the gamma
 Dr. Bayes needs a two-argument gamma primitive, from which these families can be defined.
 
 The Bernoulli, multinomial, Poisson and geometric distribution families, and arbitrary discrete distributions can be encoded using \scheme{if} (or \scheme{strict-if}), \scheme{random}, \scheme{<}, and recursive functions.
-The correctness and termination theorems for Dr. Bayes's semantics prove that programs using such encodings work as expected.
+The correctness and termination theorems for Dr. Bayes's semantics ensure that programs using such encodings work as expected.
 But defined this way, they are slow.
 
 Bayesians tend to think in terms of propositions, not sets.
@@ -1022,7 +1025,7 @@ Encoding conditions as boolean expressions and sampling within the preimage of a
 
 \subsection{Research May Be Required}
 
-For some of Dr. Bayes's shortcomings, we do not know yet whether engineering work is sufficient.
+For the following shortcomings, we do not know yet whether engineering work is sufficient.
 
 When we encode theories as functions, we write them to return every random variable of interest in a list so we can estimate their expected values and study their behavior.
 Theories assembled from many such functions are quite verbose because function applications must destructure lists of returned values.
@@ -1044,7 +1047,7 @@ If we try to sample, we get this unhelpful error message:
 \begin{center}\singlespacing
 \texttt{drbayes-sample: cannot sample from the empty set}
 \end{center}
-The culprit here is not distinguishing between errors and nontermination: for simplicity, they are both $\bot$ in the semantics.
+The culprit here is not distinguishing errors and nontermination: for simplicity, they are both $\bot$ in the semantics.
 In the exact semantics, computing preimages removes inputs that produce $\bot$, so errors do not occur.
 To begin addressing this, Dr. Bayes needs a separate type of error values, as well as a representation for rectangular sets of error values.
 We do not know whether exception handling is required or desirable, whether it makes sense to ignore errors that happen with zero probability, nor how difficult it is to distinguish between errors that arise only from overapproximation and those that are truly errors.
@@ -1078,7 +1081,7 @@ Consider this encoding of a theory of independent normal random variables:
 (define/drbayes independent-normals
   (let ([x  (normal 0 1)]
         [y  (normal 0 1)])
-    (pair x y)))
+    (cons x y)))
 \end{schemedisplay}
 \end{center}
 When $\Omega$ is split along the axis projected by \scheme{x}, Dr. Bayes carries out image and preimage computation for \scheme{y} as well, even though the results are the same as with the previous $\Omega$.
@@ -1122,12 +1125,12 @@ The loose fit happens because $x$ occurs twice in $x{/}(x+y)$, and image and pre
 
 To demonstrate how, we reason compositionally about its range.
 Let $z := x + y$; then $z \in [0,2]$ because $x,y \in [0,1]$.
-Because $\pair{x,z} \in [0,1] \times [0,2]$, $x{/}z \in [0,+\infty)$; therefore $x{/}(x+y) \in [0,+\infty)$.
+Because $\pair{x,z} \in [0,1] \times [0,2]$, $x{/}z \in [0,\infty)$; therefore $x{/}(x+y) \in [0,\infty)$.
 Each of these statements is true---they even constitute a proof---so our reasoning is \emph{sound}.
 But our reasoning is not \emph{precise}: it is not hard to show that $x{/}(x+y) \in [0,1]$.
 In particular, $[0,1] \times [0,2]$ is a gross overestimate of the range of $\pair{x,z}$.
 
-Just as in the preceeding proof that $x{/}(x+y) \in [0,+\infty)$, image and preimage computations are carried out compositionally and rectangles represent sets of possible values.
+Just as in the preceeding proof that $x{/}(x+y) \in [0,\infty)$, image and preimage computations are carried out compositionally and rectangles represent sets of possible values.
 If \scheme{h} is the interpretation of \scheme{dependency-problem} as a preimage* arrow computation, we have
 \begin{center}\singlespacing
 \begin{schemedisplay}

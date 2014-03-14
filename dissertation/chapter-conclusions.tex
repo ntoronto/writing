@@ -103,7 +103,7 @@ This seems like a perfect fit for static analysis and precise nonstandard interp
 We believe probabilistic programming is an especially good area for them because
 \begin{itemize}
 	\item Probabilistic programs are complete programs that do not interact with the outside world as they run, so advanced whole-program analysis techniques always apply.
-	\item Repeated execution magnifies time and space gains, which can justify agressive tactics.
+	\item Repeated execution magnifies time and space gains, which justifies aggressive tactics.
 	\item Large reductions in Monte Carlo variance can justify expensive, concurrently computed nonstandard interpretations.
 	\item As we have seen, even repeated static analysis (e.g. preimage computation) is useful.
 \end{itemize}
@@ -135,7 +135,7 @@ For sets of integers, we intend to try abstracting the string set representation
 Doing so would guarantee that the \scheme{string-length} primitive's image and preimage computations are precise, and may do the same for indexing operations.
 
 The self-adjusting probabilistic tree search presented in Chapter~\ref{ch:preimage2} tends to avoid sampling the empty set and reduce variance, but its memory use scales exponentially in the number of \scheme{if} and \scheme{random} expressions.
-To address it, we intend to try partial-order reduction~[XXX: cite] and sharing equivalent subtrees in a similar way to ordered binary decision diagrams (OBDDs)~\cite{cit:meinel-1998book-obdd}.
+To address it, we intend to try partial-order reduction~\cite{cit:godefroid-thesis} and sharing equivalent subtrees in a similar way to ordered binary decision diagrams (OBDDs)~\cite{cit:meinel-1998book-obdd}.
 For some programs, it may be enough to store only subtrees that are explored with high probability; for example, by storing subtrees in a Least-Frequently Used (LFU) cache~\cite{cit:maffeis-1993-cache}.
 
 \subsection{Guarantees}
@@ -188,7 +188,7 @@ This seems like something Dr. Bayes should be able to decide automatically by an
 
 \subsection{Branching Out}
 
-Though we developed approximate preimage computation only so we could implement a measure-theoretic semantics, there are many similarities between it and type checking and inference~[XXX: cite TAPL].
+Though we developed approximate preimage computation only so we could implement a measure-theoretic semantics, there are many similarities between it and type checking and inference~\cite{cit:pierce-2002-tpl}.
 Roughly, computing approximate images corresponds to type checking, and computing approximate preimages corresponds to type inference.
 The main differences are
 \begin{itemize}
@@ -200,7 +200,7 @@ The main differences are
 It would be extremely interesting to define hybrids of these two approaches to analysis.
 We would especially like to define preimage computation so that it can operate on polymorphic sets, and use the results of type checking and inference to make image and preimage computation more precise.
 
-Preimage computation is also similar to computing weakest preconditions~[XXX: cite Dijkstra], particularly strengthened weakest preconditions~[XXX: cite].
+Preimage computation is also similar to computing weakest preconditions~\cite{cit:dijkstra-1975-preconditions}.
 The main differences are
 \begin{itemize}
 	\item Preimage computation does not join the results of analyzing $if$ branches, but analyzes each combination of possible branches (i.e. each branch trace) separately.
@@ -217,10 +217,10 @@ But it is not Bayesian inference, and the main differences are
 	\item In probabilistic verification, we are more interested in the existence of a counterexample to a correctness statement than in sampling from a distribution over them.
 	\item In floating-point analysis in particular, we are additionally interested in finding the strongest possible correctness statements, not just evaluating a single statement whose negation corresponds with one error condition.
 \end{itemize}
-As an example of the second point, in Chapter~\ref{ch:examples}, we had to manually search for the correctness statement ``\scheme{flgeometric-inv-cdf} outputs are within $1.51$ epsilons of exact'' by testing a few different error intervals of the form $(e \cdot \varepsilon,+\infty)$.
+As an example of the second point, in Chapter~\ref{ch:examples}, we had to manually search for the correctness statement ``\scheme{flgeometric-inv-cdf} outputs are within $1.51$ epsilons of exact'' by testing a few different error intervals of the form $(e \cdot \varepsilon,\infty)$.
 
 Supporting probabilistic program verification better should allow Dr. Bayes to carry out more precise, verified preimage computation.
-We believe it will extend to other verification tasks as well: obviously to verifying the floating-point functions in Racket's \scheme{math} library (which we have already started), but also to verifying concurrent C programs, for example, by transforming them into a version of Dr. Bayes with mutable variables.
+We believe it will extend to other verification tasks as well, from verifying the floating-point functions in Racket's \scheme{math} library (which we have already started) to verifying concurrent algorithms.
 
 In all, the fact that Dr. Bayes is already capable of going beyond typical Bayesian inference, and the fact that approximate preimage computation is similar to but distinct from other widely applied analysis techniques, suggests that we have found ourselves a big hammer.
 We are therefore on the lookout for nails.

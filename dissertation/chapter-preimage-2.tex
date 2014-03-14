@@ -555,26 +555,33 @@ Fortunately, unlike CPU microcode, rectangular set operations are correct if and
 The first part of the collection of laws regards sets not as boxes of values, but as values themselves in a bounded lattice.
 There are eight algebraic laws that define a bounded lattice.
 In terms of $(\i)$, $(\join)$, $\emptyset$ and $\bot$, the algebraic laws are
-\begin{equation}
-\begin{aligned}
+\begin{displaybreaks}
+\begin{align*}
 	\emptyset \join A &= A
-	&&\text{$(\join)$ identity} \\
+	&&\text{$(\join)$ identity}
+\\
 	\top \i A &= A
-	&&\text{$(\i)$ identity} \\
+	&&\text{$(\i)$ identity}
+\\
 	A \join B &= B \join A
-	&&\text{$(\join)$ commutativity}\\
+	&&\text{$(\join)$ commutativity}
+\\
 	A \i B &= B \i A
-	&&\text{$(\i)$ commutativity}\\
+	&&\text{$(\i)$ commutativity}
+\numberthis\\
 	(A \join B) \join C &= A \join (B \join C)
-	\hspace{0.5in} &&\text{$(\join)$ associativity}\\
+	\hspace{0.5in} &&\text{$(\join)$ associativity}
+\\
 	(A \i B) \i C &= A \i (B \i C)
-	&&\text{$(\i)$ associativity}\\
+	&&\text{$(\i)$ associativity}
+\\
 	A \join (A \i B) &= A
-	&&\text{$(\join)$-$(\i)$ absorption}\\
+	&&\text{$(\join)$-$(\i)$ absorption}
+\\
 	A \i (A \join B) &= A
 	&&\text{$(\i)$-$(\join)$ absorption}
-\end{aligned}
-\end{equation}
+\end{align*}
+\end{displaybreaks}
 If these laws hold in the implementation, then at an abstract level in which we do not consider the contents of the sets, the implementation is correct.
 
 But we must consider their contents, because we will be sampling within them, and we will be testing membership to determine whether the samples lie inside a preimage set.
@@ -625,7 +632,7 @@ The number of iterations for a typical testing run is 100,000, for which the cur
 
 If step 2 randomly generated just $x \in \top$, then $x \in A$ would be rare, and $x \in A \implies x \in B$ would too often be equivalent to $false \implies x \in B$, which is always $true$.
 Of course, we cannot always test with $x \in A = true$, so for more complete coverage we also generate $y \in B$ and test $y \in A \implies y \in B$.
-We ensure boundary conditions, such as intersections and joins between two barely overlapping or adjacent intervals, happen often enough by choosing interval endpoints from $\set{-\infty,-4,-3,-2,-1,0,1,2,3,4,+\infty}$.
+We ensure boundary conditions, such as intersections and joins between two barely overlapping or adjacent intervals, happen often enough by choosing interval endpoints from $\set{-\infty,-4,-3,-2,-1,0,1,2,3,4,\infty}$.
 We choose members of intervals from a similar small set that includes those endpoints, except the infinities.
 
 To be even more certain that the implementation is correct, we additionally test an alternative lattice characterization: that the elements have an associated partial order in which every two elements has a meet and a join.
@@ -644,22 +651,27 @@ To be a partial order, it should have these properties:
 For canonical sets, $(\subseteq)$ antisymmetry is testable; otherwise it holds by definition.
 
 The partial order is related to the lattice operators by the following properties, of which the first two provide alternative definitions for $(\subseteq)$ in terms of $(\join)$ or $(\i)$, or vice-versa:
-\begin{equation}
-\begin{aligned}
+\begin{displaybreaks}
+\begin{align*}
 	&B = A \join B \iff A \subseteq B
-	&&\text{$(\join)$-$(\subseteq)$ definition} \\
+	&&\text{$(\join)$-$(\subseteq)$ definition}
+\\
 	&A = A \i B \iff A \subseteq B
-	&&\text{$(\i)$-$(\subseteq)$ definition} \\
+	&&\text{$(\i)$-$(\subseteq)$ definition}
+\\
 	&A \subseteq A \join B
-	&&\text{$(\join)$ increasing} \\
+	&&\text{$(\join)$ increasing}
+\numberthis\\
 	&A \i B \subseteq A
-	&&\text{$(\i)$ decreasing} \\
+	&&\text{$(\i)$ decreasing}
+\\
 	&A_1 \subseteq A_2~and~B_1 \subseteq B_2 \implies A_1 \join B_1 \subseteq A_2 \join B_2
-	&&\text{$(\join)$ monotone} \\
+	&&\text{$(\join)$ monotone}
+\\
 	&A_1 \subseteq A_2~and~B_1 \subseteq B_2 \implies A_1 \i B_1 \subseteq A_2 \i B_2
-	\hspace{0.5in} &&\text{$(\i)$ monotone} \\
-\end{aligned}
-\end{equation}
+	\hspace{0.5in} &&\text{$(\i)$ monotone}
+\end{align*}
+\end{displaybreaks}
 For noncanonical sets, the first two properties are equivalent to the middle two.
 
 Errors introduced by changing the set library are caught quickly, usually within a few hundred iterations.
@@ -693,14 +705,14 @@ Some intervals, using $\ivl{\cdot,\cdot,\cdot,\cdot}$ notation:
 \begin{aligned}
 	\ivl{0,1,true,false} &= [0,1) \\
 	\ivl{-\infty,0,false,true} &= (-\infty,0] \\
-	\ivl{-\infty,+\infty,false,false} &= (-\infty,+\infty) = \Re \\
-	\ivl{-\infty,+\infty,true,true} &= [-\infty,+\infty] = \cl{\Re}
+	\ivl{-\infty,\infty,false,false} &= (-\infty,\infty) = \Re \\
+	\ivl{-\infty,\infty,true,true} &= [-\infty,\infty] = \cl{\Re}
 \end{aligned}
 \end{equation}
 
 \subsection{Invertible Primitives}
 
-We consider only total, strictly monotone functions on subsets of $\Re$.
+We consider only total, strictly monotone functions on subsets of $\Re$.\footnote{Our results should hold in any other totally ordered, first-countable topological space.}
 Further on, we recover more generality by using language conditionals to implement piecewise monotone functions.
 
 One reason we consider only strictly monotone functions is that they are easy to invert.
@@ -729,7 +741,7 @@ If $A' \subseteq A$, $B' \subseteq B$, and $g : A \to B$ has inverse $g^{-1} : B
 
 These facts suggest that we can compute images (or preimages) of intervals under any strictly monotone, surjective $g$ by applying $g$ (or its inverse) to interval endpoints to yield an interval, as in Figure~\ref{fig:sqr-preimage}.
 This is evident for endpoints in $A$.
-Limit endpoints like $+\infty$ require a larger $\cl{g}$ defined on a compact superset of $A$.
+Limit endpoints like $\infty$ require a larger $\cl{g}$ defined on a compact superset of $A$.
 
 \begin{theorem}[images of intervals by endpoints]
 \label{thm:images-of-intervals}
@@ -758,22 +770,22 @@ If $g : A \to B$ is strictly monotone and surjective with inverse $g^{-1} : B \t
 \end{lemma}
 
 \begin{example}[nonnegative square]
-The extension of $sqr^+ : [0,+\infty) \to [0,+\infty)$, where $sqr^+~a := a \cdot a$, to the compact superdomain $[0,+\infty]$ is
+The extension of $sqr^+ : [0,\infty) \to [0,\infty)$, where $sqr^+~a := a \cdot a$, to the compact superdomain $[0,\infty]$ is
 \begin{equation}
 \begin{aligned}
-	&\cl{sqr^+} : [0,+\infty] \to [0,+\infty] \\
+	&\cl{sqr^+} : [0,\infty] \to [0,\infty] \\
 	&	\cl{sqr^+}~a\ := \lim_{a' \to a} sqr^+~a'
-		\ =\ if~(a = +\infty)~{+\infty}~(sqr^+~a)
+		\ =\ if~(a = \infty)~{\infty}~(sqr^+~a)
 \end{aligned}
 \end{equation}
 (With respect to $\Re$'s standard topology, which is first-countable, $sqr^+$ is continuous and thus limit-preserving.)
-The extension of its inverse $sqrt^+$ is $\cl{sqrt^+} : [0,+\infty] \to [0,+\infty]$, defined similarly, which by Lemma~\ref{lem:inverse-direction} is also strictly increasing.
+The extension of its inverse $sqrt^+$ is $\cl{sqrt^+} : [0,\infty] \to [0,\infty]$, defined similarly, which by Lemma~\ref{lem:inverse-direction} is also strictly increasing.
 Thus,
 \begin{equation}
 \begin{aligned}
-	image~sqr^+~[5,+\infty)\ &=\ [\cl{sqr^+}~5,\cl{sqr^+}~{+\infty})
+	image~sqr^+~[5,\infty)\ &=\ [\cl{sqr^+}~5,\cl{sqr^+}~{\infty})
 \\
-		\ &=\ [25,+\infty)
+		\ &=\ [25,\infty)
 \\[6pt]
 	preimage~(restrict~sqr^+~[1,2))~[2,7]
 		\ &=\ [1,2) \i image~sqrt^+~[2,7]
@@ -850,8 +862,8 @@ Instead, they provide a way to compute a preimage's smallest rectangular boundin
 
 \begin{theorem}[preimage bounds from axial inverse images]
 \label{thm:axis-invertible-function-preimages}
-Let $A' \subseteq A$, $B' \subseteq B$, $C' \subseteq C$, and $g_c : A \times B \to C$ with axial inverses $g_a$ and $g_b$.
-If $g_c' := restrict~g_c~(A' \times B')$, then
+Let $A' \subseteq A \subseteq \Re$, $B' \subseteq B \subseteq \Re$, $C' \subseteq C \subseteq \Re$, and $g_c : A \times B \to C$ with axial inverses $g_a$ and $g_b$.
+If $g_c' := restrict~g_c~(A' \times B')$,
 \begin{equation}
 	preimage~g_c'~C'\ \subseteq\ \lzfcsplit{
 		&(A' \i image~g_a~(B' \times C'))\ \times \\
@@ -924,15 +936,61 @@ We first need a notion of function properties that hold for one argument for eve
 We will say that $g_c : A \times B \to C$ has property $P$ \mykeyword{in its first axis} when $P~(\fun{a \in A} g_c~\pair{a,b})$ for all $b \in B$.
 Similarly, $g_c$ has property $P$ \mykeyword{in its second axis} when $P~(\fun{b \in B} g_c~\pair{a,b})$ for all $a \in A$.
 
-Now Lemma~\ref{lem:monotone-implies-invertible}'s analogue is an easy corollary.
-
 \begin{theorem}[strictly monotone, surjective implies axis-invertible, continuous]
 \label{thm:uniformly-monotone-implies-invertible}
-Let $g_c : A \times B \to C$ for totally ordered $A$, $B$ and $C$.
-If $g_c$ is surjective and either strictly increasing or strictly decreasing in each axis, then $g_c$ is axis-invertible; further, it and its axial inverses are continuous.
+Let $A \subseteq \Re$, $B \subseteq \Re$, $C \subseteq \Re$ and $g_c : A \times B \to C$.
+If $g_c$ is surjective and either strictly increasing or decreasing in each axis, it has axial inverses $g_a$ and $g_b$.
+Further, $g_a$ and $g_b$ are also surjective and either strictly increasing or decreasing in each axis, and $g_c$, $g_a$ and $g_b$ are continuous.
 \end{theorem}
 \begin{proof}
-XXX: todo
+We define
+\begin{equation}
+\begin{aligned}
+	g_a~\pair{b,c}&\ :=\ \The{a \in A} g_c~\pair{a,b} = c \\
+	g_b~\pair{c,a}&\ :=\ \The{b \in B} g_c~\pair{a,b} = c
+\end{aligned}
+\end{equation}
+which by Lemma~\ref{lem:monotone-implies-invertible} and the assumed axis properties are well-defined.
+(Recall $\The{a \in A} \mathit{e}$ means ``the $a \in A$ such that $\mathit{e}$.'')
+Evidently, $g_a~\pair{b,c} = a \iff g_c~\pair{a,b} = c$ and $g_b~\pair{c,a} = b \iff g_c~\pair{a,b} = c$, so $g_a$ and $g_b$ are axial inverses by Definition~\ref{def:axial-inverse}, from which also follows per-axis surjectivity and strict monotonicity.
+
+For continuity, we note that the standard topology of $\Re \times \Re$ is first-countable, as are the standard topologies of any subsets.
+A function with a first-countable domain is continuous if and only if it preserves countable limits; in this case, $g_c~(limit~xs)\ =\ limit~(map~g_c~xs)$ for all convergent sequences $xs : \Nat \to A \times B$.
+
+Let $xs : \Nat \to A \times B$ such that $limit~xs = \pair{a',b'}$ for some $\pair{a',b'} \in A \times B$.
+We start with a simpler horizontal case, then reduce the general case to it.
+
+Horizontal case: $snd~(xs~n) = b'$ for all $n \in \Nat$; i.e. $xs$ is on a horizontal line at $b'$.
+Let $as := map~fst~xs$ and $g := \fun{a \in A} g_c~\pair{a,b'}$, so $map~g_c~xs = map~g~as$.
+Because $g_c$ is surjective and either strictly increasing or decreasing in its first axis, by Lemma~\ref{lem:monotone-implies-invertible}, $g$ is continuous, so
+\begin{equation}
+\begin{aligned}
+	&limit~(map~g_c~xs)\ =\ limit~(map~g~as)\ =\ g~(limit~as) \\
+	&\tab =\ g~a'\ =\ g_c~\pair{a',b'}\ =\ g_c~(limit~xs')\ =\ g_c~(limit~xs)
+\end{aligned}
+\end{equation}
+Thus $g_c$ preserves horizontal limits.
+By a similar argument, $g_a$ preserves vertical limits.
+
+General case: Define
+\begin{equation}
+	line~b''~\pair{a,b}\ :=\ 
+		\lzfclet{
+			c & g_c~\pair{a,b} \\
+			a'' & g_a~\pair{b'',c}
+		}{\pair{a'',b''}}
+\end{equation}
+which because $g_c~\pair{a'',b''} = c \iff g_a~\pair{b'',c} = a''$ transforms a pair $\pair{a,b}$ into a pair $\pair{a'',b''}$ so that $g_c~\pair{a,b} = g_c~\pair{a'',b''}$.
+That is, $xs'' := map~(line~b'')~xs$ is a sequence on a horizontal line at $b''$ for which $map~g_c~xs = map~g_c~xs''$.
+
+Now let $xs' := map~(line~b')~xs$ so that additionally (because $g_a$ preserves vertical limits), $limit~xs' = limit~xs$.
+Thus,
+\begin{equation}
+	limit~(map~g_c~xs)\ =\ limit~(map~g_c~xs')\ =\ g_c~(limit~xs')\ =\ g_c~(limit~xs)
+\end{equation}
+with the middle equality by $g_c$'s preservation of horizontal limits.
+
+Similar arguments prove continuity of $g_a$ and $g_b$.
 \end{proof}
 
 \begin{example}
@@ -965,7 +1023,7 @@ Fortunately, restriction sometimes does the opposite.
 Define $mul_c : \Re \times \Re \to \Re$ by $mul_c~\pair{a,b} := a \cdot b$.
 It is not surjective nor strictly monotone in each axis because $mul_c~\pair{0,b} = 0$ for all $b \in B$.
 (See Figure~\ref{fig:mul-nonuniform}.)
-But $mul_c^{++} : (0,+\infty) \times (0,+\infty) \to (0,+\infty)$, and $mul_c$ restricted to the other open quadrants, are surjective and strictly increasing or decreasing in each axis.
+But $mul_c^{++} : (0,\infty) \times (0,\infty) \to (0,\infty)$, and $mul_c$ restricted to the other open quadrants, are surjective and strictly increasing or decreasing in each axis.
 \exampleqed
 \end{example}
 
@@ -977,7 +1035,7 @@ $add_c$ cannot be extended to $\cl{add_c} : \cl{\Re} \times \cl{\Re} \to \cl{\Re
 \begin{equation}
 	\lim_{\pair{a',b'} \to \pair{a,b}} add_c~\pair{a',b'}
 \end{equation}
-diverges when $\pair{a,b}$ is $\pair{-\infty,+\infty}$ or $\pair{+\infty,-\infty}$.
+diverges when $\pair{a,b}$ is $\pair{-\infty,\infty}$ or $\pair{\infty,-\infty}$.
 \exampleqed
 \end{example}
 
@@ -1011,11 +1069,7 @@ Because $ys$ is bounded by $max~\cl{C}$, $\cl{g_c}~\pair{max~\cl{A},max~\cl{B}} 
 A similar argument proves $\cl{g_c}~\pair{min~\cl{A},min~\cl{B}} = min~\cl{C}$.
 
 Border case: $xs$ converges to $\pair{max~\cl{A},b'}$ for some $b' \in B$.
-Define
-\begin{equation}
-	xs'\ :=\ map~(\fun{\pair{a,b}}\pair{g_a~\pair{b',g_c~\pair{a,b}},b'})~xs
-\end{equation}
-where $g_a$ is $g_c$'s first axial inverse.
+Define $xs' := map~(line~b')~xs$, where $line$ is defined as in the proof of Theorem~\ref{thm:uniformly-monotone-implies-invertible}.
 Now $ys = map~g_c~xs'$.
 Because $xs'$ has a subsequence that is strictly increasing in the first of each pair, and because the second of each pair is the constant $b'$, by monotonicity, $ys$ has a strictly increasing subsequence.
 It is bounded by $max~\cl{C}$, so $\cl{g_c}~\pair{max~\cl{A},b'} = max~\cl{C}$.
@@ -1027,24 +1081,24 @@ The cases for $g_c$'s other possible directions are similar.
 Following the proof of Theorem~\ref{thm:two-argument-extensions}, extensions of two-argument functions can be defined by two corner cases, four border cases, and an interior case.
 
 \begin{example}
-Define $pow_c : (0,1) \times (0,+\infty) \to (0,1)$ by $pow_c~\pair{a,b} := exp~(b \cdot log~a)$, which is increasing/decreasing.
+Define $pow_c : (0,1) \times (0,\infty) \to (0,1)$ by $pow_c~\pair{a,b} := exp~(b \cdot log~a)$, which is increasing/decreasing.
 Its extension to a subset of $\cl{\Re} \times \cl{\Re}$ is
 \begin{equation}
 \begin{aligned}
-	&\cl{pow_c} : ([0,1] \times [0,+\infty]) \w N \to [0,1] \\
+	&\cl{pow_c} : ([0,1] \times [0,\infty]) \w N \to [0,1] \\
 	&\cl{pow_c}~\pair{a,b}\ :=\
 		\lzfccase{\pair{a,b}}{
-			\pair{0,+\infty} & 0 \\
+			\pair{0,\infty} & 0 \\
 			\pair{1,0} & 1 \\ 
 			\pair{0,b} & 0 \\
 			\pair{1,b} & 1 \\
 			\pair{a,0} & 1 \\
-			\pair{a,+\infty} & 0 \\
+			\pair{a,\infty} & 0 \\
 			else & pow_c~\pair{a,b}
 		}
 \end{aligned}
 \end{equation}
-where $N := \set{\pair{0,0},\pair{1,+\infty}}$.
+where $N := \set{\pair{0,0},\pair{1,\infty}}$.
 \exampleqed
 \end{example}
 
@@ -1094,14 +1148,14 @@ The remaining cases for $g_c$ are similar.
 \begin{example}
 Because $inc_1~pow_c$ and $not~(inc_2~pow_c)$,
 \begin{align*}
-	&image~pow_c~((0,\tfrac{1}{2}] \times [2,+\infty))
+	&image~pow_c~((0,\tfrac{1}{2}] \times [2,\infty))
 \\
 	&\ =\ \lzfclet{
 		\pair{a_1,a_2,\alpha_1,\alpha_2} & \pair{0,\tfrac{1}{2},false,true} \\
-		\pair{b_1,b_2,\beta_1,\beta_2} & \pair{+\infty,2,false,true}
+		\pair{b_1,b_2,\beta_1,\beta_2} & \pair{\infty,2,false,true}
 	}{\ivl{\cl{pow_c}~\pair{a_1,b_1},\cl{pow_c}~\pair{a_2,b_2},\alpha_1~and~\beta_1,\alpha_2~and~\beta_2}}
 \\
-	&\ =\ \ivl{\cl{pow_c}~\pair{0,+\infty},\cl{pow_c}~\pair{\tfrac{1}{2},2},false~and~false,true~and~true}
+	&\ =\ \ivl{\cl{pow_c}~\pair{0,\infty},\cl{pow_c}~\pair{\tfrac{1}{2},2},false~and~false,true~and~true}
 \\
 	&\ =\ \ivl{0,\tfrac{1}{4},false,true}
 \\
@@ -1144,7 +1198,7 @@ By Theorem~\ref{thm:axial-inverse-direction}, we can use $g_c$'s axis directions
 
 Because floating-point functions are defined on subsets of $\cl{\Re}$, it would seem we could compute preimages under strictly monotone, real functions by applying their floating-point counterparts to interval endpoints.
 This is mostly true, but as with \scheme{real-set-singleton}, we must take care with rounding.
-We must also account for floating-point negative zero.
+We must also account for floating-point's signed zeros.
 
 As with all interval arithmetic, to compute sound approximations of interval images, we must round the results \keyword{outward}: round the lower endpoints down, and round the upper endpoints up.
 Unlike with most interval arithmetic, soundness is not just a nice theoretical guarantee.
@@ -1157,7 +1211,7 @@ Here is a more concrete example.
 As a preimage arrow computation, square root is
 \begin{equation}
 \begin{aligned}
-	&sqrt_{pre} : [0,+\infty) \preto\,[0,+\infty) \\
+	&sqrt_{pre} : [0,\infty) \preto\,[0,\infty) \\
 	&sqrt_{pre}~A\ :=\ \pair{image~sqrt^+~A, preimage~(restrict~sqrt^+~A)}
 \end{aligned}
 \end{equation}
@@ -1177,7 +1231,7 @@ If it again uses compliant floating-point arithmetic but does not round outward,
 \begin{equation}
 	[\tfrac{1}{2},\tfrac{1}{2}] \i [0.5000000000000001,0.5000000000000001]\ =\ \emptyset
 \end{equation}
-In fact, an implementation that does not round intervals outward would falsely compute $\emptyset$ for about half of the floating-point numbers between $0.0$ and $1.0$.
+In fact, an implementation that does not round intervals outward would falsely compute empty preimages for about half of the floating-point numbers between $0.0$ and $1.0$.
 
 The IEEE 754 floating-point standard mandates a settable rounding mode, and that common operations must use it to determine which of the nearest floating-point numbers to round to.
 Unfortunately, there is no portable way to set the rounding mode.
@@ -1270,15 +1324,15 @@ For example,
 The preimage arrow computation \scheme{sqrt-pre} computes \scheme{(bijection-image sqrt-bij A)} in the forward phase and \scheme{(bijection-preimage sqrt-bij A B)} in the reverse phase.
 
 A simple example shows how floating-point's signed zeros can cause problems: the implementation of the reciprocal function.
-Let $\cl{recip^+}$ be the extension of $recip^+ : (0,+\infty) \to (0,+\infty)$ to the compact superdomain $[0,+\infty]$, defined by
+Let $\cl{recip^+}$ be the extension of $recip^+ : (0,\infty) \to (0,\infty)$ to the compact superdomain $[0,\infty]$, defined by
 \begin{equation}
 \begin{aligned}
-	&\cl{recip^+} : [0,+\infty] \to [0,+\infty] \\
+	&\cl{recip^+} : [0,\infty] \to [0,\infty] \\
 	&\cl{recip^+}~a\ :=\ \lim_{a' \to a}~recip^+~a'\ =\ 
 		\lzfccase{a}
 		{
-			0 & +\infty \\
-			+\infty & 0 \\
+			0 & \infty \\
+			\infty & 0 \\
 			else & recip^+~a \\
 		}
 \end{aligned}
@@ -1292,7 +1346,7 @@ Suppose we implement it this way:
              (λ (a) (fl//rndd 1.0 a)) (λ (a) (fl//rndu 1.0 a))))
 \end{schemedisplay}
 \end{center}
-Because $recip^+$ is surjective, $image~recip^+~(0,+\infty) = (0,+\infty)$.
+Because $recip^+$ is surjective, $image~recip^+~(0,\infty) = (0,\infty)$.
 With this implementation, we get the expected result only when the left endpoint is \emph{positive} floating-point zero, or \scheme{+0.0}:
 \begin{center}\singlespacing
 \begin{schemedisplay}
@@ -1306,7 +1360,7 @@ empty-set
 The issue is that \scheme{(fl/ 1.0 +0.0)} returns \scheme{+inf.0}, but \scheme{(fl/ 1.0 -0.0)} returns \scheme{-inf.0}, as per the IEEE 754 floating-point standard.
 The implementation should compute
 \begin{equation}
-	image~recip^+~(0,+\infty)\ =\ (\cl{recip^+}~{+\infty}, \cl{recip^+}~0)\ =\ (0,+\infty)
+	image~recip^+~(0,\infty)\ =\ (\cl{recip^+}~{\infty}, \cl{recip^+}~0)\ =\ (0,\infty)
 \end{equation}
 but tries to return $(0,-\infty)$, which is the empty set.
 
@@ -1399,7 +1453,7 @@ We first need predicates to distinguish the parts, so we define
 \begin{equation}
 \begin{aligned}
 	&negative?\pre : \Re \preto Bool \\
-	&negative?\pre\ :=\ predicate\pre~(-\infty,0]~(0,+\infty)
+	&negative?\pre\ :=\ predicate\pre~(-\infty,0]~(0,\infty)
 \end{aligned}
 \label{eqn:negative-pre}
 \end{equation}
@@ -1420,7 +1474,7 @@ Equivalently, we could provide $sqr^+$, $neg$ and $negative?$ as primitives and 
 \end{equation}
 as a standard library function for probabilistic programs.
 
-From implementations of multiplication restricted to each open quadrant, or $mul^{++}\pre$, $mul^{+-}\pre$, $mul^{-+}\pre$ and $mul^{--}\pre$, we can define multiplication on all of $\Re \times \Re$ with
+From implementations of multiplication restricted to each open quadrant, or $mul^{++}\pre$, $mul^{+-}\pre$, $mul^{-+}\pre$ and $mul^{--}\pre$, we define multiplication on all of $\Re \times \Re$ with
 \begin{equation}
 \begin{aligned}
 	mul\pre &\ := \
@@ -1509,11 +1563,11 @@ It is not hard to show that partitioned sampling chooses an $a \in X$ according 
 \begin{example}[partitioned sampling from a standard normal]
 \label{ex:partitioned-sampling}
 Let $P$ be the standard normal distribution's probability measure.
-To sample according to $P$, let $N := \set{neg,pos}$ and $s = [neg \mapsto (-\infty,0], pos \mapsto (0,+\infty)]$, and define $Q : N \to Set~\Re \pto [0,1]$ by
+To sample according to $P$, let $N := \set{neg,pos}$ and $s = [neg \mapsto (-\infty,0], pos \mapsto (0,\infty)]$, and define $Q : N \to Set~\Re \pto [0,1]$ by
 \begin{equation}
 \begin{aligned}
 	Q~neg~A\ &=\ P~((-\infty,0] \i A)~{/}~\tfrac{1}{2} \\
-	Q~pos~A\ &=\ P~((0,+\infty) \i A)~{/}~\tfrac{1}{2}
+	Q~pos~A\ &=\ P~((0,\infty) \i A)~{/}~\tfrac{1}{2}
 \end{aligned}
 \end{equation}
 Then
@@ -1558,7 +1612,7 @@ To sample from $X$ according to $P$,
 \end{enumerate}
 \end{definition}
 
-The function $diff^+~(subcond~P~(s~n))~(Q~n)$, with type $X \to [0,+\infty)$, is a \keyword{Radon-Nikod\'ym\footnote{Pronounced ``RADon neekohDIM,'' and named after Austrian mathematician Johann Radon and Polish mathematician Otto Nikod\'ym.} derivative}.
+The function $diff^+~(subcond~P~(s~n))~(Q~n)$, with type $X \to [0,\infty)$, is a \keyword{Radon-Nikod\'ym\footnote{Pronounced ``RADon neekohDIM,'' and named after Austrian mathematician Johann Radon and Polish mathematician Otto Nikod\'ym.} derivative}.
 If $P$ has density $f$, $Q~n$ has density $g$, and $a \in s~n$ implies $g~a > 0$, then\footnote{The equality in~\eqref{eqn:diff-is-actually-easy} holds $(Q~n)$-almost everywhere.}
 \begin{equation}
 	diff^+~(subcond~P~(s~n))~(Q~n)~a\ =\ if~(a \in s~n)~(f~a~{/}~g~a)~0
@@ -1598,9 +1652,9 @@ In this instance,
 \end{itemize}
 The implementation does not actually construct most of these objects. It constructs
 \begin{itemize}
-	\item A density function $f : \Re \times \Re \tto [0,+\infty)$ to represent $P$.
+	\item A density function $f : \Re \times \Re \tto [0,\infty)$ to represent $P$.
 	\item A family of predicates $s? : N \tto X \tto Bool$ to decide $a \in s~n$.
-	\item Candidate densities $g : N \tto X \tto [0,+\infty)$ to represent $Q$.
+	\item Candidate densities $g : N \tto X \tto [0,\infty)$ to represent $Q$.
 \end{itemize}
 It computes weights using $diff^+~(subcond~P~(s~n))~(Q~n)~a\ =\ f~a~{/}~g~n~a$ when $s?~n~a = true$.
 It directly represents only $N$ and $p$, but we will find even this to be infeasible shortly.
@@ -1641,35 +1695,66 @@ $\Omega' := \setb{\omega \in \Omega}{f~\pair{\pair{\omega,t},\pair{}} \neq \bot}
 
 Equivalently, $\Omega'$ is the set of $\omega \in \Omega$ for which $\pair{\pair{\omega,t},\pair{}} \in A^*$.
 
-[XXX: graph of induced partition from program $if~(random < random)~true~false$?]
+\begin{figure*}[tb!]\centering
+\subfloat[The computation tree for $if~(random < random)~\mathit{e_1}~\mathit{e_2}$.]{%
+\includegraphics[width=3.5in]{figures/expression-tree}%
+}%
+\tab\tab%
+\subfloat[The partition induced by maximal branch traces $T^*$.
+Each part is labeled with a trace that induces it.]{%
+\includegraphics[width=2.5in]{figures/trace-induced-partition}%
+}%
+\caption[A computation tree and an induced partition of $\Omega$]{A computation tree and an induced partition of $\Omega$.}
+\label{fig:trace-induced-partition}
+\end{figure*}
+
+
+\begin{example}
+Consider the program
+\begin{equation}
+	if~(random < random)~\mathit{e_1}~\mathit{e_2}
+\end{equation}
+where $\mathit{e_1}$ and $\mathit{e_2}$ are deterministic expressions.
+Figure~\ref{fig:trace-induced-partition} illustrates the partition induced by its maximal branch traces $T^*$.
+The trace $[left~j_0 \mapsto true, * \mapsto \bot]$ induces the upper-left triangle in the plot, which represents the subset of $\Omega$ for which $random < random$ is true.
+The trace maps $left~j_0$ to $true$ because $left~j_0$ is the index of the expression $random < random$.
+
+For this program, the trace $[* \mapsto \bot]$ induces $\emptyset$.
+\exampleqed
+\end{example}
+
+In fact, only traces in $T^*$ induce nonempty subsets of $\Omega$.
 
 \begin{theorem}
 \label{thm:t-max-induce-nonempty}
 Let $t \in T$ induce $\Omega'$. $\Omega' \neq \emptyset$ if and only if $t \in T^*$.
 \end{theorem}
 \begin{proof}
-By definition of $T^*$, $\Omega' \neq \emptyset$ if and only if there is an $\omega \in \Omega'$ such that $\pair{\pair{\omega,t},\pair{}} \in  A^*$.
+By definition of $T^*$, $\Omega' \neq \emptyset$ if and only if there is an $\omega \in \Omega'$ with $\pair{\pair{\omega,t},\pair{}} \in  A^*$.
 \end{proof}
 
-Using $T$ as the partition index set and defining the partition's parts as induced random sources almost works, in the sense that the required Radon-Nikod\'ym derivatives exist.
+Using $T$ or $T^*$ as the partition index set and defining the partition's parts as induced random sources almost works, in the sense that the required Radon-Nikod\'ym derivatives exist.
 Unfortunately, we cannot use $T$ or $T^*$ as the partition index set because many branch traces can induce the same random sources.
 
 \begin{example}
-For the program
+Consider again $if~(random < random)~\mathit{e_1}~\mathit{e_2}$.
+There are many other traces that induce the same subset of $\Omega$ as $[left~j_0 \mapsto true, * \mapsto \bot]$; for example
 \begin{equation}
-	if~(random < p)~0~random
+\begin{aligned}
+	&[left~j_0 \mapsto true, right~j_0 \mapsto false, * \mapsto \bot] \\
+	&[left~j_0 \mapsto true, left~(right~j_0) \mapsto true, * \mapsto \bot]
+\end{aligned}
 \end{equation}
-there are at least two branch traces in the program's maximal domain: $t_0 := [j_0 \mapsto true, * \mapsto \bot]$ and $t_1 := [j_0 \mapsto false, * \mapsto \bot]$.
-There is also $[j_0 \mapsto false, left~j_0 \mapsto true, * \mapsto \bot]$, because it agrees with every execution that $[j_0 \mapsto false, * \mapsto \bot]$ agrees with.
-In fact, there are infinitely many branch traces in $T^*$ that induce the same random sources as either $t_0$ or $t_1$.
-[XXX: tree diagrams?]
+and so on.
+All of these agree with every $\omega$ that $[left~j_0 \mapsto true, * \mapsto \bot]$ agrees with.
+In fact, there are infinitely many branch traces in $T^*$ that induce the same random sources.
 \exampleqed
 \end{example}
 
-We need to find a subset of branch traces whose induced random sources are disjoint.
+We need to find a subset of $T^*$ whose induced random sources are disjoint.
 The main idea is to define equivalence classes of branch traces that induce the same random sources, and use the ``smallest'' branch trace in each class as a part index.
 
-To identify the ``smallest'' trace in each class, we must define an ordering over them.
+To identify the smallest trace in each class, we must define an ordering over them.
 One fairly natural way is to say a branch trace is smaller than another when it describes fewer branch decisions; i.e. its tree has fewer non-$\bot$ elements.
 Two branch traces that differ by returning respectively $true$ and $false$ for the same $j$ may represent different execution paths, so they must be incomparable.
 
@@ -1768,7 +1853,7 @@ Therefore $\omega \notin \Omega_2$.
 By a symmetric argument, $\omega \in \Omega_2$ implies $\omega \notin \Omega_1$.
 \end{proof}
 
-We can get our sought-after index set by defining the set of smallest branch traces.
+We can thus get our sought-after index set by defining the set of smallest branch traces.
 
 \begin{definition}[minimal branch traces]
 The set of \mykeyword{minimal branch traces} $T_*$ is the set of minimal elements in $T^*$, or
@@ -1853,7 +1938,7 @@ We then extend this algorithm to use preimage computation to sample in arbitrari
 			\lzfclet{
 				idxs_2 & \fun{0} i_2~(left~(right~j)) \\
 				idxs_3 & \fun{0} i_3~(right~(right~j))
-			}{\pair{i_1~j, if!idxs~j~idxs_2~idxs_3}}
+			}{\pair{i_1~(left~j), if!idxs~j~idxs_2~idxs_3}}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
@@ -2024,7 +2109,7 @@ Then
 Computing $diff^+~(subcond~P~\Omega'')~(Q~t)$ does not require $\Omega''$, as we will demonstrate shortly.
 
 Samples are rejected for two reasons.
-The first is when $\Omega' = \emptyset$ because $sample!trace$ overapproximates.
+The first is when $\Omega' = \emptyset$ because $sample!trace$ overapproximates by choosing from $T_+$ instead of $T_*$.
 The second is when $\omega \in \Omega'$ but $\omega \notin \Omega''$ because $h'$ overapproximates.
 To reduce the rejection rate, we must reduce overapproximation as much as possible.
 We can address both causes by partitioning $\Omega$ more finely than the partition induced by branch traces.
@@ -2063,7 +2148,7 @@ Doing so requires an update to the indexes arrow and another sampling algorithm.
 			\lzfclet{
 				idxs_2 & \fun{0} i_2~(left~(right~j)) \\
 				idxs_3 & \fun{0} i_3~(right~(right~j))
-			}{\pair{i_1~j, if!idxs~j~idxs_2~idxs_3}}
+			}{\pair{i_1~(left~j), if!idxs~j~idxs_2~idxs_3}}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
@@ -2153,10 +2238,10 @@ The only difference between the remainder of the code and that in Figure~\ref{fi
 
 The proofs of the preceeding theorems indicate the properties the new partition sampler must have.
 \begin{itemize}
-	\item It must be sound: for any $t \in T_*$, with positive probability, it constructs a $T'$ whose infimum is $t$.
-	\item It must partition: if it constructs a $T'$ whose infimum is not in $T_*$, $T'$ must induce $\emptyset$.
+	\item Any returned $T' \in Rect~T$ must contain its infimum (i.e. no set-valued branch choices).
+	\item It must be sound: for any $t \in T_*$, with positive probability, it returns a $T'$ whose minimum is $t$.
+	\item It must partition: if it constructs a $T'$ whose minimum is not in $T_*$, $T'$ must induce $\emptyset$.
 	\item It must terminate: branch choices must be $\bot$ with positive probability.
-	\item All branch trace sets must have minimum traces (i.e. no set-valued branch choices).
 	\item The combination of choices made must correspond with exactly one output.
 \end{itemize}
 
@@ -2175,12 +2260,12 @@ If so, $sample!part$ is sound, it partitions, and it terminates; all branch sets
 Besides $sample!part$, Figure~\ref{fig:preimage-refinement-sampling} defines $sample!preimage$, which returns weighted samples of points in the preimage of $B$ under program $\mathit{p}$'s interpretation as a function.
 It does so by partitioned importance sampling.
 It first uses $sample!part$ to return a rectangle covering a part in the partition and the probability with which the part was sampled.
-If the part is $\emptyset$, it returns $\bot$ weighted by $0$.
+If the part is $\emptyset$, it returns $\bot$ (i.e. rejects).
 If the part is nonempty, it samples from the random sources and weights the sample.
 For sample $\omega$ and trace $t$, if $f~\pair{\pair{\omega,t},\pair{}} \notin B$ then $\pair{\omega,t}$ is not in the preimage of $B$, so it weights $\omega$ by $0$, which is equivalent to rejecting it.
 
-If the sample's image is in $B$, $sample!preimage$ computes the sample's weight as $1{/}p_n \cdot 1{/}q_\omega$.
-To correctly do partitioned importance sampling, the weight should be $1{/}p_n \cdot diff^+~(subcond~P~\Omega'')~(Q~n)~\omega$, where $p_n$ is the probability of choosing the part.
+If the sample's image is in $B$, $sample!preimage$ computes $1{/}p_n \cdot 1{/}q_\omega$ as the sample's weight.
+To correctly do partitioned importance sampling, its weight should be $1{/}p_n \cdot diff^+~(subcond~P~\Omega'')~(Q~n)~\omega$, where $p_n$ is the probability of choosing the part.
 The leading term is thus correct, so we need to show $1{/}q_\omega = diff^+~(subcond~P~\Omega'')~(Q~n)~\omega$.
 
 To state the theorem, we need some definitions.
@@ -2204,11 +2289,11 @@ Because $J'$ is finite,
 A density for $P'$ that is uniform on $\Omega''$ is
 \begin{equation}
 \begin{aligned}
-	&p : (J' \to [0,1]) \to [0,+\infty) \\
+	&p : (J' \to [0,1]) \to [0,\infty) \\
 	&p~\omega\ :=\ if~(\omega \in \Omega'')~1~0
 \end{aligned}
 \end{equation}
-By assumption, the density of $Q'$ is $q : (J' \to [0,1]) \to [0,+\infty)$.
+By assumption, the density of $Q'$ is $q : (J' \to [0,1]) \to [0,\infty)$.
 Therefore, if $\omega \in \Omega''$,
 \begin{equation}
 	diff^+~(subcond~P~\Omega'')~(Q~n)~\omega
@@ -2222,7 +2307,7 @@ Thus, if $sample!source~(\Omega' \times T') = \pair{q~(restrict~\omega~J'), \ome
 \subsection{Random Source Sampling}
 
 An easy way to ensure preimage refinement sampling is correct is to sample uniformly, so that the density at every $\omega \in \Omega'$ is the reciprocal of the volume of $\Omega'$.
-Let $m : Set~\Re \pto [0,+\infty]$ be Lebesgue measure on $\Re$.
+Let $m : Set~\Re \pto [0,\infty]$ be Lebesgue measure on $\Re$ (i.e. length).
 Define
 \begin{equation}
 \begin{aligned}
@@ -2291,7 +2376,7 @@ The left plot shows the results returned by the implementation of $sample!part$:
 The right plot shows the result of sampling once within each part uniformly; in this case, 244 out of 500 samples are inside the preimage set.
 
 Figure~\ref{fig:sample-source:uniform2} shows the result of sampling within the preimage of $[-0.002,0.002]$, for which many fewer samples are in the preimage set; in this case, only 30.
-In general, for the interpretation of \scheme{diagonal}, the proportion of accepted samples in the preimage of $[-\epsilon,\epsilon]$ scales linearly with $\epsilon$.
+In general, for the interpretation of \scheme{diagonal}, the proportion of accepted samples in the preimage of $[-\varepsilon,\varepsilon]$ scales linearly with $\varepsilon$.
 We can mitigate this problem using finer partitions of $proj~j~\Omega'$.
 However, there is a solution that does not require finer partitions and accepts more samples than any repartitioning.
 
@@ -2324,6 +2409,9 @@ The caller is expected to linearize $J'$, the indexes of random values that are 
 (Dr. Bayes's implementation of $sample!part$ returns $js$ in addition to the covering rectangle and its probability.)
 The density of the sampled $\omega$ is computed as $\prod_{j \in J'} 1{/}(m~(proj~j~\Omega'_j))$, where $\Omega'_j$ are the ever-shrinking inputs to $sample!source^*$.
 Roughly, it is the joint density of \emph{dependent} uniform random variables evaluated at $restrict~\omega~J'$.
+
+Implementations of $sample!source^*$ rely on $refine$ computing image and preimage approximations whose intervals are outwardly rounded.
+As we showed in Section~\ref{sec:primitive-implementation}, unsound approximations of singleton intervals that are off by even one floating-point value can cause $refine$ to falsely return $\emptyset$.
 
 Figure~\ref{fig:sample-source:nonuniform} shows the result of using Dr. Bayes's implementation of $sample!source^*$ to sample within parts.
 No samples are rejected: in all cases, choosing an $\omega_0$ and updating $\Omega'$ with $\set{\omega_0}$ allows preimage refinement to determine the range of values for $\omega_1$ for which $\omega$ is in the preimage set.

@@ -9,8 +9,7 @@ Unsatiated readers may afterward proceed to Appendix~\ref{ch:sampling-algorithm-
 \section{Basic Definitions}
 
 For readers familiar with topology, we review the necessary fundamentals by analogy to topology.
-However, we have tried to include enough of the fundamentals that readers not familiar with basic topology can verify the proofs.
-[XXX: cite book for imported lemmas]
+However, we have tried to include enough of the fundamentals~\cite{cit:klenke-2006-probability} that readers not familiar with basic topology can verify the proofs.
 
 The analogue of a topology of open sets is a $\sigma$-algebra of measurable sets.
 
@@ -332,7 +331,7 @@ For all finite expressions $\mathit{e}$, $\meaningof{\mathit{e}}\pmap$ is measur
 By structural induction and the above theorems.
 \end{proof}
 
-Now all we need to do is represent recursive programs as a net of finite expressions, and take a sort of limit.
+Now all we need to do is represent recursive programs as a collection of finite expressions interpreted as mappings, and take their union.
 
 \begin{theorem}[approximation with finite expressions]
 \label{thm:nonrecursive-approximation}
@@ -364,10 +363,10 @@ By Theorem~\ref{thm:mapping-arrow-restriction} (mapping arrow restriction), they
 By Lemma~\ref{lem:union-of-measurable-mappings} (union of measurable mappings), their union is measurable.
 \end{proof}
 
-Theorem~\ref{thm:everything-is-measurable} remains true when $\meaningof{\cdot}\gen$ is extended with any rule whose right side is measurable, including rules for real arithmetic, equality, inequality and limits.
+Theorem~\ref{thm:everything-is-measurable} remains true when $\meaningof{\cdot}\pmap$ is extended with any rule whose right side is measurable, including rules for real arithmetic, equality, inequality and limits.
 More generally, any continuous or (countably) piecewise continuous function can be made available as a language primitive, as long as its domain's and codomain's standard $\sigma$-algebras are generated from their topologies.
 
-It is not difficult to compose $\meaningof{\cdot}\gen$ with another semantic function that defunctionalizes lambda expressions.
+$\meaningof{\cdot}\pmap$ may be composed with another semantic function that defunctionalizes lambda expressions.
 Thus, the interpretations of all expressions in higher-order languages are measurable.
 
 \section{Measurable Projections}

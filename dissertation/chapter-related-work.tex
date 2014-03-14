@@ -17,8 +17,7 @@ It uses continuations to enumerate or sample random variable values, and has a \
 The sampler looks ahead for \texttt{fail} and can handle it efficiently.
 This may be justified by commutativity (Thm.~\ref{thm:commutativity}), depending on interaction with other language features.
 
-Recently, Wingate et al~\cite{cit:wingate-2011ais-lightweight,cit:wingate-2011nips-nonstandard} have defined the semantics of \emph{nonstandard interpretations} that enable efficient inference, but do not define the languages.
-[XXX: recheck, relate to computation indexing]
+Recently, Wingate et al~\cite{cit:wingate-2011nips-nonstandard} have defined the semantics of nonstandard interpretations that enable efficient inference, but do not define languages, and an abstract interpretation much like our indexes arrow that likewise assigns names to random expressions by their position in an execution trace~\cite{cit:wingate-2011ais-lightweight}.
 
 \section{Semantics}
 
@@ -59,7 +58,6 @@ The abstraction boundaries are the conditional branches of completely unrolled, 
 There is no Kleene iteration to find a fixed point.
 In our abstract semantics, infinite computations are done in a library of \lzfclang-computable combinators, not by a semantic function.
 This cleanly separates the syntax from the semantics, and allows us to prove the exact semantics correct mostly by proving simple categorical properties.
-
 
 
 \section{Somewhat Related Work}

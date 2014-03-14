@@ -201,7 +201,7 @@ If $X$ has a standard normal distribution, then the probability that $X \in (0,1
 Figure~\ref{fig:density-integrate} plots this density and illustrates integrating under it to compute $\Pspec{X \in (0,1)}$.
 
 When probabilities are computed by integrating density functions, sets of outcomes may have positive probability, but every \emph{single} outcome has zero probability.
-For any random variable $X \in \Re$, outcome $x \in \Re$, and density function $f_X : \Re \to [0,+\infty)$,
+For any random variable $X \in \Re$, outcome $x \in \Re$, and density function $f_X : \Re \to [0,\infty)$,
 \begin{equation}
 	\Pspec{X = x}\ =\ \int_x^x f_X(x)\, dx\ =\ (f_X(x) - 0) \cdot (x - x)\ =\ f_X(x) \cdot 0\ =\ 0
 \end{equation}
@@ -253,7 +253,7 @@ Fortunately, densities have rules analogous to rules for manipulating probabilit
 Instances of the two most important rules are
 \begin{equation}
 \begin{aligned}
-	f_{X}(x)&\ =\ \int_{-\infty}^{+\infty} f_{X,Y}(x,y)\,dy
+	f_{X}(x)&\ =\ \int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dy
 \\
 	f_{X,Y}(x,y)&\ =\ f_{X}(x) \cdot f_{Y|X}(y \given x)\ =\ f_{Y}(y) \cdot f_{X|Y}(x \given y)
 \end{aligned}
@@ -267,9 +267,9 @@ The rules for densities can be used to derive \keyword{Bayes' law for densities}
 \\*
 	f_{X|Y}(x \given y)&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{f_{Y}(y)}
 \numberthis\\
-	&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{\displaystyle\int_{-\infty}^{+\infty} f_{X,Y}(x,y)\,dx}
+	&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{\displaystyle\int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dx}
 \\
-	&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{\displaystyle\int_{-\infty}^{+\infty} f_{X}(x) \cdot f_{Y|X}(y \given x)\,dx}
+	&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(y \given x)}{\displaystyle\int_{-\infty}^{\infty} f_{X}(x) \cdot f_{Y|X}(y \given x)\,dx}
 \end{align*}
 \end{displaybreaks}
 The last form is conveniently in terms of $f_{X}$ and $f_{Y|X}$, which we have on-hand.
@@ -279,9 +279,9 @@ For example, suppose we want to know the distribution of $X$ given $Y = 2$, as a
 A quite lengthy derivation finally results in
 \begin{equation}
 \begin{aligned}
-	f_{X|Y}(x \given 2)&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(2 \given x)}{\displaystyle\int_{-\infty}^{+\infty} f_{X}(x) \cdot f_{Y|X}(2 \given x)\,dx}
+	f_{X|Y}(x \given 2)&\ =\ \frac{f_{X}(x) \cdot f_{Y|X}(2 \given x)}{\displaystyle\int_{-\infty}^{\infty} f_{X}(x) \cdot f_{Y|X}(2 \given x)\,dx}
 \\
-	&\ =\ \frac{f_N(x \given 0,1) \cdot f_N(2 \given x,1)}{\displaystyle\int_{-\infty}^{+\infty}
+	&\ =\ \frac{f_N(x \given 0,1) \cdot f_N(2 \given x,1)}{\displaystyle\int_{-\infty}^{\infty}
 	f_N(x \given 0,1) \cdot f_N(2 \given x,1)\,dx}
 \\
 	&\,\,\cdots\ 

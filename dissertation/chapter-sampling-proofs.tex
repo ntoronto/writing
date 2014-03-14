@@ -13,7 +13,7 @@ Measure theory is named for its primary abstraction of length, area, volume and 
 
 \begin{definition}[measure]
 \label{def:measure}
-A partial function $m : Set~X \pto [0,+\infty]$ with domain $\A := domain~m$ is a \keyword{measure} if
+A partial function $m : Set~X \pto [0,\infty]$ with domain $\A := domain~m$ is a \keyword{measure} if
 \begin{itemize}
 	\item $\A$ is a $\sigma$-algebra
 	\item $m~\emptyset = 0$
@@ -29,27 +29,27 @@ From here on, we rely again on the notion of a set $X$'s standard $\sigma$-algeb
 We will need to distinguish three kinds of measures.
 
 \begin{definition}[probability, finite, and $\sigma$-finite measures]
-A measure $m : Set~X \pto [0,+\infty]$ may be
+A measure $m : Set~X \pto [0,\infty]$ may be
 \begin{itemize}
 	\item A \keyword{probability measure} if $m~X = 1$.
-	\item A \keyword{finite measure} if $m~X < +\infty$.
-	\item A \keyword{$\sigma$-finite measure} if there is a collection $A : \Nat \tto \Sigma~X$ such that $m~(A~n) < +\infty$ for all $n \in \Nat$, and $\bigcup_{n \in \Nat} A~n = X$.
+	\item A \keyword{finite measure} if $m~X < \infty$.
+	\item A \keyword{$\sigma$-finite measure} if there is a collection $A : \Nat \tto \Sigma~X$ such that $m~(A~n) < \infty$ for all $n \in \Nat$, and $\bigcup_{n \in \Nat} A~n = X$.
 \end{itemize}
 Trivially, probability measures are also finite measures, which in turn are also $\sigma$-finite.
 \end{definition}
 
 A ubiquitous example of a $\sigma$-finite measure is \keyword{Lebesgue measure},\footnote{Pronounced ``lehBEG,'' and named after French mathematician Henri Lebesgue.} which maps sets of $\Re^n$ (for $n \ge 1$) to their lengths, areas and volumes.
-Indeed, the Lebesgue measure of $\Re$ is $+\infty$, but $\Re$ is the union of countably many sets with finite measure; e.g. $\Re = \bigcup_{n \in \Nat} [-n,n]$.
+Indeed, the Lebesgue measure of $\Re$ is $\infty$, but $\Re$ is the union of countably many sets with finite measure; e.g. $\Re = \bigcup_{n \in \Nat} [-n,n]$.
 
 \keyword{Counting measure} simply returns the cardinality of a set.
-If $X$ is countable and $m : Set~X \pto [0,+\infty]$ is counting measure, then $m$ is $\sigma$-finite.
+If $X$ is countable and $m : Set~X \pto [0,\infty]$ is counting measure, then $m$ is $\sigma$-finite.
 If $X$ is finite, $m$ is finite.
 
 Image measure defines measures over the outputs of functions in terms of measures over their inputs.
 
 \begin{definition}[image measure]
-Let $m : Set~X \pto [0,+\infty]$ be a measure and $g : X \pto Y$ be measurable.
-Then $g$'s \keyword{image measure} with respect to $m$ is $m' : Set~Y \pto [0,+\infty]$, defined by $m'~B = m~(preimage~g~B)$.
+Let $m : Set~X \pto [0,\infty]$ be a measure and $g : X \pto Y$ be measurable.
+Then $g$'s \keyword{image measure} with respect to $m$ is $m' : Set~Y \pto [0,\infty]$, defined by $m'~B = m~(preimage~g~B)$.
 \end{definition}
 
 Measures provide a way to differentiate between propositions that are always true, and propositions that may be false, but are true for certain practical purposes.
@@ -59,10 +59,10 @@ In general, so is any countable union of null sets.
 
 \begin{definition}[almost everywhere]
 \label{def:almost-everywhere}
-A measurable predicate $p?$ holds \keyword{almost everywhere} with respect to measure $m : Set~X \pto [0,+\infty]$ when it holds on the \emph{complement} of a null set:
+A measurable predicate $p?$ holds \keyword{almost everywhere} with respect to measure $m : Set~X \pto [0,\infty]$ when it holds on the \emph{complement} of a null set:
 \begin{equation}
 \begin{aligned}
-	&ae? : (Set~X \pto [0,+\infty]) \tto (X \pto Bool) \tto Bool \\
+	&ae? : (Set~X \pto [0,\infty]) \tto (X \pto Bool) \tto Bool \\
 	&ae?~m~p?\ :=\ m~(preimage~p?~\set{false}) = 0
 \end{aligned}
 \label{eqn:ae-def}
@@ -72,7 +72,7 @@ A measurable predicate $p?$ holds \keyword{almost everywhere} with respect to me
 If $m$ is a probability measure, $ae?~m~p?$ is equivalent to $m~(preimage~p?~\set{true}) = 1$, or to $p?$ holding on a set of measure $1$.
 If $m$ is a finite measure, it is equivalent to $p?$ holding on a set of measure $m~X$.
 If $m$ is any other kind of measure, $ae?~m~p?$ must be determined using null sets.
-If we were to say $p?$ holds almost everywhere when $m~(preimage~p?~\set{true}) = m~X = +\infty$, we would have to say $\fun{x \in \Re} x > 0$ holds almost everywhere with respect to Lebesgue measure.
+If we were to say $p?$ holds almost everywhere when $m~(preimage~p?~\set{true}) = m~X = \infty$, we would have to say $\fun{x \in \Re} x > 0$ holds almost everywhere with respect to Lebesgue measure.
 
 %Properties that hold with probability $1$ come up frequently.
 %For an example, we turn again to this recursive definition:
@@ -86,10 +86,10 @@ In this chapter, we are most interested in almost-everywhere equality of mapping
 
 \begin{definition}[almost-everywhere equality]
 \label{def:almost-everywhere-equality}
-Two total mappings are \keyword{equal almost everywhere} with respect to a measure $m : Set~X \pto [0,+\infty]$ when they are not equal only on a null set, or $ae!equal?~m~g_1~g_2$ where
+Two total mappings are \keyword{equal almost everywhere} with respect to a measure $m : Set~X \pto [0,\infty]$ when they are not equal only on a null set, or $ae!equal?~m~g_1~g_2$ where
 \begin{equation}
 \begin{aligned}
-	&ae!equal? : (Set~X \pto [0,+\infty]) \tto (X \to Y) \tto (X \to Y) \tto Bool \\
+	&ae!equal? : (Set~X \pto [0,\infty]) \tto (X \to Y) \tto (X \to Y) \tto Bool \\
 	&ae!equal?~m~g_1~g_2\ :=\ ae?~m~\fun{a \in domain~g_1} g_1~a = g_2~a
 \end{aligned}
 \end{equation}
@@ -102,22 +102,22 @@ From here on, we use the more common ``$g_1 = g_2$ ($m$-a.e.)'' instead of $ae!e
 While measure-theoretic integration---called \keyword{Lebesgue integration}---is \lzfclang-definable, defining it will not illuminate the proofs further on.
 The main things to know are:
 \begin{itemize}
-	\item Lebesgue integration is done with respect to any base measure for the domain of integration. In contrast, Riemann integration\footnote{Pronounced ``REEmahn,'' and named after the German mathematician Bernhard Riemann.} (as taught in differential calculus) is done only with respect to length, area or volume in $\Re$, $\Re^2$ and other finite products $\Re^n$.
-	\item Lebesgue integration with respect to Lebesgue measure is strictly more general than Riemann integration on $\Re^n$, in that it can integrate more functions. Further, a Lebesgue integral is equivalent to a corresponding Riemann integral when the latter exists.
+	\item Lebesgue integration is done with respect to any base measure for the integration domain. In contrast, Riemann integration\footnote{Pronounced ``REEmahn,'' and named after the German mathematician Bernhard Riemann.} (as taught in differential calculus) is done only with respect to length, area or volume in $\Re$, $\Re^2$ and other finite products $\Re^n$.
+	\item Lebesgue integration with respect to Lebesgue measure is strictly more general than Riemann integration on $\Re^n$, as it can integrate more functions. Further, a Lebesgue integral is equivalent to a corresponding Riemann integral when the latter exists.
 	\item Lebesgue integration with respect to \emph{counting} measure is summation.
 \end{itemize}
 
-Rather than define Lebesgue integration from first principles, we only \emph{functionalize} it: we assume it has been defined, and turn it from special notation into a lambda.
+We only \emph{functionalize} Lebesgue integration: we assume it has been defined, and turn it from special notation into a lambda.
 Using the notation for Lebesgue integration, we define
 \begin{equation}
 \begin{aligned}
-	&int : (X \to \Re) \tto (Set~X \pto [0,+\infty]) \tto (Set~X \pto [-\infty,+\infty]) \\
+	&int : (X \to \Re) \tto (Set~X \pto [0,\infty]) \tto (Set~X \pto [-\infty,\infty]) \\
 	&int~g~m\ :=\ \fun{A \in domain~m} \int_A~g~\mathit{d}m
 \end{aligned}
 \label{eqn:int-type}
 \end{equation}
 Now $int~g~m$ is an \emph{indefinite} integral of $g$: another partial function, defined on the domain of $m$, that returns the definite integral on a given set $A$.
-For example, if $g~x := x^2$ and $m : Set~\Re \pto [0,+\infty]$ is Lebesgue measure, $int~g~m$ measures areas under the curve $y = x^2$.
+For example, if $g~x := x^2$ and $m : Set~\Re \pto [0,\infty]$ is Lebesgue measure, $int~g~m$ measures areas under the curve $y = x^2$.
 
 We can compute areas under the curve $y = x^2$ using Riemann integration:
 \begin{equation}
@@ -129,28 +129,28 @@ Because $domain~m$ is a $\sigma$-algebra, this includes countable unions, counta
 For real-valued functions, Lebesgue integration gives another, sometimes more convenient way to characterize almost-everywhere equality: two functions are equal almost everywhere if and only if their indefinite integrals are equal.
 \begin{lemma}[real function a.e. equality]
 \label{lem:real-almost-everywhere-equality}
-If $m : Set~X \pto [0,+\infty]$ is a $\sigma$-finite measure and $g_1,g_2 : X \to \Re$ are measurable, then $g_1 = g_2$ ($m$-a.e) if and only if $int~g_1~m = int~g_2~m$.
+If $m : Set~X \pto [0,\infty]$ is a $\sigma$-finite measure and $g_1,g_2 : X \to \Re$ are measurable, then $g_1 = g_2$ ($m$-a.e) if and only if $int~g_1~m = int~g_2~m$.
 \end{lemma}
 
-The type of $int$ might suggest its intended use; in particular, $Set~X \pto [-\infty,+\infty]$ is similar to $Set~X \pto [0,+\infty]$, which we use as the type of measures.\footnote{In fact, $Set~X \pto [-\infty,+\infty]$ is the type we would use for \emph{signed} measures if we needed them.}
+The type of $int$ might suggest its intended use; in particular, $Set~X \pto [-\infty,\infty]$ is similar to $Set~X \pto [0,\infty]$, which we use as the type of measures.\footnote{In fact, $Set~X \pto [-\infty,\infty]$ is the type we would use for \emph{signed} measures if we needed them.}
 We have functionalized indefinite integration to emphasize that, in this chapter and much of measure-theoretic practice, integration's primary purpose is not to compute concrete areas and volumes, but to \emph{transform measures}.
-This is supported by the following imported theorem.
+Doing so is justified by the following imported theorem.
 
 % Klenke, Def. 4.13 & Rem. 4.14
 \begin{lemma}[indefinite integration yields measures]
 \label{lem:indefinite-integration-yields-measures}
-If $g : X \to [0,+\infty)$ is measurable and $m : Set~X \pto [0,+\infty]$ is a measure, then $int~g~m$ is a measure.
+If $g : X \to [0,\infty)$ is measurable and $m : Set~X \pto [0,\infty]$ is a measure, then $int~g~m$ is a measure.
 \end{lemma}
 
-For example, if $g : \Re \to [0,+\infty)$ is a probability density function and $m$ is Lebesgue measure on $\Re$, then $int~g~m$ is a probability measure.
+For example, if $g : \Re \to [0,\infty)$ is a probability density function and $m$ is Lebesgue measure on $\Re$, then $int~g~m$ is a probability measure.
 
 Lemma~\ref{lem:indefinite-integration-yields-measures} implies there is a function
 \begin{equation}
 \begin{aligned}
-	int^+ : (X \to [0,+\infty)) \tto (Set~X \pto [0,+\infty]) \tto (Set~X \pto [0,+\infty])
+	int^+ : (X \to [0,\infty)) \tto (Set~X \pto [0,\infty]) \tto (Set~X \pto [0,\infty])
 \end{aligned}
 \end{equation}
-which agrees with $int$ for all arguments $g : X \to [0,+\infty)$.
+that agrees with $int$ for all nonnegative, measurable functions $g : X \to [0,\infty)$.
 We thus begin defining an algebra of measures and operations on them with $int^+$.
 
 We should expect integration to be positive linear, and it is.
@@ -158,13 +158,13 @@ In the following, assume that arithmetic is lifted to operate pointwise on mappi
 
 \begin{lemma}
 \label{lem:int-distributes-over-addition}
-Let $g_1,g_2 : X \to [0,+\infty)$ be measurable and $m : Set~X \pto [0,+\infty]$ be a measure.
+Let $g_1,g_2 : X \to [0,\infty)$ be measurable and $m : Set~X \pto [0,\infty]$ be a measure.
 Then $int~(g_1 + g_2)~m\ =\ int~g_1~m + int~g_2~m$.
 \end{lemma}
 
 \begin{lemma}
 \label{lem:int-distributes-over-scaling}
-Let $g : X \to [0,+\infty)$ be measurable, $\alpha \ge 0$ and $m : Set~X \pto [0,+\infty]$ be a measure.
+Let $g : X \to [0,\infty)$ be measurable, $\alpha \ge 0$ and $m : Set~X \pto [0,\infty]$ be a measure.
 Then $int~(\alpha \cdot g)~m\ =\ \alpha \cdot int~g~m$.
 \end{lemma}
 
@@ -172,9 +172,8 @@ Lastly, compositions within integrals can be moved into the base measure.
 
 \begin{lemma}[image measure integration]
 \label{lem:int-image-measure}
-Let $m : Set~X \pto [0,+\infty]$ be a measure, $g_1 : X \to Y$ and $g_2 : Y \to \Re$ be measurable, and $m'$ be $g_1$'s image measure with respect to $m$.
-For all $B \in \Sigma~Y$, $int~(g_2 \circ\map g_1)~m~(preimage~g_1~B)\ =\ int~g_2~m'~B$.
-[XXX: need more conditions]
+Let $m : Set~X \pto [0,\infty]$ be a measure, $g_1 : X \to Y$ and $g_2 : Y \to \Re$ be measurable, and $m_1$ be $g_1$'s image measure with respect to $m$.
+If $g_2$ is $m_1$-integrable or nonnegative, then $int~(g_2 \circ\map g_1)~m~(preimage~g_1~B)\ =\ int~g_2~m_1~B$ for all $B \in \Sigma~Y$.
 \end{lemma}
 
 \begin{comment}
@@ -195,10 +194,10 @@ In measure theory, the analogous property is absolute continuity.
 
 \begin{definition}[absolute continuity]
 \label{def:absolute-continuity}
-Given measures $m_1,m_2 : Set~X \pto [0,+\infty]$, we say $m_1$ is \keyword{absolutely continuous} with respect to $m_2$ if $m_1 \ll m_2$, where
+Given measures $m_1,m_2 : Set~X \pto [0,\infty]$, we say $m_1$ is \keyword{absolutely continuous} with respect to $m_2$ if $m_1 \ll m_2$, where
 \begin{equation}
 \begin{aligned}
-	&(\ll) : (Set~X \pto [0,+\infty]) \tto (Set~X \pto [0,+\infty]) \tto Bool \\
+	&(\ll) : (Set~X \pto [0,\infty]) \tto (Set~X \pto [0,\infty]) \tto Bool \\
 	&m_1 \ll m_2\ :=\ \Forall{A \in domain~m_2} m_2~A = 0 \implies m_1~A = 0
 \end{aligned}
 \end{equation}
@@ -210,7 +209,7 @@ If $P$ and $Q$ are probability measures, $P \ll Q$ essentially means $P$'s suppo
 As for integration, for differentiation, we functionalize special notation:
 \begin{equation}
 \begin{aligned}
-	&diff^+ : (Set~X \pto [0,+\infty]) \tto (Set~X \pto [0,+\infty]) \tto (X \to [0,+\infty)) \\
+	&diff^+ : (Set~X \pto [0,\infty]) \tto (Set~X \pto [0,\infty]) \tto (X \to [0,\infty)) \\
 	&diff^+~m_1~m_2\ :=\ \frac{\mathit{d}m_1}{\mathit{d}m_2}
 \end{aligned}
 \label{eqn:int-diff-types}
@@ -220,18 +219,18 @@ Such derivatives are named after the following theorem, which gives circumstance
 
 \begin{lemma}[Radon-Nikod\'ym]
 \label{lem:radon-nikodym}
-If $m_1,m_2 : Set~X \pto [0,+\infty]$ are $\sigma$-finite measures and $m_1 \ll m_2$, then $diff^+~m_1~m_2$ exists, is measurable, and $m_1 = int^+~(diff^+~m_1~m_2)~m_2$.
+If $m_1,m_2 : Set~X \pto [0,\infty]$ are $\sigma$-finite measures and $m_1 \ll m_2$, then $diff^+~m_1~m_2$ exists, is measurable, and $m_1 = int^+~(diff^+~m_1~m_2)~m_2$.
 \end{lemma}
 
-The function $diff^+~m_1~m_2 : X \to [0,+\infty)$ is often called the \emph{density} of $m_1$ with respect to $m_2$, but we call them \emph{derivatives}, reserving \emph{density} for derivatives with respect to Lebesgue measure.
-By Lemma~\ref{lem:real-almost-everywhere-equality}, any $g : X \pto [0,+\infty)$ for which $g = diff^+~m_1~m_2$ ($m_2$-a.e.) meets the Radon-Nikod\'ym theorem's conclusion $m_1 = int^+~g~m_2$.
+The function $diff^+~m_1~m_2 : X \to [0,\infty)$ is often called the \emph{density} of $m_1$ with respect to $m_2$, but we call them \emph{derivatives}, reserving \emph{density} for derivatives with respect to Lebesgue measure.
+By Lemma~\ref{lem:real-almost-everywhere-equality}, any $g : X \pto [0,\infty)$ for which $g = diff^+~m_1~m_2$ ($m_2$-a.e.) meets the Radon-Nikod\'ym theorem's conclusion $m_1 = int^+~g~m_2$.
 We therefore say that Radon-Nikod\'ym derivatives are unique up to equality $m_2$-a.e.
 
 By analogy to differential calculus, we should expect $diff^+$ to be the left inverse of $int^+$ (with second arguments held constant).
 It is, up to equality $m_2$-a.e.
 \begin{lemma}
 \label{lem:diff-left-inverse-int}
-If $g_1 : X \to [0,+\infty)$ is measurable and $m_2 : Set~X \pto [0,+\infty]$ is a $\sigma$-finite measure, then $int^+~g_1~m_2 \ll m_2$ and $g_1 = diff^+~(int^+~g_1~m_2)~m_2$ ($m_2$-a.e.).
+If $g_1 : X \to [0,\infty)$ is measurable and $m_2 : Set~X \pto [0,\infty]$ is a $\sigma$-finite measure, then $int^+~g_1~m_2 \ll m_2$ and $g_1 = diff^+~(int^+~g_1~m_2)~m_2$ ($m_2$-a.e.).
 \end{lemma}
 \begin{comment}
 \begin{proof}
@@ -253,13 +252,13 @@ We should expect differentiation to be positive linear, and it is.
 
 \begin{lemma}
 \label{lem:diff-distributes-over-addition}
-Let $m_1,m_2,m : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_1 \ll m$ and $m_2 \ll m$.
+Let $m_1,m_2,m : Set~X \pto [0,\infty]$ be $\sigma$-finite measures with $m_1 \ll m$ and $m_2 \ll m$.
 Then $m_1 + m_2 \ll m$ and $diff^+~(m_1 + m_2)~m\ =\ diff^+~m_1~m + diff^+~m_2~m$ ($m$-a.e.).
 \end{lemma}
 
 \begin{lemma}
 \label{lem:diff-distributes-over-scaling}
-Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$.
+Let $m_1,m_2 : Set~X \pto [0,\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$.
 For all $\alpha \ge 0$ and $\beta > 0$, $\alpha \cdot m_1 \ll \beta \cdot m_2$ and $diff^+~(\alpha \cdot m_1)~(\beta \cdot m_2)\ =\ \dfrac{\alpha}{\beta} \cdot diff^+~m_1~m_2$ ($m$-a.e.).
 \end{lemma}
 
@@ -267,7 +266,7 @@ As in differential calculus, there is a chain rule.
 
 \begin{lemma}[chain rule]
 \label{lem:diff-chain-rule}
-Let $m_1,m_2,m_3 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$ and $m_2 \ll m_3$.
+Let $m_1,m_2,m_3 : Set~X \pto [0,\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$ and $m_2 \ll m_3$.
 Then $m_1 \ll m_3$ and $diff^+~m_1~m_2 \cdot diff^+~m_2~m_3\ =\ diff^+~m_1~m_3$ ($m_3$-a.e.).
 \end{lemma}
 
@@ -277,7 +276,7 @@ The first is a rule for reciprocals.
 
 \begin{lemma}[reciprocal rule]
 \label{lem:diff-reciprocal-rule}
-Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_2 \ll m_1$ and $m_1 \ll m_2$.
+Let $m_1,m_2 : Set~X \pto [0,\infty]$ be $\sigma$-finite measures with $m_2 \ll m_1$ and $m_1 \ll m_2$.
 Then $diff^+~m_1~m_2\ =\ 1~{/}~diff^+~m_2~m_1$ ($m_1$-a.e. and $m_2$-a.e.).
 \end{lemma}
 
@@ -285,11 +284,11 @@ The second provides a way to integrate out derivatives, or to use differentiatio
 
 \begin{lemma}[change of measure]
 \label{lem:diff-change-measure}
-Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$, and $g : X \to \Re$ be measurable.
+Let $m_1,m_2 : Set~X \pto [0,\infty]$ be $\sigma$-finite measures with $m_1 \ll m_2$, and $g : X \to \Re$ be measurable.
 Then $int~g~m_1\ =\ int~(g \cdot diff^+~m_1~m_2)~m_2$.
 \end{lemma}
 
-Suppose we have a joint and candidate probability densities $p,q : \Re^n \pto [0,+\infty)$, and we sample according to $q$ and weight the samples by $p~{/}~q$.
+Suppose we have a joint and candidate probability densities $p,q : \Re^n \pto [0,\infty)$, and we sample according to $q$ and weight the samples by $p~{/}~q$.
 The weighted samples represent $p$ if expected values estimated using them are correct; i.e. for all measurable $g : \Re^n \to \Re$,
 \begin{equation}
 	int~g~P\ =\ int~(g \cdot p~{/}~q)~Q
@@ -345,7 +344,7 @@ In measure-theoretic probability, this is accomplished using transition kernels,
 
 \begin{definition}[transition kernel]
 \label{def:transition-kernel}
-A function $k : X \to Set~Y \pto [0,+\infty]$ is a \keyword{transition kernel} when both of the following hold.
+A function $k : X \to Set~Y \pto [0,\infty]$ is a \keyword{transition kernel} when both of the following hold.
 \begin{itemize}
 	\item For all $a \in X$, $k~a$ is a measure.
 	\item For all $B \in \Sigma~Y$, $\fun{a \in X} k~a~B$ is measurable.
@@ -359,15 +358,15 @@ Product models of dependent processes can be built by starting with a probabilit
 
 \begin{lemma}[finite kernel products]
 \label{lem:finite-transition-kernel-products}
-Let $m : Set~X \to [0,+\infty]$ be a finite measure and $k : X \to Set~Y \pto [0,+\infty]$ be a finite kernel.
-There exists a unique $\sigma$-finite measure $m \times k : Set~\pair{X,Y} \pto [0,+\infty]$ that is determined by its output on rectangles; i.e. defined by extending the following to a product measure: for all $A \in \Sigma~X$ and $B \in \Sigma~Y$,
+Let $m : Set~X \to [0,\infty]$ be a finite measure and $k : X \to Set~Y \pto [0,\infty]$ be a finite kernel.
+There exists a unique $\sigma$-finite measure $m \times k : Set~\pair{X,Y} \pto [0,\infty]$ that is determined by its output on rectangles; i.e. defined by extending the following to a product measure: for all $A \in \Sigma~X$ and $B \in \Sigma~Y$,
 \begin{equation}
 	(m \times k)~(A \times B)\ =\ int^+~(\fun{a \in X} k~a~B)~m~A
 \end{equation}
 If $m$ is a probability measure and $k$ a probability kernel, $m \times k$ is a probability measure.
 \end{lemma}
 
-For example, if $N : \Re \to Set~\Re \pto [0,1]$ takes a mean $\mu$ and returns a normal probability measure centered on $\mu$ with standard deviation $1$, then the interpretation of
+For example, if $k : \Re \to Set~\Re \pto [0,1]$ takes a mean $\mu$ and returns a normal probability measure centered on $\mu$ with standard deviation $1$, then the interpretation of
 \mathversion{normal}
 \begin{equation}
 \begin{aligned}
@@ -377,13 +376,13 @@ For example, if $N : \Re \to Set~\Re \pto [0,1]$ takes a mean $\mu$ and returns 
 \end{aligned}
 \end{equation}
 \mathversion{sans}
-as a measure-theoretic joint distribution is $(N~0) \times N$.
+as a measure-theoretic joint distribution is $(k~0) \times k$.
 
 For the proofs in the next section, we need a way to turn integrals with respect to $m \times k$ measures into nested integrals.
 
 \begin{lemma}[Fubini's for transition kernels]
 \label{lem:fubini-for-transition-kernels}
-Let $m : Set~X \to [0,+\infty]$ be a finite measure and $k : X \to Set~Y \pto [0,+\infty]$ be a finite kernel.
+Let $m : Set~X \to [0,\infty]$ be a finite measure and $k : X \to Set~Y \pto [0,\infty]$ be a finite kernel.
 If $g : X \times Y \to \cl{\Re}$ is measurable, and nonnegative or $(m \times k)$-integrable, then
 \begin{equation}
 \begin{aligned}
@@ -399,12 +398,21 @@ If $g : X \times Y \to \cl{\Re}$ is measurable, and nonnegative or $(m \times k)
 \section{Sampling Proofs}
 \label{sec:sampling-proofs}
 
-Recall that $subcond~P~A'\ :=\ \fun{A \in domain~P} P~(A' \i A)$.
+Recall the setup for partitioned importance sampling (Definition~\ref{def:partitioned-importance-sampling}): we have
+\begin{itemize}
+	\item An arbitrary probability space $X,P$.
+	\item An at-most-countable index set $N$.
+	\item A probability mass function $p : N \to [0,1]$ such that $p~n > 0$ for all $n \in N$.
+	\item A partition $s : N \to Set~X$ of $X$ into $|N|$ measurable parts.
+	\item Candidate probability measures $Q : N \to Set~X \pto [0,1]$, one for each partition.
+\end{itemize}
+Note that $Q$ is a transition kernel.
+Recall $subcond~P~A'\ :=\ \fun{A \in domain~P} P~(A' \i A)$.
 
 \begin{theorem}[partitioned importance sampling correctness]
 \label{thm:partitioned-importance-sampling-correctness}
-Let $X$, $P$, $N$, $s$, $p$, and $Q$ as in Definition~\ref{def:partitioned-importance-sampling} (partitioned importance sampling) such that $subcond~P~(s~n) \ll Q~n$ for all $n \in N$. Define $P_N : Set~N \to [0,1]$ by integrating $p$ with respect to counting measure.
-
+Suppose $subcond~P~(s~n) \ll Q~n$ for all $n \in N$.
+Define $P_N : Set~N \to [0,1]$ by integrating $p$ with respect to counting measure.
 If $g : X \to \Re$ is a $P$-integrable mapping, and
 \begin{equation}
 \begin{aligned}
@@ -445,7 +453,7 @@ Starting from the left side,
 	&&\text{$p~n > 0$}
 \\
 	&\tab =\ \sum_{n \in N} int~g~P~(s~n)
-	&&\text{XXX: justify}
+	&&\text{Def of $subcond$}
 \\
 	&\tab =\ int~g~P~(\U_{n \in N}~(s~n))
 	&&\text{$\sigma$-additivity}
@@ -460,25 +468,48 @@ Starting from the left side,
 When $m_1$ and $m_2$ are measures on infinite spaces, it is not clear that $diff^+~m_1~m_2$ exists or how to compute it.
 It seems it should exist when $m_1$ and $m_2$ differ only on a finite projection of their domains, and that it should be easy to compute when the distributions of those finite projections can be defined by densities.
 
-We start with a theorem for $diff^+~(m_1 \times k)~(m_2 \times k)$ that says we may ignore $k$.
+We will start with a theorem that says we may ignore $k$ in computing $diff^+~(m_1 \times k)~(m_2 \times k)$.
+But first, to apply $diff^+$, we need to have absolute continuity; i.e. $m_1 \times k \ll m_2 \times k$.
+
+\begin{theorem}
+\label{thm:ignore-k-diff}
+If $m_1,m_2 : Set~X \pto [0,\infty]$ are finite measures such that $m_1 \ll m_2$, and $k : X \to Set~Y \pto [0,\infty]$ is a finite kernel, then $m_1 \times k \ll m_2 \times k$.
+\end{theorem}
+\begin{proof}
+Let $C \in \Sigma~\pair{X,Y}$ such that $(m_2 \times k)~C = 0$, and $1_C~\pair{a,b} := if~(\pair{a,b} \in C)~1~0$.
+Then
+\begin{align*}
+\numberthis
+	0&\ =\ (m_2 \times k)~C
+\\
+	&\ =\ int^+~1_C~(m_2 \times k)~(X \times Y)
+	&&\text{Def of $1_C$}
+\\
+	&\ =\ int^+~(\fun{a \in X} int^+~(\fun{b \in B} 1_C~\pair{a,b})~(k~a)~Y)~m_2~X
+	&&\text{Lemma~\ref{lem:fubini-for-transition-kernels}}
+\end{align*}
+Because $m_1 \ll m_2$, $int^+~g~m_2~X = 0$ implies $int^+~g~m_1~X = 0$, so
+\begin{equation}
+	int^+~(\fun{a \in X} int^+~(\fun{b \in B} 1_C~\pair{a,b})~(k~a)~Y)~m_1~X\ =\ 0
+\end{equation}
+Apply Fubini's theorem (Lemma~\ref{lem:fubini-for-transition-kernels}) again to get $(m_1 \times k)~C = 0$.
+\end{proof}
+
 
 \begin{theorem}
 \label{thm:ignore-k}
-Let $m_1,m_2 : Set~X \pto [0,+\infty]$ be finite measures such that $m_1 \ll m_2$, and $k : X \to Set~Y \pto [0,+\infty]$ be a finite kernel.
-Then $m_1 \times k \ll m_2 \times k$ and $diff^+~(m_1 \times k)~(m_2 \times k)\ =\ (\fun{\pair{a,b} \in X \times Y} diff^+~m_1~m_2~a)$ ($m_2 \times k$-a.e.).
+Let $m_1,m_2 : Set~X \pto [0,\infty]$ be finite measures such that $m_1 \ll m_2$, and $k : X \to Set~Y \pto [0,\infty]$ be a finite kernel.
+Then $diff^+~(m_1 \times k)~(m_2 \times k)\ =\ (\fun{\pair{a,b} \in X \times Y} diff^+~m_1~m_2~a)$ ($m_2 \times k$-a.e.).
 \end{theorem}
 \begin{proof}
-XXX: prove absolute continuity
+By Theorem~\ref{thm:ignore-k-diff}, $m_1 \times k \ll m_2 \times k$, so $diff^+~(m_1 \times k)~(m_2 \times k)$ is well-defined.
 
 Let $A \in \Sigma~X$ and $B \in \Sigma~Y$.
-Integrating the left-hand side,
-\begin{align*}
-\numberthis
-	&int~(diff^+~(m_1 \times k)~(m_2 \times k))~(m_2 \times k)~(A \times B)
-\\
-	&\tab=\ (m_1 \times k)~(A \times B)
-	&&\text{Lemma~\ref{lem:radon-nikodym}}
-\end{align*}
+Integrating the left-hand side, by Lemma~\ref{lem:radon-nikodym},
+\begin{equation}
+	int~(diff^+~(m_1 \times k)~(m_2 \times k))~(m_2 \times k)~(A \times B)
+		\ =\ (m_1 \times k)~(A \times B)
+\end{equation}
 Integrating the right-hand side,
 \begin{align*}
 \numberthis
@@ -515,8 +546,8 @@ The proof is easier to do first in generality, without specifying the structure 
 
 \begin{theorem}
 \label{thm:infinite-derivatives}
-Let $\mu_1,\mu_2 : Set~Z \pto [0,+\infty]$ be $\sigma$-finite measures.
-If there exist finite measures $m_1,m_2 : Set~X \pto [0,+\infty]$ such that $m_1 \ll m_2$, a finite kernel $k : X \to Set~Y \pto [0,+\infty]$, and an injective, measurable function $g : Z \to X \times Y$ such that for all $D \in \Sigma~\pair{X,Y}$,
+Let $\mu_1,\mu_2 : Set~Z \pto [0,\infty]$ be $\sigma$-finite measures.
+If there exist finite measures $m_1,m_2 : Set~X \pto [0,\infty]$ such that $m_1 \ll m_2$, a finite kernel $k : X \to Set~Y \pto [0,\infty]$, and an injective, measurable function $g : Z \to X \times Y$ such that for all $D \in \Sigma~\pair{X,Y}$,
 \begin{equation}
 \begin{aligned}
 	(m_1 \times k)~D&\ =\ \mu_1~(preimage~g~D) \\
@@ -526,8 +557,11 @@ If there exist finite measures $m_1,m_2 : Set~X \pto [0,+\infty]$ such that $m_1
 then $\mu_1 \ll \mu_2$ and $diff^+~\mu_1~\mu_2\ =\ \fun{z \in Z} diff^+~m_1~m_2~(fst~(g~z))$ ($\mu_2$-a.e.).
 \end{theorem}
 \begin{proof}
-Suppose $m_1$, $m_2$, $k$ and $g$ as stated.
-XXX: prove absolute continuity
+By $g$'s injectivity, $\mu_1~C = (m_1 \times k)~(image~g~C)$ for all $C \in \Sigma~Z$, and similarly for $\mu_2$.
+
+Let $C \in \Sigma~Z$ such that $\mu_2~C = 0$; then $(m_2 \times k)~(image~g~C) = 0$.
+By Theorem~\ref{thm:ignore-k-diff}, $(m_1 \times k)~(image~g~C) = 0$, so $\mu_1~C = 0$.
+Therefore $\mu_1 \ll \mu_2$.
 
 Let $C \in \Sigma~Z$ and $D := image~g~C$; then
 \begin{displaybreaks}
@@ -539,7 +573,7 @@ Let $C \in \Sigma~Z$ and $D := image~g~C$; then
 	&&\text{Lemma~\ref{lem:radon-nikodym}}
 \\
 	&\tab=\ (m_1 \times k)~D
-	&&\text{Def $(m_1 \times k)$, injectivity}
+	&&\text{Injectivity of $g$}
 \\
 	&\tab=\ int~(diff^+~(m_1 \times k)~(m_2 \times k))~(m_2 \times k)~D
 	&&\text{Lemma~\ref{lem:radon-nikodym}}
@@ -557,7 +591,7 @@ Let $C \in \Sigma~Z$ and $D := image~g~C$; then
 Apply Lemma~\ref{lem:real-almost-everywhere-equality} (real function a.e. equality).
 \end{proof}
 
-Thus, two measures $\mu_1$ and $\mu_2$ on infinite structures that can be decomposed into products $m_1 \times k$ and $m_2 \times k$ such that $diff^+~m_1~m_2$ exists---using any injective transformation---have a Radon-Nikod\'ym derivative that can be uniquely defined in terms of $diff^+~m_1~m_2$.
+Thus, two measures $\mu_1$ and $\mu_2$ on infinite structures that can be decomposed into products $m_1 \times k$ and $m_2 \times k$ such that $diff^+~m_1~m_2$ exists---using any measurable, injective transformation---have a Radon-Nikod\'ym derivative that can be defined in terms of $diff^+~m_1~m_2$.
 
 Application to infinite binary trees mostly requires defining the transformation.
 
@@ -565,7 +599,7 @@ Application to infinite binary trees mostly requires defining the transformation
 \label{thm:infinite-radon-nikodym}
 Let $J' \subseteq J$ be finite, and define $X := J' \to [0,1]$ and $Y := (J \w J') \to [0,1]$.
 Let $P',Q' : Set~X \pto [0,1]$ be finite measures such that $P' \ll Q'$, and let $k : X \to Set~Y \pto [0,1]$ be a finite kernel.
-Let $g : \Omega \to X \times Y$ be defined by $g~\omega\ =\ \pair{restrict~\omega~J',restrict~\omega~(J \w J')}$.
+Define $g : \Omega \to X \times Y$ by $g~\omega := \pair{restrict~\omega~J',restrict~\omega~(J \w J')}$.
 If $P,Q : Set~\Omega \pto [0,1]$ are defined so that for all $\Omega' \in \Sigma~\Omega$,
 \begin{equation}
 \begin{aligned}
@@ -584,10 +618,10 @@ Thus $(P' \times k)~D = P~(preimage~g~D)$ for all $D \in \Sigma~\pair{X,Y}$; sim
 Apply Theorem~\ref{thm:infinite-derivatives}.
 \end{proof}
 
-In particular, if additionally $P'$ and $Q'$ can be defined by densities $p : (J' \to [0,1]) \to [0,+\infty)$ and $q : (J' \to [0,1]) \to [0,+\infty)$, then
+In particular, if additionally $P'$ and $Q'$ can be defined by densities $p : (J' \to [0,1]) \to [0,\infty)$ and $q : (J' \to [0,1]) \to [0,\infty)$, then
 \begin{equation}
 \begin{aligned}
-	diff^+~P~Q\ =\ \fun{\omega \in \Omega} \frac{p~(restrict~\omega~J')}{q~(restrict~\omega~J')}
+	diff^+~P~Q~\omega\ =\ \frac{p~(restrict~\omega~J')}{q~(restrict~\omega~J')}
 		\hspace{0.5in} &&\text{($Q$-a.e.)}
 \end{aligned}
 \end{equation}
