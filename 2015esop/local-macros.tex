@@ -69,7 +69,7 @@
 
 % keywords
 \newcommand{\keyword}[1]{\textbf{#1}}
-\newcommand{\mykeyword}[1]{\textbf{\textit{#1}}}
+\newcommand{\mykeyword}[1]{\textbf{#1}}
 
 \newcommand\xqed[1]{%
   \leavevmode\unskip\penalty9999 \hbox{}\nobreak\hfill
@@ -79,6 +79,8 @@
 
 
 \newcommand{\lzfclang}{\ensuremath{\lambda_{\text{ZFC}}}\xspace}
+
+\newcommand{\uscore}{\underbar{ }\underbar{ }}
 
 %
 % Language phase 0: meta
@@ -251,7 +253,7 @@
 
 \newcommand{\jand}{\;\;\,}
 
-\def\mycodehook{\ttcodehook\small}
+\def\mycodehook{\ttcodehook}
 \let\schemecodehook\mycodehook
 
 \DeclareMathVersion{sans}
@@ -344,9 +346,10 @@
 
 \newcommand{\lzfcsplit}[2][@{}]{\lzfc[r #1 l]{#2}}
 
-\newcommand{\lzfclet}[2]{\lzfc{let\ \ \lzfc[r@{\ \objdef\ }l]{#1} \\ \lzfc{\tab in\ \ #2}}}
+\newcommand{\lzfclet}[2]{\lzfc{let\ \ \lzfc[r@{\ \objdef\ }l]{#1} \\ \lzfc{in\ \ #2}}}
 \newcommand{\lzfccond}[2][\ \longrightarrow\ ]{\lzfc{cond\ \ \lzfc[l@{\ {#1}\ }l]{#2}}}
-\newcommand{\lzfccase}[3][\ \longrightarrow\ ]{\lzfc{case\ \ {#2}\\\ \ \lzfc[l@{\ {#1}\ }l]{#3}}}
+\newcommand{\lzfccase}[3][\ \longrightarrow\ ]{\lzfc{case\ \ {#2}\ \ of\\\ \ \lzfc[l@{\ {#1}\ }l]{#3}}}
+\newcommand{\lzfcif}[3]{\lzfcsplit{&if~{#1}\\&~~then~{#2}\\&~~else~{#3}}}
 
 \newcommand{\dash}{\text{-}}
 
@@ -366,7 +369,7 @@
 \def\datafont#1{\textcolor{parenthesiscolor}{#1}}
 
 \makeatletter
-\def\mycodehook{\tt\color{parenthesiscolor}\@setfontsize\small{7.5pt}{8.5pt minus0.5pt}}
+\def\mycodehook{\tt\color{parenthesiscolor}\@setfontsize\small{9.0pt}{10.0pt minus0.5pt}}
 \makeatother
 \let\schemecodehook\mycodehook
 \setlength{\leftcodeskip}{\parindent}
