@@ -173,11 +173,12 @@ We implement the approximating semantics and use the implementation to carry out
 
 \section{Introduction}
 
-Any general-purpose programming language can generate pseudorandom values, but a \emph{probabilistic} programming language can allow finding the probabilistic conditions under which stated constraints are satisfied.
-Often, the program simulates a real-world random process and the constraints represent observed, real-world outcomes.
-Running a simulating probabilistic program under observation constraints \emph{infers cause from effect}.
+One key feature usually distinguishes a probabilistic programming language from general-purpose languages: finding the probabilistic conditions under which stated constraints are satisfied.
+Often, a probabilistic program simulates a real-world random process and the constraints represent observed, real-world outcomes.
+Running the program under the constraints \emph{infers causes from effects}.
 
-Inferring probabilistic causes from observed outcomes is \keyword{Bayesian inference}, which is used heavily in artificial intelligence and has been successful in analyzing phenomena at all scales, from genomes to celestial bodies.
+Inferring probabilistic causes from observed outcomes is called \keyword{Bayesian inference}, a technique used widely in artificial intelligence.
+It has been successful in analyzing phenomena at all scales, from genomes to celestial bodies.
 Automating it is one of the primary drivers of probabilistic language development.
 
 One of the simplest probabilistic programs that allows us to demonstrate Bayesian inference simulates the following process of flipping two coins.
@@ -243,7 +244,7 @@ The number of required samples is typically quadratic in the answer's desired ac
 \label{fig:ray-tracing}
 \end{figure*}
 
-Probabilistic programming languages that are implemented using advanced Monte Carlo algorithms might be used not just for Bayesian inference, but for \emph{simulating rare events} by encoding the events' criteria as constraints.
+Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for \emph{simulating very low-probability events} by encoding the events' criteria as constraints.
 
 Stochastic ray tracing~\cite{cit:veach-1997siggraph-mlt} is one such rare-event simulation task.
 As illustrated in \figref{fig:ray-tracing}, to carry out stochastic ray tracing, a probabilistic program simulates a light source emitting a single photon in a random direction, which is reflected or absorbed when it hits a wall.
@@ -277,7 +278,7 @@ The program in~\eqref{eqn:simulate-photon} exhibits both characteristics.
 
 Measure-theoretic probability is a more powerful alternative to this naive probability theory based on probability mass and density functions.
 It not only subsumes naive probability theory, but is capable of defining any computable probability distribution, and many uncomputable distributions.
-But the theory's generality makes finding useful computational content difficult.
+But while even the earliest work~\cite{cit:kozen-1979fcs-prob-programs-short} on probabilistic languages is measure-theoretic, the theory's generality has historically made finding useful computational content difficult.
 
 We show that measure-theoretic probability can be made computational by
 \begin{enumerate}
