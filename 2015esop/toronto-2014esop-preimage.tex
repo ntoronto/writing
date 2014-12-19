@@ -421,11 +421,11 @@ where $\pair{f_1,f_2} = \fun{a \in (domain~f_1) \i (domain~f_2)} \pair{f_1~a,f_2
 It might seem we can easily use identities like those in~\eqref{eqn:preimage-identities} directly to define a semantic function $\meaningof{\cdot}\pre$ that interprets programs as preimage functions.
 Unfortunately, our task is not that simple, for the following reasons.
 \begin{enumerate}
-	\item The $preimage$ function can operate only on \emph{extensional} functions, which have observable domains, such as $\fun{r \in [0,1]} max~\pair{0.5,a}$. In particular, it cannot operate on lambdas such as $\fun{r} max~\pair{0.5,a}$ (even if they are typed).%
+	\item The $preimage$ function requires its argument to have an observable domain. This includes \keyword{extensional} functions, which are sets of intput/output pairs (i.e. possibly infinite hash tables), but not \keyword{intensional} functions, which are syntactic rules for computing outputs from inputs (e.g. lambdas).\footnote{The lambda $\fun{r} max~\pair{0.5,r}$ is intensional. The notation $\fun{r \in [0,1]} max~\pair{0.5,r}$ constructs an extensional function by applying $\fun{r} max~\pair{0.5,r}$ to every value in $[0,1]$.}
 \label{problem:observable-domain}
 	\item We must ensure $preimage~f~B$ is always in the domain of the chosen probability measure $P$. (Recall that probability measures are partial functions.) If this is true, we say $f$ is \keyword{measurable}. Proving measurability is difficult, especially if $f$ may not terminate.%
 \label{problem:measurability}
-	\item The function $app : (X \to Y) \times X \to Y$, when restricted to measurable functions, is not generally measurable (if we want good approximation properties)~\cite{cit:aumann-1961ijm-borel}. This makes interpreting higher-order application difficult.%
+	\item The function $app : (X \to Y) \times X \to Y$, when restricted to measurable functions, is not generally measurable, if we want good approximation properties~\cite{cit:aumann-1961ijm-borel}. This makes interpreting higher-order application difficult.%
 \label{problem:higher-orderness}
 \end{enumerate}
 Implementing a language based on preimage semantics is complicated because
