@@ -441,7 +441,7 @@ We address~\ref{problem:observable-domain} and~\ref{problem:different-language} 
 It is essentially ordinary mathematics extended with lambdas and general recursion, or equivalently a lambda calculus extended with uncountably infinite sets and set operations.
 
 We have addressed difficulty~\ref{problem:measurability} by proving that all programs' interpretations as functions are measurable if language primitives are measurable, including uncomputable primitives such as limits and real equality, regardless of nontermination.
-The proof interprets programs as extensional functions and applies well-known theorems from measure theory (such as the identities in~\eqref{eqn:preimage-identities}).
+The proof interprets programs as extensional functions and applies well-known theorems from measure theory such as the identities in~\eqref{eqn:preimage-identities}.
 Unfortunately, the required machinery does not fit in this report; see the first author's dissertation~\cite{cit:toronto-thesis} for the entire development.
 
 We avoid difficulty~\ref{problem:higher-orderness} for now by interpreting a language with \emph{first-order} functions and recursion.
@@ -1050,7 +1050,7 @@ Now we move down each side and connect the bottom, in a way that makes every mor
 
 %\subsection{Motivation}
 
-Probabilistic functions that may not terminate, but do so with probability 1, are common.
+Probabilistic functions that may not terminate, but terminate with probability 1, are common.
 For example, suppose $random$ retrieves numbers in $[0,1]$ from an implicit random source.
 The following probabilistic function defines the well-known geometric distribution by counting the number of times $random < p$:
 \begin{equation}
