@@ -445,7 +445,6 @@ The proof interprets programs as extensional functions and applies well-known th
 Unfortunately, the required machinery does not fit in this report; see the first author's dissertation~\cite{cit:toronto-thesis} for the entire development.
 
 We avoid difficulty~\ref{problem:higher-orderness} for now by interpreting a language with \emph{first-order} functions and recursion.
-
 We address~\ref{problem:backward-efficient} by deriving and implementing a \emph{conservative approximation} of the preimage semantics, and using its approximations to compute measures of preimages with arbitrary accuracy.
 
 \subsection{Nonstandard Abstract Interpretation, Categorically}
@@ -469,7 +468,6 @@ We also prove that they correctly interpret nonrecursive, nonprobabilistic progr
 
 In the full development~\cite{cit:toronto-thesis}, two more semantic functions interpret programs as extensional functions, which are used to prove measurability.
 Another semantic function collects information needed for advanced Monte Carlo algorithms.
-
 In all, we have 9 related semantic functions, each defined by 11 or 12 rules, whose correctness and relationships must be proved by structural induction.
 Doing so is tedious and error-prone.
 We need a way to parameterize one semantic function on many meanings, where each ``meaning'' is simpler than a semantic function and ideally has exploitable properties.
@@ -511,11 +509,10 @@ Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
 
 Examples of types are those of the \lzfclang primitives membership $(\in) : x \to Set~x \to Bool$, powerset $\powerset : Set~x \to Set~(Set~x)$, big union $\U : Set~(Set~x) \to Set~x$, and the \texttt{map}-like $image : (x \to y) \to Set~x \to Set~y$.
 
-We use adjacency (i.e. $f~a$) for all function application, including extensional functions.
-For example, if $f : [0,1]^\Nat$, then $f$ is a countable vector of reals in $[0,1]$ (a total, extensional function from $\Nat$ to $[0,1]$), and $f~0$ is its first element.
+We use adjacency (i.e. $f~a$) to apply both intensional and extensional functions.
+For example, the first element of the infinite vector $f : [0,1]^\Nat$ is $f~0$.
 
-We elide proofs to save space.
-The full proofs can be found in the first author's dissertation~\cite{cit:toronto-thesis}.
+Proofs, which we elide to save space, are in the first author's dissertation~\cite{cit:toronto-thesis}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -533,12 +530,12 @@ But arrow computations are always
 The first property makes arrows a good fit for a compositional translation from expressions to pure functions that operate on random sources.
 The second property makes arrows a good fit for the semantics of a first-order language.
 
-\subsection{Arrow Categories and Laws}
+\subsection{Arrow Combinators and Laws}
 \label{sec:arrow-definitions}
 
-Using arrows factors a first-order program's computations into
+Arrows factor first-order computation into the following tasks.
 \begin{enumerate}
-	\item Referring to primitive functions.
+	\item Referring to pure, primitive functions.
 	\item Applying primitive or first-order functions.
 	\item Binding values to local variables and creating data structures.
 	\item Branching based on the results of prior computations.
@@ -574,7 +571,7 @@ We find $\arrowif_a$ more natural for semantics than $left_a$, and $(\arrowpair_
 define an \keyword{arrow} if certain monoid, homomorphism, and structural laws hold.
 \end{definition}
 
-For example, the function arrow is defined by the type constructor $x \arrow y ::= x \to y$ and the combinators
+For example, the function arrow is defined by $x \arrow y ::= x \to y$ and
 \begin{equation}
 \begin{aligned}
 	\arrowarr~f &\ := \ f \\
@@ -582,16 +579,16 @@ For example, the function arrow is defined by the type constructor $x \arrow y :
 	(f_1~\arrowpair~f_2)~a &\ := \ \pair{f_1~a,f_2~a} \\
 	\arrowif~f_1~f_2~f_3~a &\ := \ if~(f_1~a)~(f_2~a)~(f_3~a) \\
 	\arrowlazy~f~a &\ :=\ f~0~a
-\end{aligned}
 \label{eqn:function-arrow}
+\end{aligned}
 \end{equation}
-Suppose we want to use the function arrow to interpret the probabilistic program $max~\pair{0.5,random}$ as a deterministic function that operates on a random source $r$.
-To do so compositionally, we must interpret every subexpression as a deterministic function.
-For any random source $r$, the interpretation of $0.5$ should return $0.5$; it is therefore $\fun{r}0.5$.
-If we assume $r \in [0,1]$, then the interpretation of $random$ is $\fun{r} r$, or $id$.
+Suppose we want to interpret the program $max~\pair{0.5,random}$ as a function arrow computation.
+To do so compositionally, we must interpret every subexpression as a function arrow computation.
+For any random source $r$, the interpretation of $0.5$ should return $0.5$; therefore $0.5$ means $\fun{r}0.5$.
+If we assume $r \in [0,1]$, then $random$ means $\fun{r} r$, or $id$.
 We can use $(\arrowpair)$ to apply each of these interpretations to the random source to create a pair, and $(\arrowcomp)$ to send the pair to $max$.
 
-The interpretation of $max~\pair{0.5,random}$ is thus
+Thus, $max~\pair{0.5,random}$, as a function arrow computation, is
 \begin{equation}
 \begin{aligned}
 	((\fun{r}0.5)~\arrowpair~id)~\arrowcomp~max
@@ -608,7 +605,7 @@ The interpretation of $max~\pair{0.5,random}$ is thus
 	&& \textrm{$\beta$ reduce}
 \end{aligned}
 \end{equation}
-which is equivalent to our manual interpretation of $max~\pair{0.5,random}$ in~\eqref{eqn:max-random-manual-interp}.
+which is equivalent to the manual interpretation of $max~\pair{0.5,random}$ in~\eqref{eqn:max-random-manual-interp}.
 
 Only the function arrow can so cavalierly use pure functions as arrow computations.
 In any other arrow $a$, pure functions must be \emph{lifted} using $\arrowarr_a$, to allow the arrow to manage any state or effects.
@@ -617,10 +614,9 @@ Assuming the random source is a single value in $[0,1]$, the interpretation of $
 	(arr_a~(\fun{r}0.5)~\arrowpair_a~arr_a~id)~\arrowcomp_a~arr_a~max
 \end{equation}
 
-
-So far, we have ignored the many arrow laws, which ensure that effects are correctly ordered, and are occasionally useful in proofs.
-Fortunately, we can prove them all for an arrow by defining it in terms of another for which the laws hold, and proving two properties.
-The first is a distributive property.
+So far, we have ignored the many arrow laws, which ensure that arrows are well-behaved (e.g. effects are correctly ordered) and are useful in proofs of theorems in which arrows are parameters (i.e. nothing else is known about them).
+Fortunately, we can prove all the laws for an arrow $a$ by defining it in terms of an arrow $b$ for which the laws hold, and proving two properties about the lift from $a$ to $b$.
+The first property is that the lift from $a$ to $b$ is distributive.
 
 \begin{definition}[arrow homomorphism]
 \label{def:arrow-homomorphism}
@@ -648,9 +644,11 @@ where ``$\equiv$'' is an arrow-specific equivalence relation.
 \end{displaybreaks}
 \end{definition}
 
+The second property is that the lift is right-invertible (i.e. surjective).
+
 \begin{theorem}[right-invertible homomorphism implies arrow laws]
 \label{thm:arrow-epimorphism}
-If $\arrowlift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ is a homomorphism from arrow $a$ to arrow $b$ and has a right inverse, and the combinators of $a$ obey the arrow laws, then the combinators of $b$ obey the arrow laws.
+If $\arrowlift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ is a right-invertible homomorphism from arrow $a$ to arrow $b$ and the arrow laws hold for $a$, then the arrow laws hold for $b$.
 \end{theorem}
 \begin{proof}
 For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law for arrow $a$, distribute $\arrowlift\genb$, and cancel right inverses.
@@ -670,6 +668,8 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 	\mathit{e} &\ ::\equiv \ \mathit{x~e}\ |\ let~\mathit{e~e}\ |\ env~\mathit{n}\ |\ \mathit{\pair{e,e}}\ |\ fst~\mathit{e}\ |\ snd~\mathit{e}\ |\ if~\mathit{e~e~e}\ |\ \mathit{v}
 \\
 	\mathit{v} &\ ::\equiv \ \text{[first-order constants]}
+\\
+	\delta &\ ::\equiv \ \text{[primitive functions]}
 \\[-6pt]
 \end{align*}
 \begin{align*}
@@ -680,14 +680,11 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 	\meaningof{\mathit{x}~\mathit{e}}\gen &\ :\equiv\
 		\meaningof{\pair{\mathit{e},\pair{}}}\gen~\arrowcomp\gen~\mathit{x}
 \\
+	\meaningof{\delta~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~\delta
+\\
 	\meaningof{\pair{\mathit{e}_1,\mathit{e}_2}}\gen &\ :\equiv\
 		\meaningof{\mathit{e}_1}\gen~\arrowpair\gen~\meaningof{\mathit{e}_2}\gen
-\\
-	\meaningof{fst~\mathit{e}}\gen &\ :\equiv\
-		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~fst
-\\
-	\meaningof{snd~\mathit{e}}\gen &\ :\equiv\
-		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~snd
 \\
 	\meaningof{\mathit{v}}\gen &\ :\equiv\ \arrowarr\gen~(const~\mathit{v})
 \\[6pt]
@@ -698,7 +695,7 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 \end{aligned}
 &\tab\tab\ 
 \begin{aligned}[t]
-\\[3pt]
+%\\[3pt]
 	\meaningof{let~\mathit{e}~\mathit{e_b}}\gen &\ :\equiv\ 
 		(\meaningof{\mathit{e}}\gen~\arrowpair\gen~\arrowarr\gen~id)~
 			\arrowcomp\gen~
@@ -728,8 +725,10 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 
 Figure~\ref{fig:semantic-function} defines a semantic function $\meaningof{\cdot}\gen$ that interprets first-order programs as arrow computations for any arrow $a$.
 A program is a sequence of definition statements followed by a final expression.
-Functions are named, but local variables and arguments are not.
-Instead, variables are referred to by De Bruijn indexes, with $0$ referring to the innermost binding.
+Function definitions may be mutually recursive because they are interpreted as definitions in a lambda calculus in which such recursion is already supported.
+(We thus do not need to define an explicit fixpoint operator.)
+Unlike functions, local variables are unnamed.
+They are referred to by De Bruijn indexes, with $0$ referring to the innermost binding.
 
 We call this style of interpretation \mykeyword{stack-passing style}.
 The final expression has type $\pair{} \arrow\gen y$, where $y$ is the type of the program's output and $\pair{}$ denotes the empty stack.
@@ -737,15 +736,16 @@ A $let$ expression uses pairing $(\arrowpair\gen)$ to push a value onto the stac
 First-order functions have type $\pair{x,\pair{}} \arrow\gen y$ where $x$ is the argument type and $y$ is the return type.
 Application passes a stack with just an $x$ using pairing and composition.
 
-We regard programs as if they were their final expressions; therefore statements about ``all expressions $\mathit{e}$'' such as the following apply to all programs $\mathit{p}$.
+Using De Bruijn indexes, the circular definition $f~x := f~x$ is written $f := f~(env~0)$, which $\meaningof{\cdot}\gen$ interprets as $f := \meaningof{\pair{env~0,\pair{}}}\gen~\arrowcomp\gen~f$.
+In a call-by-value lambda calculus, this self-referential interpretation is divergent.
+Other issues may arise with ill-typed expressions such as $5+\pair{}$.
+To avoid these tangential issues, we assume all programs are \keyword{well-defined}.
 
-\begin{definition}[well-defined expression]
+\begin{definition}[well-defined]
 \label{def:well-defined-expression}
-An expression $\mathit{e}$ is \keyword{well-defined} under arrow $a$ if $\meaningof{\mathit{e}}\gen : x \arrow\gen y$ for some $x$ and $y$, and $\meaningof{\mathit{e}}\gen$ terminates.
+An expression (or program) $\mathit{e}$ is \keyword{well-defined} under arrow $a$ if $\meaningof{\mathit{e}}\gen : x \arrow\gen y$ for some $x$ and $y$, and $\meaningof{\mathit{e}}\gen$ terminates.
 \end{definition}
 
-From here on, we assume all expressions are well-defined.
-(The arrow $a$ will be clear from context.)
 Well-definedness does not guarantee that \emph{running} an interpretation terminates.
 It just simplifies statements about expressions, such as the following theorem, on which most of our semantic correctness results rely.
 
@@ -762,7 +762,7 @@ By structural induction and homomorphism properties~\eqref{eqn:lift-distributes-
 Much of our development proceeds in the following way.
 \begin{enumerate}
 	\item Define a simple arrow $a$ to interpret programs using $\meaningof{\cdot}_a$.
-	\item Define $\arrowlift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ from arrow $a$ to arrow $b$ for which $\arrowlift\genb~f$ for any $f : x \arrow_a y$ is obviously correct.
+	\item Define $\arrowlift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ from arrow $a$ to arrow $b$ in such a way that $\arrowlift\genb~f$ for any $f : x \arrow_a y$ is obviously correct.
 	\item Prove $lift_b$ is a homomorphism; therefore $\meaningof{\mathit{e}}\genb$ is correct (Theorem~\ref{thm:homomorphism-implies-correct}).
 	\item Prove $lift_b$ is right-invertible; therefore $b$ obeys the arrow laws (Theorem~\ref{thm:arrow-epimorphism}).
 \end{enumerate}
@@ -929,7 +929,7 @@ We therefore define
 \end{equation}
 as the type of preimage functions.
 \figref{fig:preimage-mapping-defs} defines the necessary operations on them.
-Operations $\pair{\cdot,\cdot}\pre$ and $(\circ\pre)$ return preimage functions that compute preimages under pairing and composition, and are derived from the identities in~\eqref{eqn:preimage-identities}; $(\u\pre)$ computes unions and is used to define $\ifpre$.
+Operations $\pair{\cdot,\cdot}\pre$ and $(\circ\pre)$ return preimage functions that compute preimages under pairing and composition, and are derived from the preimage identities in~\eqref{eqn:preimage-identities}; $(\u\pre)$ computes unions and is used to define $\ifpre$.
 
 \figref{fig:preimage-mapping-defs} also defines $image_\bot$ and $preimage_\bot$ to operate on bottom arrow computations: $image_\bot~f~A$ computes $f$'s range (with domain $A$), and $preimage_\bot~f~A$ returns a function that computes preimages under $f$ restricted to $A$.
 Together, they can be used to convert bottom arrow computations to preimage functions:
