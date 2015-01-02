@@ -190,7 +190,7 @@ The following probabilistic program simulates this process.
 \begin{equation}
 	\lzfclet{
 		x & flip~0.5 \\
-		y & flip~(if~(x = heads)~0.5~0.3)
+		y & flip~(if~x = heads~then~0.5~else~0.3)
 	}{\pair{x,y}}
 \label{eqn:coins-program}
 \end{equation}
@@ -208,7 +208,7 @@ The meaning of~\eqref{eqn:coins-program} is thus the probability mass function
 \end{equation}
 Using $p$, we can answer any question about the process under constraints.
 For example, if we do not know $x$, but constrain $y$ to be $heads$, what is the probability that $x$ is also $heads$?
-We compute the answer by dividing the probability of the outcome we are interested in ($x$ and $y$ are both $heads$) by the total probability of outcomes in the constraint's corresponding subdomain $\set{heads,tails} \times \set{heads}$:
+We compute the answer by dividing the probability of the outcome we are interested in (i.e. $\pair{x,y} = \pair{heads,heads}$) by the total probability of outcomes in the constraint's corresponding subdomain $\set{heads,tails} \times \set{heads}$:
 \begin{equation}
 	\frac{p~\pair{heads,heads}}{\sum_{z \in \set{heads,tails} \times \set{heads}} p~z} \ =\ 
 	%\frac{p~\pair{heads,heads}}{p~\pair{heads,heads} + p~\pair{tails,heads}} \ =\ 
@@ -220,7 +220,7 @@ Therefore, we infer that the second coin is most probably fair; i.e. $x$ is most
 
 The time complexity of computing $p$ is generally exponential in the number of random choices, which is intractable for all but the simplest processes.
 One popular way to avoid this exponential explosion is to use advanced Monte Carlo algorithms to sample according to $p$ on the constraint's corresponding subdomain without explicitly enumerating that subdomain.
-The number of required samples is typically quadratic in the answer's desired accuracy.
+The number of samples required is typically quadratic in the answer's desired accuracy~\cite[Sec. 12.2]{cit:degroot-2012book-probability}.
 
 \begin{figure*}[!tb]\centering
 %\smallmathfont%
@@ -283,7 +283,7 @@ But while even the earliest work~\cite{cit:kozen-1979fcs-prob-programs-short} on
 We show that measure-theoretic probability can be made computational by
 \begin{enumerate}
 	\item Using measure-theoretic probability to define a compositional, denotational semantics that gives a valid denotation to every program.
-	\item Deriving an approximating semantics, which allows computing probabilistic conditions under constraints to arbitrary accuracy.
+	\item Deriving an approximating semantics, which allows computing answers to questions about probabilistic programs to arbitrary accuracy.
 	\item Implementing the approximating semantics and efficiently solving problems.
 \end{enumerate}
 In fact, our primary implementation, \emph{Dr. Bayes}, produced \figref{fig:ray-tracing-projection} by running a probabilistic program like~\eqref{eqn:simulate-photon} under an aperture constraint.
@@ -486,7 +486,7 @@ We therefore interpret programs 9 different ways by parameterizing a semantic fu
 
 In our formulation, an arrow category consists of a type constructor and five combinators; each is thus half as complicated as the semantic function.
 Their categorical properties also allow two drastic simplifications.
-First, they allow proving the correctness of one semantic function with respect to another by proving a simple theorem about their arrows.
+First, they allow proving the correctness of a semantic function $\meaningof{\cdot}\genb$ with respect to $\meaningof{\cdot}\gen$ by proving a simple theorem about arrows $a$ and $b$.
 Second, they allow us to \emph{derive} all the arrows for recursive, probabilistic programs from the arrows for nonrecursive, nonprobabilistic programs, by defining one function and proving one theorem.
 
 \subsection{Types and Notation}
@@ -541,12 +541,15 @@ Arrows factor first-order computation into the following tasks.
 	\item Branching based on the results of prior computations.
 \end{enumerate}
 The first four arrow combinators correspond respectively with each of these tasks.
-The last combinator allows lazy branching in a call-by-value language.
+The last combinator allows lazy branching in a call-by-value metalanguage.
+
+For laziness, we need a singleton type for thunks.
+We use the set $1 := \set{0}$.
 
 \newcommand{\arrowfootnote}{These are actually arrows \emph{with choice}, which are typically defined using $first_a$ and $left_a$ instead of $(\arrowpair_a)$ and $\arrowif_a$.
 We find $\arrowif_a$ more natural for semantics than $left_a$, and $(\arrowpair_a)$ better matches the pairing preimage identity in~\eqref{eqn:preimage-identities}.}
 
-\begin{definition}[arrow\footnote{\arrowfootnote}]Let $1 := \set{0}$. A binary type constructor $(\arrow\gen)$ and
+\begin{definition}[arrow\footnote{\arrowfootnote}]A binary type constructor $(\arrow\gen)$ and the combinators
 \begin{displaybreaks}
 \begin{equation*}
 \begin{aligned}
@@ -568,16 +571,16 @@ We find $\arrowif_a$ more natural for semantics than $left_a$, and $(\arrowpair_
 \end{aligned}
 \end{equation*}
 \end{displaybreaks}
-define an \keyword{arrow} if certain monoid, homomorphism, and structural laws hold.
+define an \keyword{arrow} if certain monoid, homomorphism, and other laws hold~\cite{cit:hughes-2000scp-arrows}.
 \end{definition}
 
-For example, the function arrow is defined by $x \arrow y ::= x \to y$ and
+For example, the function arrow is defined by the type constructor $x \arrow y ::= x \to y$ and the combinators
 \begin{equation}
 \begin{aligned}
 	\arrowarr~f &\ := \ f \\
 	(f_1~\arrowcomp~f_2)~a &\ := \ f_2~(f_1~a) \\
 	(f_1~\arrowpair~f_2)~a &\ := \ \pair{f_1~a,f_2~a} \\
-	\arrowif~f_1~f_2~f_3~a &\ := \ if~(f_1~a)~(f_2~a)~(f_3~a) \\
+	\arrowif~f_1~f_2~f_3~a &\ := \ if~f_1~a~then~f_2~a~else~f_3~a \\
 	\arrowlazy~f~a &\ :=\ f~0~a
 \label{eqn:function-arrow}
 \end{aligned}
@@ -614,8 +617,8 @@ Assuming the random source is a single value in $[0,1]$, the interpretation of $
 	(arr_a~(\fun{r}0.5)~\arrowpair_a~arr_a~id)~\arrowcomp_a~arr_a~max
 \end{equation}
 
-So far, we have ignored the many arrow laws, which ensure that arrows are well-behaved (e.g. effects are correctly ordered) and are useful in proofs of theorems in which arrows are parameters (i.e. nothing else is known about them).
-Fortunately, we can prove all the laws for an arrow $a$ by defining it in terms of an arrow $b$ for which the laws hold, and proving two properties about the lift from $a$ to $b$.
+So far, we have ignored the many arrow laws, which ensure that arrows are well-behaved (e.g. effects are correctly ordered) and are useful in proofs of theorems that quantify over arrows (i.e. nothing else is known about them).
+Fortunately, we can prove all the laws for an arrow $b$ by defining it in terms of an arrow $a$ for which the laws hold, and proving two properties about the lift from $a$ to $b$.
 The first property is that the lift from $a$ to $b$ is distributive.
 
 \begin{definition}[arrow homomorphism]
@@ -663,39 +666,22 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 \begin{figure*}[!tb]\centering
 \smallmathfont
 \begin{align*}
-	\mathit{p} &\ ::\equiv \ \mathit{x := e};\ ...\ ; \mathit{e}
+	\mathit{p} &\ ::\equiv \ \mathit{f := e};\ ...\ ; \mathit{e}
 \\
-	\mathit{e} &\ ::\equiv \ \mathit{x~e}\ |\ let~\mathit{e~e}\ |\ env~\mathit{n}\ |\ \mathit{\pair{e,e}}\ |\ fst~\mathit{e}\ |\ snd~\mathit{e}\ |\ if~\mathit{e~e~e}\ |\ \mathit{v}
+	\mathit{e} &\ ::\equiv \ let~\mathit{e~e}\ |\ env~\mathit{n}\ |\ if~\mathit{e}~then~\mathit{e}~else~\mathit{e}\ |\ \mathit{\pair{e,e}}\ |\ \mathit{f~e}\ |\ \mathit{\delta~e}\ |\ \mathit{v}\
 \\
-	\mathit{v} &\ ::\equiv \ \text{[first-order constants]}
+	\mathit{f} &\ ::\equiv \ \textit{(first-order function names)}
 \\
-	\delta &\ ::\equiv \ \text{[primitive functions]}
+	\delta &\ ::\equiv \ \textit{(primitive function names)}
+\\
+	\mathit{v} &\ ::\equiv \ \pair{\mathit{v},\mathit{v}}\ |\ \pair{}\ |\ true\ |\ false\ |\ \textit{(other first-order constants)}
 \\[-6pt]
 \end{align*}
 \begin{align*}
 \begin{aligned}[t]
-	\meaningof{\mathit{x} := \mathit{e};\ ...\ ; \mathit{e_b}}\gen &\ :\equiv\
-		\mathit{x} := \meaningof{\mathit{e}}\gen;\ ...\ ; \meaningof{\mathit{e_b}}\gen
-\\[3pt]
-	\meaningof{\mathit{x}~\mathit{e}}\gen &\ :\equiv\
-		\meaningof{\pair{\mathit{e},\pair{}}}\gen~\arrowcomp\gen~\mathit{x}
+	\meaningof{\mathit{f} := \mathit{e};\ ...\ ; \mathit{e_b}}\gen &\ :\equiv\
+		\mathit{f} := \meaningof{\mathit{e}}\gen;\ ...\ ; \meaningof{\mathit{e_b}}\gen
 \\
-	\meaningof{\delta~\mathit{e}}\gen &\ :\equiv\
-		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~\delta
-\\
-	\meaningof{\pair{\mathit{e}_1,\mathit{e}_2}}\gen &\ :\equiv\
-		\meaningof{\mathit{e}_1}\gen~\arrowpair\gen~\meaningof{\mathit{e}_2}\gen
-\\
-	\meaningof{\mathit{v}}\gen &\ :\equiv\ \arrowarr\gen~(const~\mathit{v})
-\\[6pt]
-	id &\ := \ \fun{a} a
-\\
-	const~b &\ := \ \fun{a} b
-\\
-\end{aligned}
-&\tab\tab\ 
-\begin{aligned}[t]
-%\\[3pt]
 	\meaningof{let~\mathit{e}~\mathit{e_b}}\gen &\ :\equiv\ 
 		(\meaningof{\mathit{e}}\gen~\arrowpair\gen~\arrowarr\gen~id)~
 			\arrowcomp\gen~
@@ -705,18 +691,39 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 \\
 	\meaningof{env~(\mathit{n}+1)}\gen &\ :\equiv\ \arrowarr\gen~snd~\arrowcomp\gen~\meaningof{env~\mathit{n}}\gen
 \\
-	\meaningof{if~\mathit{e_c}~\mathit{e_t}~\mathit{e_f}}\gen &\ :\equiv\
+	\meaningof{if~\mathit{e_c}~then~\mathit{e_t}~else~\mathit{e_f}}\gen &\ :\equiv\
 		\arrowif\gen~
 			\meaningof{\mathit{e_c}}\gen~
-			\meaningof{lazy~\mathit{e_t}}\gen~
-			\meaningof{lazy~\mathit{e_f}}\gen
+			(\arrowlazy\gen~\fun{0}{\meaningof{\mathit{e_t}}\gen})~
+			(\arrowlazy\gen~\fun{0}{\meaningof{\mathit{e_f}}\gen})\hspace{-3in}
+\end{aligned}
+&\tab\tab\tab\tab\ 
+\begin{aligned}[t]
+	\meaningof{\pair{\mathit{e}_1,\mathit{e}_2}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}_1}\gen~\arrowpair\gen~\meaningof{\mathit{e}_2}\gen
 \\
-	\meaningof{lazy~\mathit{e}}\gen &\ :\equiv\ \arrowlazy\gen~\fun{0}{\meaningof{\mathit{e}}\gen}
+	\meaningof{\mathit{f}~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\pair{\mathit{e},\pair{}}}\gen~\arrowcomp\gen~\mathit{f}
 \\
+	\meaningof{\delta~\mathit{e}}\gen &\ :\equiv\
+		\meaningof{\mathit{e}}\gen~\arrowcomp\gen~\arrowarr\gen~\delta
 \\
-	\text{subject to} &\ \meaningof{\mathit{p}}\gen : \pair{} \arrow\gen y \ \text{for some $y$}
+	\meaningof{\mathit{v}}\gen &\ :\equiv\ \arrowarr\gen~(const~\mathit{v})
+\end{aligned}
+\end{align*}%
+\vspace{0.5\baselineskip}%
+\begin{align*}
+\begin{aligned}[t]
+	\text{where} && const~b &\ := \ \fun{a} b
+\\
+	&& id &\ := \ \fun{a} a
+\end{aligned}
+&\tab\tab\tab\tab
+\begin{aligned}[t]
+	\text{subject to} && \meaningof{\mathit{p}}\gen : \pair{} \arrow\gen y \ \text{for some $y$}
 \end{aligned}
 \end{align*}
+
 \bottomhrule
 \caption[ ]{Interpretation of a let-calculus with first-order definitions and De-Bruijn-indexed bindings as arrow $\mathrm{a}$ computations.
 }
@@ -724,11 +731,10 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 \end{figure*}
 
 Figure~\ref{fig:semantic-function} defines a semantic function $\meaningof{\cdot}\gen$ that interprets first-order programs as arrow computations for any arrow $a$.
-A program is a sequence of definition statements followed by a final expression.
-Function definitions may be mutually recursive because they are interpreted as definitions in a lambda calculus in which such recursion is already supported.
-(We thus do not need to define an explicit fixpoint operator.)
-Unlike functions, local variables are unnamed.
-They are referred to by De Bruijn indexes, with $0$ referring to the innermost binding.
+A program is a sequence of function definitions separated by semicolons (or line breaks), followed by a final expression.
+Function definitions may be mutually recursive because they are interpreted as definitions in a metalanguage in which mutual recursion is supported.
+(We thus do not need an explicit fixpoint operator.)
+Unlike functions, local variables are unnamed: we use De Bruijn indexes, with $0$ referring to the innermost binding.
 
 We call this style of interpretation \mykeyword{stack-passing style}.
 The final expression has type $\pair{} \arrow\gen y$, where $y$ is the type of the program's output and $\pair{}$ denotes the empty stack.
@@ -736,10 +742,9 @@ A $let$ expression uses pairing $(\arrowpair\gen)$ to push a value onto the stac
 First-order functions have type $\pair{x,\pair{}} \arrow\gen y$ where $x$ is the argument type and $y$ is the return type.
 Application passes a stack with just an $x$ using pairing and composition.
 
-Using De Bruijn indexes, the circular definition $f~x := f~x$ is written $f := f~(env~0)$, which $\meaningof{\cdot}\gen$ interprets as $f := \meaningof{\pair{env~0,\pair{}}}\gen~\arrowcomp\gen~f$.
-In a call-by-value lambda calculus, this self-referential interpretation is divergent.
-Other issues may arise with ill-typed expressions such as $5+\pair{}$.
-To avoid these tangential issues, we assume all programs are \keyword{well-defined}.
+Using De Bruijn indexes, the definition $f~x := f~x$ is written $f := f~(env~0)$, which $\meaningof{\cdot}\gen$ interprets as $f := \meaningof{\pair{env~0,\pair{}}}\gen~\arrowcomp\gen~f$.
+In a call-by-value metalanguage, this circular definition is divergent.
+To avoid this tangential issue and ill-typed expressions like $max~\pair{0.5,\pair{}}$, we assume all programs are \keyword{well-defined}.
 
 \begin{definition}[well-defined]
 \label{def:well-defined-expression}
@@ -747,7 +752,7 @@ An expression (or program) $\mathit{e}$ is \keyword{well-defined} under arrow $a
 \end{definition}
 
 Well-definedness does not guarantee that \emph{running} an interpretation terminates.
-It just simplifies statements about expressions, such as the following theorem, on which most of our semantic correctness results rely.
+We assume it because it simplifies statements about expressions, such as the following theorem, on which most of our semantic correctness results rely.
 
 \begin{theorem}[homomorphisms distribute over expressions]
 \label{thm:homomorphism-implies-correct}
@@ -980,7 +985,7 @@ Expand definitions; use basic facts about $(\w)$, $(\i)$ and $image$.
 			h_3' & h_3~(ap\pre~h_1'~\set{false})
 		}{h_2' \u\pre h_3'}}
 \\
-	&\lazypre~h~A \ := \ if~(A = \emptyset)~\emptyset\pre~(h~0~A)
+	&\lazypre~h~A \ := \ if~A = \emptyset~then~\emptyset\pre~else~h~0~A
 \\
 	&\liftpre \ := \ pre
 \end{aligned}
@@ -1054,7 +1059,7 @@ Probabilistic functions that may not terminate, but terminate with probability 1
 For example, suppose $random$ retrieves numbers in $[0,1]$ from an implicit random source.
 The following probabilistic function defines the well-known geometric distribution by counting the number of times $random < p$:
 \begin{equation}
-	geometric~p \ := \ if~(random < p)~0~(1 + geometric~p)
+	geometric~p \ := \ if~random < p~then~0~else~1 + geometric~p
 \label{eqn:geometric-def}
 \end{equation}
 For any $p > 0$, $geometric~p$ may not terminate, but the probability of never taking the ``else'' branch is $(1-p) \cdot (1-p) \cdot (1-p) \cdot \cdots = 0$.
@@ -1140,11 +1145,11 @@ We thus think of programs interpreted as $AStore$ arrows as being completely unr
 \subsection{Partial, Probabilistic Programs}
 \label{sec:probabilistic-programs}
 
-To interpret probabilistic programs, we put an infinite random tree in the store.
+To interpret probabilistic programs, we put infinite random trees in the store.
 
 \begin{definition}[random source]
-Let $R := [0,1]^J$.
-A \keyword{random source} is any infinite binary tree $r \in R$.
+Define $R := [0,1]^J$, the set of infinite binary trees whose node labels are in $[0,1]$.
+A \keyword{random source} is any $r \in R$.
 \end{definition}
 
 To interpret partial programs, we need to ensure termination.
@@ -1191,16 +1196,16 @@ For partial programs, we define a combinator that reads branch traces, and an if
 \end{aligned}
 \label{eqn:ifppre-def}
 \end{equation}
-where $agrees~\pair{b_1,b_2} := if~(b_1 = b_2)~b_1~\bot$.
+where $agrees~\pair{b_1,b_2} := if~b_1 = b_2~then~b_1~else~\bot$.
 Thus, if the branch trace does not agree with the test expression, it returns an error.
 We define a new semantic function $\meaningofconv{\cdot}\genc$ by replacing the $if$ rule in $\meaningof{\cdot}\genc$:
 \begin{equation}
 \begin{aligned}
-	\meaningofconv{if~\mathit{e_c}~\mathit{e_t}~\mathit{e_f}}\genc &\ :\equiv\
+	\meaningofconv{if~\mathit{e_c}~then~\mathit{e_t}~else~\mathit{e_f}}\genc &\ :\equiv\
 		\arrowconvif\genc~
 			\meaningofconv{\mathit{e_c}}\genc~
-			\meaningofconv{lazy~\mathit{e_t}}\genc~
-			\meaningofconv{lazy~\mathit{e_f}}\genc
+			(\arrowlazy\genc~\fun{0}{\meaningofconv{e_t}\genc})~
+			(\arrowlazy\genc~\fun{0}{\meaningofconv{e_f}\genc})
 \end{aligned}
 \end{equation}
 
@@ -1294,7 +1299,7 @@ Let $\meaningofconv{\mathit{e}}_\pbot : X \pbotto Y$ have maximal domain $A^*$, 
 For all $a \in X'$, $A \subseteq X'$ and $B \subseteq Y$,
 \begin{equation}
 \begin{aligned}
-	&\meaningofconv{\mathit{e}}_\pbot &&\!\!\!\!j_0~a &&\!\!\!\!= \ if~(a \in A^*)~(\meaningof{\mathit{e}}_\pbot~j_0~a)~\bot \\
+	&\meaningofconv{\mathit{e}}_\pbot &&\!\!\!\!j_0~a &&\!\!\!\!= \ if~a \in A^*~then~\meaningof{\mathit{e}}_\pbot~j_0~a~else~\bot \\
 	ap\pre~(\!&\meaningofconv{\mathit{e}}\ppre &&\!\!\!\!j_0~A)~B &&\!\!\!\!= \ ap\pre~(\meaningof{\mathit{e}}\ppre~j_0~(A \i A^*))~B
 \end{aligned}
 \end{equation}
@@ -1335,7 +1340,7 @@ In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always ter
 &\tab\tab\tab\tab\tab
 \begin{aligned}[t]
 	&\begin{aligned}[t]
-		const\pre~b~A &\ := \ \pair{\set{b},\fun{B}{if~(B = \emptyset)~\emptyset~A}} \\
+		const\pre~b~A &\ := \ \pair{\set{b},\fun{B}{if~B = \emptyset~then~\emptyset~else~A}} \\
 		\pi\pre~j~A &\ := \ \pair{proj~j~A, unproj~j~A}
 	\end{aligned} \\
 \\[-8pt]
@@ -1348,7 +1353,7 @@ In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always ter
 \\[-6pt]
 	&\begin{aligned}[t]
 		&unproj : J \to Set~X^J \to Set~X \to Set~X^J \\
-		&unproj~j~A~B \ := \ A \i \prod_{i \in J} if~(j = i)~B~(proj~j~A)
+		&unproj~j~A~B \ := \ A \i \prod_{i \in J} if~j = i~then~B~else~proj~j~A
 	\end{aligned}
 \end{aligned}
 \end{align*}
@@ -1494,7 +1499,7 @@ If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then recta
 			h_3' & h_3~(ap\pre'~h_1'~\set{false})
 		}{h_2' \u\pre' h_3'}}
 \\
-	&\lazypre'~h~A \ := \ if~(A = \emptyset)~\emptyset\pre'~(h~0~A)
+	&\lazypre'~h~A \ := \ if~A = \emptyset~then~\emptyset\pre'~else~h~0~A
 \end{aligned}
 \end{align*}
 \vspace{3pt}
@@ -1540,10 +1545,10 @@ If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then recta
 				C_3 & C_k \i C_b \i \set{false} \\
 				A_2 & p_k~C_2 \i p_b~C_2 \\
 				A_3 & p_k~C_3 \i p_b~C_3 \\
-			}{if~\lzfcsplit{
-					&(C_b = \set{true,false}) \\
-					&\pair{\top,\fun{B}\lzfcsplit{A_2 \join A_3}} \\
-					&(k_2~(left~(right~j))~A_2 \u\pre' k_3~(right~(right~j))~A_3)\!\!\!\!\!\!\!\!\!}}
+			}{\lzfcsplit{
+					&if~C_b = \set{true,false} \\
+					&then~\pair{\top,\fun{B}\lzfcsplit{A_2 \join A_3}} \\
+					&else~(k_2~(left~(right~j))~A_2 \u\pre' k_3~(right~(right~j))~A_3)\!\!\!\!\!\!\!\!\!}}
 		}
 	\end{aligned}
 \end{aligned}
@@ -1765,13 +1770,13 @@ More broadly, we hope to advance probabilistic inference by providing a rich mod
 		A & [a,b] \i [0.5,1]
 	}{\lzfccase{A}{
 		\emptyset & \emptyset \\
-		{[a,b]} & [if~(0.5 \leq a)~0~a,b]
+		{[a,b]} & [if~0.5 \leq a~then~0~else~a,b]
 		}
 	}
 \\
 	&\ =\ \lzfclet{
 		A & [a,b] \i [0.5,1]
-	}{if~(0.5 \in A)~(A \u [0,0.5])~A
+	}{if~0.5 \in A~then~A \u [0,0.5]~else~A
 	}
 \end{aligned}
 \end{equation}
@@ -1780,7 +1785,7 @@ More broadly, we hope to advance probabilistic inference by providing a rich mod
 	preimage~f~B
 	\ =\ \lzfclet{
 		A & B \i [0.5,1]
-	}{if~(0.5 \in A)~(A \u [0,0.5])~A
+	}{if~0.5 \in A~then~A \u [0,0.5]~else~A
 	}
 \end{equation}
 
