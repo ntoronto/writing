@@ -530,7 +530,7 @@ Proofs, which we elide to save space, are in the first author's dissertation~\ci
 Arrows~\cite{cit:hughes-2000scp-arrows}, like monads~\cite{cit:wadler-2001-monads}, thread effects through computations in a way that imposes structure.
 But arrow computations are always
 \begin{enumerate}
-	\item Function-like. The type constructor for arrow $a$ is written $x \arrow_a y$ to connote this. In fact, the \keyword{function arrow}'s type constructor is $x \arrow y ::= x \to y$.
+	\item Function-like. The type constructor for arrow $a$ is written $x \arrow_a y$ to connote this. In fact, the \emph{function arrow}'s type constructor is $x \arrow y ::= x \to y$.
 	\item First-order. There is no way to derive the higher-order application combinator $app : \pair{x \arrow_a y, x} \arrow_a y$ from the combinators that define arrow $a$.
 \end{enumerate}
 The first property makes arrows a good fit for a compositional translation from expressions to pure functions that operate on random sources.
@@ -580,7 +580,7 @@ We find $\arrowif_a$ more natural for semantics than $left_a$, and $(\arrowpair_
 define an \keyword{arrow} if certain monoid, homomorphism, and other laws hold~\cite{cit:hughes-2000scp-arrows}.
 \end{definition}
 
-For example, the function arrow is defined by the type constructor $x \arrow y ::= x \to y$ and the combinators
+For example, the \keyword{function arrow} is defined by the type constructor $x \arrow y ::= x \to y$ and the combinators
 \begin{equation}
 \begin{aligned}
 	\arrowarr~f &\ := \ f \\
@@ -591,36 +591,48 @@ For example, the function arrow is defined by the type constructor $x \arrow y :
 \label{eqn:function-arrow}
 \end{aligned}
 \end{equation}
-Suppose we want to interpret the program $max~\pair{0.5,random}$ as a function arrow computation.
-To do so compositionally, we must interpret every subexpression as a function arrow computation.
-For any random source $r$, the interpretation of $0.5$ should return $0.5$; therefore $0.5$ means $\fun{r}0.5$.
-If we assume $r \in [0,1]$, then $random$ means $\fun{r} r$, or $id$.
-We can use $(\arrowpair)$ to apply each of these interpretations to the random source to create a pair, and $(\arrowcomp)$ to send the pair to $max$.
 
-Thus, $max~\pair{0.5,random}$, as a function arrow computation, is
+To demonstrate compositionally interpreting probabilistic programs as arrow computations, we interpret $max~\pair{0.5,random}$ as a function arrow computation $f : [0,1] \arrow \Re$.
+For any random source $r \in [0,1]$, the interpretation of $0.5$ should return $0.5$, so $0.5$ means $\fun{r} 0.5$, or $const~0.5$ where $const~v := \fun{\uscore}v$.
+Assuming $r \in [0,1]$ is uniformly distributed, $random$ means $\fun{r} r$, or $id$.
+We use $(\arrowpair)$ to apply each of these interpretations to the random source to create a pair, and $(\arrowcomp)$ to send the pair to $max$.
+Thus, $max~\pair{0.5,random}$, interpreted as a function arrow computation, is $f := ((const~0.5)~\arrowpair~id)~\arrowcomp~max$.
+
+By substituting the definitions of $const$, $id$, $(\arrowpair)$ and $(\arrowcomp)$, we would find that $f$ is equivalent to $\fun{r} max~\pair{0.5,r}$, similar to the interpretation in~\eqref{eqn:max-random-manual-interp}.
+
+\begin{comment}
+For any random source $r \in [0,1]$,
 \begin{equation}
 \begin{aligned}
-	((\fun{r}0.5)~\arrowpair~id)~\arrowcomp~max
-	&\ \equiv\ (\fun{r} \pair{(\fun{r}0.5)~r,id~r})~\arrowcomp~max
+	f~r
+	&\ =\ (((\fun{r}0.5)~\arrowpair~id)~\arrowcomp~max)~r
+	\tab && \textrm{def. of $f$}
+\\
+	&\ =\ ((\fun{r} \pair{(\fun{r}0.5)~r,id~r})~\arrowcomp~max)~r
 	\tab && \textrm{def. of $(\arrowpair)$}
 \\
-	&\ \equiv\ (\fun{r} \pair{0.5,r})~\arrowcomp~max
+	&\ =\ ((\fun{r} \pair{0.5,r})~\arrowcomp~max)~r
 	&& \textrm{$\beta$ reduce}
 \\
-	&\ \equiv\ \fun{r} max~((\fun{r} \pair{0.5,r})~r)
+	&\ =\ (\fun{r} max~((\fun{r} \pair{0.5,r})~r))~r
 	&& \textrm{def. of $(\arrowcomp)$}
 \\
-	&\ \equiv\ \fun{r} max~\pair{0.5,r}
+	&\ =\ (\fun{r} max~\pair{0.5,r})~r
+	&& \textrm{$\beta$ reduce}
+\\
+	&\ =\ max~\pair{0.5,r}
 	&& \textrm{$\beta$ reduce}
 \end{aligned}
 \end{equation}
-which is equivalent to the manual interpretation of $max~\pair{0.5,random}$ in~\eqref{eqn:max-random-manual-interp}.
+which shows $f$ equivalent to the manual interpretation of $max~\pair{0.5,random}$ in~\eqref{eqn:max-random-manual-interp}.
+\end{comment}
 
 Only the function arrow can so cavalierly use pure functions as arrow computations.
 In any other arrow $a$, pure functions must be \emph{lifted} using $\arrowarr_a$, to allow the arrow to manage any state or effects.
-Assuming the random source is a single value in $[0,1]$, the interpretation of $max~\pair{0.5,random}$ in any arrow $a$ is thus
+Therefore, the interpretation of $max~\pair{0.5,random}$ as an arrow $a$ computation $f_a : [0,1] \arrow_a \Re$ is
+%Assuming the random source is a single value in $[0,1]$, the interpretation of $max~\pair{0.5,random}$ in any arrow $a$ is thus
 \begin{equation}
-	(arr_a~(\fun{r}0.5)~\arrowpair_a~arr_a~id)~\arrowcomp_a~arr_a~max
+	f_a\ :=\ (arr_a~(const~0.5)~\arrowpair_a~arr_a~id)~\arrowcomp_a~arr_a~max
 \end{equation}
 
 So far, we have ignored the many arrow laws, which ensure that arrows are well-behaved (e.g. effects are correctly ordered) and are useful in proofs of theorems that quantify over arrows (i.e. nothing else is known about them).
