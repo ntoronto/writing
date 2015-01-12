@@ -244,26 +244,30 @@ The number of samples required is typically quadratic in the answer's desired ac
 \label{fig:ray-tracing}
 \end{figure*}
 
-Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for \emph{simulating very low-probability events} by encoding the events' criteria as constraints.
+Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for simulating \keyword{rare events}, i.e. very low-probability events, by encoding the events as constraints.
 
 Stochastic ray tracing~\cite{cit:veach-1997siggraph-mlt} is one such rare-event simulation task.
 As illustrated in \figref{fig:ray-tracing}, to carry out stochastic ray tracing, a probabilistic program simulates a light source emitting a single photon in a random direction, which is reflected or absorbed when it hits a wall.
 The program outputs the photon's path, which is constrained to pass through an aperture.
-Millions of paths that meet the constraint are sampled, then projected onto a simulated sensor array and accumulated.
-The program's main function is recursive:
+Millions of paths that meet the constraint are sampled, then projected onto a simulated sensor array.
+
+The program's main loop is a recursive function with two arguments: $path$, the photon's path so far as a list of points, and $dir$, the photon's current direction.
 \begin{equation}
 \lzfcsplit{
 &simulate!photon~path~dir\ :=\ \\
 &\tab \lzfccase{(find!hit~(fst~path)~dir)}{
-	reflect~pt~norm & simulate!photon~\pair{pt,path}~(random!half!dir~norm) \\
-	absorb~pt & \pair{pt,path}
+	absorb~pt & \pair{pt,path} \\
+	reflect~pt~norm & simulate!photon~\pair{pt,path}~(random!half!dir~norm)
 }
 }
 \label{eqn:simulate-photon}
 \end{equation}
-Here, $find!hit$ finds the shape the photon would hit and chooses whether it is reflected or absorbed, and $random!half!dir$ chooses the direction it is reflected.
-Running $simulate!photon~\pair{src!pt,\pair{}}~random!dir$ (where $\pair{}$ is the empty list) generates a photon path.
-The rest of the program is mostly simple vector math that computes ray-plane intersections.
+Here, $find!hit~(fst~path)~dir$ find the surface the photon hits.
+If the photon is absorbed, $find!hit$ returns a data structure containing just the collision point $pt$.
+If reflected, $find!hit$ returns a data structure containing the collision point $pt$ and surface normal $norm$, which $random!half!dir$ uses to choose a new direction.
+Running $simulate!photon~\pair{pt,\pair{}}~dir$, where $pt$ is the light source's location and $dir$ is a random emission direction, generates a photon path.
+The head of the path (the last collision point) is constrained to be in the aperture.
+The remainder of the program is simple vector math that computes ray-plane intersections.
 
 In contrast, hand-coded stochastic ray tracers, written in general-purpose languages, are much more complex and divorced from the physical processes they simulate, because they must interleave the advanced Monte Carlo algorithms that ensure the aperture constraint is met.
 
@@ -736,7 +740,7 @@ Function definitions may be mutually recursive because they are interpreted as d
 (We thus do not need an explicit fixpoint operator.)
 Unlike functions, local variables are unnamed: we use De Bruijn indexes, with $0$ referring to the innermost binding.
 
-We call this style of interpretation \mykeyword{stack-passing style}.
+The result of applying $\meaningof{\cdot}\gen$ is a \lzfclang program in \emph{environment-passing style} with the environment represented by a stack.
 The final expression has type $\pair{} \arrow\gen y$, where $y$ is the type of the program's output and $\pair{}$ denotes the empty stack.
 A $let$ expression uses pairing $(\arrowpair\gen)$ to push a value onto the stack and composition $(\arrowcomp\gen)$ to pass the resulting stack to its body.
 First-order functions have type $\pair{x,\pair{}} \arrow\gen y$ where $x$ is the argument type and $y$ is the return type.
@@ -1793,6 +1797,8 @@ More broadly, we hope to advance probabilistic inference by providing a rich mod
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection*{Acknowledgments.} Special thanks to Mitch Wand for an additional careful review and helpful feedback.
 
 \mathversion{normal}
 
