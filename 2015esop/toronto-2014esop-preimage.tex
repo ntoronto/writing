@@ -244,7 +244,7 @@ The number of samples required is typically quadratic in the answer's desired ac
 \label{fig:ray-tracing}
 \end{figure*}
 
-Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for simulating \keyword{rare events}, i.e. very low-probability events, by encoding the events as constraints.
+Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for simulating \keyword{rare events} (i.e. very low-probability events) by encoding the events as constraints.
 
 Stochastic ray tracing~\cite{cit:veach-1997siggraph-mlt} is one such rare-event simulation task.
 As illustrated in \figref{fig:ray-tracing}, to carry out stochastic ray tracing, a probabilistic program simulates a light source emitting a single photon in a random direction, which is reflected or absorbed when it hits a wall.
@@ -262,9 +262,9 @@ The program's main loop is a recursive function with two arguments: $path$, the 
 }
 \label{eqn:simulate-photon}
 \end{equation}
-Here, $find!hit~(fst~path)~dir$ find the surface the photon hits.
+Here, $find!hit~(fst~path)~dir$ finds the surface the photon hits.
 If the photon is absorbed, $find!hit$ returns a data structure containing just the collision point $pt$.
-If reflected, $find!hit$ returns a data structure containing the collision point $pt$ and surface normal $norm$, which $random!half!dir$ uses to choose a new direction.
+Otherwise, $find!hit$ returns a data structure containing the collision point $pt$ and surface normal $norm$, which $random!half!dir$ uses to choose a new direction.
 Running $simulate!photon~\pair{pt,\pair{}}~dir$, where $pt$ is the light source's location and $dir$ is a random emission direction, generates a photon path.
 The head of the path (the last collision point) is constrained to be in the aperture.
 The remainder of the program is simple vector math that computes ray-plane intersections.
@@ -385,9 +385,9 @@ To compute the probability that $max~\pair{0.5,random}$ evaluates to $0.5$, we a
 \end{equation}
 For any $f$ and $B$, the set $\setb{a \in domain~f}{f~a \in B}$ is called the \keyword{preimage of $B$ under $f$}.
 Functions that compute preimages are often denoted $f^{-1}$ to emphasize that they are a sort of generalized inverse function.
-However, we find this notation confusing: inverse functions operate on \emph{values} and may not be well-defined, whereas preimage functions operate on \emph{sets} and are \emph{always} well-defined.
-We denote $f$'s preimage function by $preimage~f$.
-Therefore, the probability that $f$ outputs a value in $B$ is $P~((preimage~f)~B)$, or $P~(preimage~f~B)$.
+However, we find this notation confusing: inverse functions operate on \emph{values} and may not be well-defined, whereas preimage functions operate on \emph{sets} and are \emph{always} well-defined.\footnote{If $f^{-1}~b$ is undefined, then the preimage of $\set{b}$ under $f$ is simply $\emptyset$.}
+Thus, we denote $f$'s preimage function by $preimage~f$.
+The probability that $f$ outputs a value in $B$ is therefore $P~((preimage~f)~B)$, or $P~(preimage~f~B)$.
 
 Though the distribution of $max~\pair{0.5,random}$, or the output of $f$, has no probability density function, its probability measure is defined by
 \begin{equation}
@@ -498,23 +498,25 @@ Second, they allow us to \emph{derive} all the arrows for recursive, probabilist
 Because some arrows carry out uncountably infinite computations, we must define their combinators in a sufficiently powerful $\lambda$-calculus.
 We use \lzfclang~\cite{cit:toronto-2012flops-lzfc}.
 
-Though \lzfclang is untyped, it helps to use an auxiliary type system.
-Types are manually checked, polymorphic, and characterized by these rules:
-\begin{itemize}
-	\item A free type variable is universally quantified; if uppercase, it denotes a set.
-	\item A set denotes a member of that set.
-	\item $x \to y$ denotes an intensional or extensional partial function.
-	\item $\pair{x,y}$ denotes a pair of values with types $x$ and $y$.
-	\item $Y^X$ denotes a vector of $Y$ indexed by $X$: a total, extensional function $X \to Y$.
-	\item $Set~x$ denotes a set with members of type $x$.
-\end{itemize}
-Because the type $Set~X$ denotes the same values as the set $\powerset~X$ (i.e. subsets of the set $X$) we regard them as equivalent.
-Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
+Though \lzfclang is untyped, it helps to use a manually checked, auxiliary type system.
+For example, the types of some of \lzfclang's primitives are those of membership $(\in) : x \to Set~x \to Bool$, powerset $\powerset : Set~x \to Set~(Set~x)$, big union $\U : Set~(Set~x) \to Set~x$, and the \texttt{map}-like $image : (x \to y) \to Set~x \to Set~y$.
+We allow sets to be used as types, as in $max : \pair{\Re,\Re} \to \Re$.
 
-Examples of types are those of the \lzfclang primitives membership $(\in) : x \to Set~x \to Bool$, powerset $\powerset : Set~x \to Set~(Set~x)$, big union $\U : Set~(Set~x) \to Set~x$, and the \texttt{map}-like $image : (x \to y) \to Set~x \to Set~y$.
+More precisely, types are characterized by these rules:
+\begin{itemize}
+	\item $x \to y$ is the type of intensional, partial functions from type $x$ to type $y$.
+	\item $\pair{x,y}$ is the type of pairs of values with types $x$ and $y$.
+	\item $Set~x$ is the type of sets whose members have type $x$.
+	\item An uppercase type variable such as $X$ represents a set used as a type.
+	\item $X^J$ is the type of extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$.
+\end{itemize}
+Because the inhabitants of the type $Set~X$ and $\powerset~X$ (i.e. subsets of the set $X$) are the same, they are equivalent types.
+Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
 
 We use adjacency (i.e. $f~a$) to apply both intensional and extensional functions.
 For example, the first element of the infinite vector $f : [0,1]^\Nat$ is $f~0$.
+
+Type constructors are defined using `$::=$'; e.g. $X \botto Y ::= X \to (Y \u \set{\bot})$.
 
 Proofs, which we elide to save space, are in the first author's dissertation~\cite{cit:toronto-thesis}.
 
@@ -537,7 +539,7 @@ The second property makes arrows a good fit for the semantics of a first-order l
 \subsection{Arrow Combinators and Laws}
 \label{sec:arrow-definitions}
 
-Arrows factor first-order computation into the following tasks.
+Arrows factor computation into the following tasks.
 \begin{enumerate}
 	\item Referring to pure, primitive functions.
 	\item Applying primitive or first-order functions.
@@ -545,7 +547,7 @@ Arrows factor first-order computation into the following tasks.
 	\item Branching based on the results of prior computations.
 \end{enumerate}
 The first four arrow combinators correspond respectively with each of these tasks.
-The last combinator allows lazy branching in a call-by-value metalanguage.
+Another allows lazy branching in a call-by-value language such as \lzfclang.
 
 For laziness, we need a singleton type for thunks.
 We use the set $1 := \set{0}$.
@@ -718,9 +720,9 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 \vspace{0.5\baselineskip}%
 \begin{align*}
 \begin{aligned}[t]
-	\text{where} && const~b &\ := \ \fun{a} b
+	\text{where} && const~v &\ := \ \fun{\uscore} v
 \\
-	&& id &\ := \ \fun{a} a
+	&& id &\ := \ \fun{v} v
 \end{aligned}
 &\tab\tab\tab\tab
 \begin{aligned}[t]
@@ -730,6 +732,7 @@ For each law, substitute right inverses, factor out $\arrowlift\genb$, apply law
 
 \bottomhrule
 \caption[ ]{Interpretation of a let-calculus with first-order definitions and De-Bruijn-indexed bindings as arrow $\mathrm{a}$ computations.
+Here, `$::\equiv$' denotes definitional extension for grammars and `$:\equiv$' denotes definitional extension for syntax.
 }
 \label{fig:semantic-function}
 \end{figure*}
