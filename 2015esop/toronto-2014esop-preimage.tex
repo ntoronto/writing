@@ -266,7 +266,7 @@ Here, $find!hit~(fst~path)~dir$ finds the surface the photon hits.
 If the photon is absorbed, $find!hit$ returns a data structure containing just the collision point $pt$.
 Otherwise, $find!hit$ returns a data structure containing the collision point $pt$ and surface normal $norm$, which $random!half!dir$ uses to choose a new direction.
 Running $simulate!photon~\pair{pt,\pair{}}~dir$, where $pt$ is the light source's location and $dir$ is a random emission direction, generates a photon path.
-The head of the path (the last collision point) is constrained to be in the aperture.
+The $fst$ of the path (the last collision point) is constrained to be in the aperture.
 The remainder of the program is simple vector math that computes ray-plane intersections.
 
 In contrast, hand-coded stochastic ray tracers, written in general-purpose languages, are much more complex and divorced from the physical processes they simulate, because they must interleave the advanced Monte Carlo algorithms that ensure the aperture constraint is met.
@@ -290,8 +290,8 @@ We show that measure-theoretic probability can be made computational by
 	\item Deriving an approximating semantics, which allows computing answers to questions about probabilistic programs to arbitrary accuracy.
 	\item Implementing the approximating semantics and efficiently solving problems.
 \end{enumerate}
-In fact, our primary implementation, \emph{Dr. Bayes}, produced \figref{fig:ray-tracing-projection} by running a probabilistic program like~\eqref{eqn:simulate-photon} under an aperture constraint.
-%Dr. Bayes can be found at \url{https://github.com/ntoronto/drbayes}.
+In fact, our primary implementation, \emph{Dr.~Bayes}, produced \figref{fig:ray-tracing-projection} by running a probabilistic program like~\eqref{eqn:simulate-photon} under an aperture constraint.
+%Dr.~Bayes can be found at \url{https://github.com/ntoronto/drbayes}.
 
 \vspace{0.5\baselineskip}
 
@@ -755,23 +755,28 @@ Function definitions may be mutually recursive because they are interpreted as d
 (We thus do not need an explicit fixpoint operator.)
 Unlike functions, local variables are unnamed: we use De Bruijn indexes, with $0$ referring to the innermost binding.
 
-The result of applying $\meaningof{\cdot}\gen$ is a \lzfclang program in \emph{environment-passing style} with the environment represented by a stack.
+The result of applying $\meaningof{\cdot}\gen$ is a \lzfclang program in \keyword{environment-passing style} where the environment is a stack.
 The final expression has type $\pair{} \arrow\gen y$, where $y$ is the type of the program's output and $\pair{}$ denotes the empty stack.
 A $let$ expression uses pairing $(\arrowpair\gen)$ to push a value onto the stack and composition $(\arrowcomp\gen)$ to pass the resulting stack to its body.
 First-order functions have type $\pair{x,\pair{}} \arrow\gen y$ where $x$ is the argument type and $y$ is the return type.
-Application passes a stack with just an $x$ using pairing and composition.
+Application passes a stack containing just an $x$ using pairing and composition.
 
-Using De Bruijn indexes, the definition $f~x := f~x$ is written $f := f~(env~0)$, which $\meaningof{\cdot}\gen$ interprets as $f := \meaningof{\pair{env~0,\pair{}}}\gen~\arrowcomp\gen~f$.
-In a call-by-value metalanguage, this circular definition is divergent.
-To avoid this tangential issue and ill-typed expressions like $max~\pair{0.5,\pair{}}$, we assume all programs are \keyword{well-defined}.
+Using De Bruijn indexes, $g~x := g~x$ is written $g := g~(env~0)$, which $\meaningof{\cdot}\gen$ interprets as $g := \meaningof{\pair{env~0,\pair{}}}\gen~\arrowcomp\gen~g$.
+To disallow such circular definitions, and ill-typed expressions like $max~\pair{0.5,\pair{}}$, we require programs to be \keyword{well-defined}.
 
 \begin{definition}[well-defined]
 \label{def:well-defined-expression}
-An expression (or program) $\mathit{e}$ is \keyword{well-defined} under arrow $a$ if $\meaningof{\mathit{e}}\gen : x \arrow\gen y$ for some $x$ and $y$, and $\meaningof{\mathit{e}}\gen$ terminates.
+An expression (or program) $\mathit{e}$ is \keyword{well-defined} under arrow $a$ if $\meaningof{\mathit{e}}\gen$ terminates and $\meaningof{\mathit{e}}\gen : x \arrow\gen y$ for some $x$ and $y$.
 \end{definition}
 
-Well-definedness does not guarantee that \emph{running} an interpretation terminates.
-We assume it because it simplifies statements about expressions, such as the following theorem, on which most of our semantic correctness results rely.
+Well-definedness guarantees that recursion is guarded by $if$ expressions, as $\meaningof{if~\mathit{e_c}~then~\mathit{e_t}~else~\mathit{e_f}}\gen$ wraps $\meaningof{\mathit{e_t}}\gen$ and $\meaningof{\mathit{e_f}}\gen$ in thunks.
+It does \emph{not} guarantee that \emph{running} an interpretation always terminates.
+For example, the program
+$g := if~true~then~g~(env~0)~else~0;\,g~0$
+is well-defined under the function arrow, but applying its interpretation to $\pair{}$ does not terminate.
+Section~\ref{sec:recursive-arrows} deals with such programs by defining arrows that take finitely many branches, or return $\bot$.
+
+Most of our semantic correctness results rely on the following theorem.
 
 \begin{theorem}[homomorphisms distribute over expressions]
 \label{thm:homomorphism-implies-correct}
@@ -785,12 +790,12 @@ By structural induction and homomorphism properties~\eqref{eqn:lift-distributes-
 
 Much of our development proceeds in the following way.
 \begin{enumerate}
-	\item Define a simple arrow $a$ to interpret programs using $\meaningof{\cdot}_a$.
-	\item Define $\arrowlift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ from arrow $a$ to arrow $b$ in such a way that $\arrowlift\genb~f$ for any $f : x \arrow_a y$ is obviously correct.
+	\item Define an arrow $a$ to interpret programs using $\meaningof{\cdot}_a$.
+	\item Define $\arrowlift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ from arrow $a$ to $b$ in such a way that $\arrowlift\genb~f$ for any $f : x \arrow_a y$ is obviously correct.
 	\item Prove $lift_b$ is a homomorphism; therefore $\meaningof{\mathit{e}}\genb$ is correct (Theorem~\ref{thm:homomorphism-implies-correct}).
 	\item Prove $lift_b$ is right-invertible; therefore $b$ obeys the arrow laws (Theorem~\ref{thm:arrow-epimorphism}).
 \end{enumerate}
-In shorter terms, \emph{if arrow $b$ is defined in terms of a right-invertible homomorphism from $a$ to $b$, then $\meaningof{\cdot}_b$ is correct with respect to $\meaningof{\cdot}_a$}.
+In shorter terms, \emph{if $b$ is defined in terms of a right-invertible homomorphism from arrow $a$ to $b$, then $\meaningof{\cdot}_b$ is correct with respect to $\meaningof{\cdot}_a$}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1636,40 +1641,40 @@ We leave completeness conditions for future work, and for now, use Monte Carlo a
 \section{Implementations and Examples}
 \label{sec:implementation}
 
-We have three implementations: two direct implementations of the approximating semantics, and a less direct but more efficient one called \mykeyword{Dr. Bayes}.
+We have three implementations: two direct implementations of the approximating semantics, and a less direct but more efficient one called \mykeyword{Dr.~Bayes}.
 All of them can be found at \url{https://github.com/ntoronto/drbayes}.
 
 Given a library for operating on rectangular sets, the approximating preimage arrows defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
 We have done so in Typed Racket~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} and Haskell~\cite{cit:haskell-lang}.
 Both implementations are almost line-for-line transliterations from the figures.
 
-Dr. Bayes is written in Typed Racket.
+Dr.~Bayes is written in Typed Racket.
 It includes $\meaningof{\cdot}\genc$ (\figref{fig:semantic-function}), its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow (\figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}), the approximating preimage and preimage* arrows (\figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:approximating-arrow-defs}), and manual lifts such as $arr\pre'~(+)$ to compute approximate preimages under arithmetic.
 The preimage arrows operate on a monomorphic rectangular set data type, which includes tagged rectangles and disjoint unions for ad-hoc polymorphism, and floating-point intervals to overapproximate real intervals.
 
 Definition~\ref{def:preimage-refinement} outlines preimage refinement, a discretization algorithm that repeatedly shrinks and repartitions a program's domain.
-\emph{Dr. Bayes does not use this algorithm directly} because it is inefficient: good accuracy requires fine discretization, which is exponential in the number of discretized axes.
-Instead of \emph{enumerating} covering partitions of the random source, Dr. Bayes \emph{samples parts} from the covering partitions and then \emph{samples a point} from each sampled part, with time complexity linear in the number of samples and discretized axes.
+\emph{Dr.~Bayes does not use this algorithm directly} because it is inefficient: good accuracy requires fine discretization, which is exponential in the number of discretized axes.
+Instead of \emph{enumerating} covering partitions of the random source, Dr.~Bayes \emph{samples parts} from the covering partitions and then \emph{samples a point} from each sampled part, with time complexity linear in the number of samples and discretized axes.
 It applies bottom* arrow computations to the random source samples to get output samples, rejecting those outside the requested output set.
 Thus, it relies only on preimage refinement's soundness.
 
-We have tested Dr. Bayes on a variety of Bayesian inference tasks, including Bayesian regression and model selection~\cite{cit:toronto-thesis}.
-Some of our Bayesian inference tests use recursion and constrain the outputs of deterministic functions, suggesting that Dr. Bayes and future probabilistic languages like it will allow practitioners to model real-world processes more expressively and precisely.
+We have tested Dr.~Bayes on a variety of Bayesian inference tasks, including Bayesian regression and model selection~\cite{cit:toronto-thesis}.
+Some of our Bayesian inference tests use recursion and constrain the outputs of deterministic functions, suggesting that Dr.~Bayes and future probabilistic languages like it will allow practitioners to model real-world processes more expressively and precisely.
 
 Recent work in probabilistic verification recasts it as a probabilistic inference task~\cite{cit:gulwani-2007popl-prob-verify}.
-Given that Dr. Bayes's runtime is designed to sample efficiently under low-probability constraints, using it to probabilistically verify that a program does not exhibit certain errors is fairly natural.
+Given that Dr.~Bayes's runtime is designed to sample efficiently under low-probability constraints, using it to probabilistically verify that a program does not exhibit certain errors is fairly natural.
 To do so, we
 \begin{enumerate}
 	\item Encode the program in a way that propagates and returns errors.
 	\item Run the program with the constraint that the output is an error.
 \end{enumerate}
-Sometimes, Dr. Bayes can determine that the preimage of the constrained output set is $\emptyset$, which is a proof that the program never exhibits an error.
+Sometimes, Dr.~Bayes can determine that the preimage of the constrained output set is $\emptyset$, which is a proof that the program never exhibits an error.
 Otherwise, the longer the program runs without returning samples, the likelier it is that the preimage has zero probability or is empty; i.e. that an error does not occur.
 
 As an extended example, we consider verifying floating-point error bounds.
 
-While Dr. Bayes's numbers are implemented by floating-point intervals, semantically, they are real numbers.
-We therefore cannot represent floating-point numbers directly in Dr. Bayes---but we do not want to.
+While Dr.~Bayes's numbers are implemented by floating-point intervals, semantically, they are real numbers.
+We therefore cannot represent floating-point numbers directly in Dr.~Bayes---but we do not want to.
 We want \emph{abstract} floating-point numbers, each consisting of an exact, real number and a bound on the relative error with which it is approximated.
 We define the following two structures to represent abstract floats.
 \vspace{-0.5\baselineskip}
@@ -1697,7 +1702,7 @@ Abstract floating-point functions such as \scheme{flsqrt} compute exact results 
                          (* 1/2 epsilon)))]))))  ; rounding error
 \end{schemedisplay}
 \end{center}
-We have similarly implemented abstract floating-point arithmetic, comparison, exponentials, and logarithms in Dr. Bayes.
+We have similarly implemented abstract floating-point arithmetic, comparison, exponentials, and logarithms in Dr.~Bayes.
 
 Suppose we define an abstract floating-point implementation of the geometric distribution's inverse CDF using the formula $(log~u){/}(log~(1-p))$:
 \vspace{-0.5\baselineskip}
@@ -1717,7 +1722,7 @@ We want the distribution of $\pair{u,p}$ in $(0,1) \times (0,1)$ with the value 
 constrained to $(3 \cdot \varepsilon,\infty)$, where $\varepsilon \approx 2.22\cdot 10^{-16}$ is floating-point epsilon for 64-bit floats.
 That is, we want the distribution of inputs for which the floating-point output may be more than $3$ epsilons away from the exact output.
 
-Dr. Bayes returns samples of $\pair{u,p}$ within about $(0,1) \times (\varepsilon,0.284)$, a fairly large domain on which error is greater than $3$ epsilons.
+Dr.~Bayes returns samples of $\pair{u,p}$ within about $(0,1) \times (\varepsilon,0.284)$, a fairly large domain on which error is greater than $3$ epsilons.
 Realizing that the rounding error in $1-p$ is magnified by $log$'s relative error when $p$ is small, we define
 \vspace{-0.5\baselineskip}
 \begin{center}
@@ -1727,7 +1732,7 @@ Realizing that the rounding error in $1-p$ is magnified by $log$'s relative erro
 \end{schemedisplay}
 \end{center}
 where \scheme{fllog1p} (abstractly) computes $log~(1+x)$ with high accuracy.
-Dr. Bayes reports that the preimage of $(3 \cdot \varepsilon,\infty)$ is $\emptyset$.
+Dr.~Bayes reports that the preimage of $(3 \cdot \varepsilon,\infty)$ is $\emptyset$.
 In fact, the preimage of $(1.51 \cdot \varepsilon,\infty)$ is $\emptyset$, so \scheme{flgeometric-inv-cdf} introduces error of no more than $1.51$ epsilons.
 
 We have used this technique to verify error bounds on the implementations of $hypot$, $sqrt1pm1$ and $sinh$ in Racket's \scheme{math} library.
