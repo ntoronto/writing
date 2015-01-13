@@ -469,7 +469,7 @@ More precisely, types are characterized by these rules:
 	\item $\pair{x,y}$ is the type of pairs of values with types $x$ and $y$.
 	\item $Set~x$ is the type of sets whose members have type $x$.
 	\item An uppercase type variable such as $X$ represents a set used as a type.
-	\item $X^J$ is the type of extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$.
+	\item $X^J$ is the type of extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$. ($J$ is called the \keyword{index set}.)
 \end{itemize}
 Because the inhabitants of the type $Set~X$ and $\powerset~X$ (i.e. subsets of the set $X$) are the same, they are equivalent types.
 Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
@@ -864,7 +864,7 @@ By Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
 \end{aligned}
 &&\begin{aligned}[t]
 	&\begin{aligned}[t]
-		&\pair{\cdot,\cdot}\pre : (X \prepto Y_1) \to (X \prepto Y_2) \to (X \prepto Y_1 \times Y_2) \\
+		&\pair{\cdot,\cdot}\pre : (X \prepto Y_1) \to (X \prepto Y_2) \to (X \prepto \pair{Y_1,Y_2}) \\
 		&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\pre \ := \ \\
 		&\tab\lzfclet{
 			Y' & Y_1' \times Y_2' \\
@@ -1006,7 +1006,7 @@ For all $\mathit{e}$, $\meaningof{\mathit{e}}\pre \equiv lift\pre~\meaningof{\ma
 
 In other words, $\meaningof{\mathit{e}}\pre$ always computes correct preimages under $\meaningof{\mathit{e}}_\bot$.
 
-The type $X \preto Y$ does not constrain its inhabitants to behave intuitively; e.g.
+Inhabitants of type $X \preto Y$ do not always behave intuitively; e.g.
 \begin{equation}
 \begin{aligned}
 	&unruly : Bool \preto Bool \\
@@ -1080,7 +1080,7 @@ Let $J$ be an index set, $j_0 \in J$ a distinguished element, and $left : J \to 
 
 For example, let $J$ be the set of lists of $\set{0,1}$, $j_0 := \pair{}$, and $left~j := \pair{0,j}$ and $right~j := \pair{1,j}$.
 In any case, $J$ is countable, and can be thought of as a set of indexes into an infinite binary tree.
-Values of type $A^J$ encode an infinite binary tree of $A$ values as an infinite vector (i.e. total, extensional function).
+Values of type $X^J$ encode an infinite binary tree of $X$ values as an infinite vector (i.e. total, extensional function).
 
 \begin{figure*}[!tb]\centering
 \smallmathfont
@@ -1110,7 +1110,7 @@ Values of type $A^J$ encode an infinite binary tree of $A$ values as an infinite
 \label{fig:astore-arrow-defs}
 \end{figure*}
 
-We define random-source-threading variants of both the bottom and preimage arrows at once, by defining an \keyword{arrow transformer}: an arrow parameterized on another arrow.
+We define random-source-threading variants of both the bottom and preimage arrows at the same time by defining an \keyword{arrow transformer}: an arrow parameterized on another arrow.
 The $AStore$ arrow transformer type constructor takes a store type $s$ and an arrow $x \arrow\gen y$:
 \begin{equation}
 	AStore~s~(x \arrow\gen y) \ ::= \ J \to (\pair{s,x} \arrow\gen y)
@@ -1147,18 +1147,19 @@ A \mykeyword{branch trace} is any $t \in Bool_\bot^J$ such that $t~j = true$ or 
 Let $T \subset Bool_\bot^J$ be the largest set of branch traces.
 \end{definition}
 
-Let $X \arrow\genc Y ::= AStore~(R \times T)~(X \arrow\gen Y)$ be an $AStore$ arrow type that threads both random stores and branch traces.
+Let $X \arrow\genc Y ::= AStore~\pair{R,T}~(X \arrow\gen Y)$ be an $AStore$ arrow type that threads both random stores and branch traces.
 
-For probabilistic programs, we define a combinator $random\genc$ that returns the number at its tree index in the random source, and extend $\meaningof{\cdot}\genc$ for arrows $a^*$ for which $random\genc$ is defined:
+For probabilistic programs, we define a combinator $random\genc$ that returns the number at its tree index in the random source, and extend $\meaningof{\cdot}\genc$ for arrows $a^*$:
 \begin{equation}
 \begin{aligned}
-	&\begin{aligned}
+	&\begin{aligned}[t]
 		&random\genc : X \arrow\genc [0,1] \\
-		&random\genc~j \ := \ arr\gen~(fst~\acomp~fst~\acomp~\pi~j)
+		&random\genc~j \ := \ arr\gen~fst~\acomp\gen~arr\gen~fst~\acomp\gen~arr\gen~(\pi~j)
 	\end{aligned}
-&\tab
+&\ \ 
 	\meaningof{random}\genc \ :\equiv \ random\genc
 \end{aligned}
+\label{eqn:random-def}
 \end{equation}
 where $\pi : J \to X^J \to X$, defined by $\pi~j~f \ := \ f~j$, produces projection functions.
 
@@ -1167,7 +1168,7 @@ For partial programs, we define a combinator that reads branch traces, and an if
 \begin{aligned}
 	&\begin{aligned}
 		&branch\genc : X \arrow\genc Bool \\
-		&branch\genc~j \ := \ arr\gen~(fst~\acomp~snd~\acomp~\pi~j)
+		&branch\genc~j \ := \ arr\gen~fst~\acomp\gen~arr\gen~snd~\acomp\gen~arr\gen~(\pi~j)
 	\end{aligned} \\
 \\[-9pt]
 	&\begin{aligned}
@@ -1202,8 +1203,8 @@ Preimage $AStore$ arrows do the former by first computing an image, and the latt
 Define
 \begin{equation}
 \begin{aligned}
-	X \pbotto Y &\ ::=\ AStore~(R \times T)~(X \botto Y) \\
-	X \ppreto Y &\ ::=\ AStore~(R \times T)~(X \preto Y) \\
+	X \pbotto Y &\ ::=\ AStore~\pair{R,T}~(X \botto Y) \\
+	X \ppreto Y &\ ::=\ AStore~\pair{R,T}~(X \preto Y) \\
 \end{aligned}
 \end{equation}
 as the type constructors for the \mykeyword{bottom*} and \mykeyword{preimage* arrows}.
@@ -1348,72 +1349,53 @@ In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always ter
 \label{fig:extra-preimage-arrow-defs}
 \end{figure*}
 
-We would like to compute preimages of uncountable sets, such as real intervals---but $preimage_\bot~f~A~B$ is uncomputable for most uncountable sets $A$ and $B$ no matter how cleverly they are represented.
+We would like to compute preimages of uncountable sets, such as real intervals, but $preimage_\bot~f~A~B$ is uncomputable for most uncountable sets $A$ and $B$ no matter how cleverly they are represented.
 Further, because $pre$, $lift\pre$ and $arr\pre$ are defined in terms of $preimage_\bot$, we cannot implement them.
 
-Fortunately, we need only certain lifts.
-\figref{fig:extra-preimage-arrow-defs} gives explicit definitions for $arr\pre~id$, $arr\pre~fst$, $arr\pre~snd$, $arr\pre~(const~b)$ and $arr\pre~(\pi~j)$.
-To implement them, we must model sets in a way that makes checking emptiness decidable, and the following representable and finitely computable:
-\begin{equation}
-\parbox{0.91\textwidth}{
-\begin{itemize}
-	\item $A \i B$, $\emptyset$, $\set{true}$, $\set{false}$ and $\set{b}$ for every $const~b$
-	\item $A_1 \times A_2$, $proj_1~A$ and $proj_2~A$
-	\item $X^J$, $proj~j~A$ and $unproj~j~A~B$
-\end{itemize}
-}
-\label{eqn:exact-rectangle-ops}
-\end{equation}
-We first need to define families of sets under which these operations are closed.
+Fortunately, implementing $\meaningof{\cdot}\pre$ as defined in \figref{fig:semantic-function} requires applying $arr\pre$ to only a few pure functions: $id$, $fst$, $snd$ and $const~\emph{v}$ for any literal constant $\emph{v}$.
+According to~\eqref{eqn:random-def} and~\eqref{eqn:ifppre-def}, implementing the extended semantics $\meaningofconv{\cdot}\ppre$, which supports random choice and guarantees termination, requires only one more lift: $arr\pre~(\pi~j)$ for any $j \in J$.
+\figref{fig:extra-preimage-arrow-defs} gives explicit definitions for all of these lifts.
 
-\begin{definition}[rectangular family]
+\subsection{Abstract Domains}
+
+If the manual lifts $id\pre$, $fst\pre$, $snd\pre$, $const\pre$ and $\pi\pre$ in \figref{fig:extra-preimage-arrow-defs} can be implemented using abstract sets, we may be able to approximate $\meaningofconv{\cdot}\ppre$.
+Abstract sets should include $\emptyset$ and singletons, and set operations should include products, intersections, projections, and emptiness testing (e.g. $B = \emptyset$ in the definition of $const\pre$).
+The abstract domain of rectangles, with a slightly unusual extension to represent rectangles of $X^J$ (i.e. infinite binary trees of $X$), will do nicely.
+
+\begin{definition}[rectangular sets]
 \label{def:standard-rectangle}
-$Rect~X$ denotes the \mykeyword{rectangular family} of subsets of $X$.
-$Rect~X$ must contain $\emptyset$ and $X$, and be closed under finite intersections.
-Products must satisfy the following rules:
+For a type $X$ of language values, $Rect~X$ denotes the type of \mykeyword{rectangular sets} of $X$: a bounded lattice ordered by $(\subseteq)$; i.e. it contains $\emptyset$ and $X$, and is closed under intersection $(\i)$ and join $(\join)$.
+Rectangles of cartesian products are defined by
+\begin{equation}
+	Rect~\pair{X_1,X_2} \ ::= \ \setb{A_1 \times A_2}{A_1 : Rect~X_1, A_2 : Rect~X_2}
+\label{eqn:standard-rect-finite-product-rule}
+\end{equation}
+Rectangles of infinite binary trees (i.e. products indexed by $J$) are defined by
+\begin{equation}
+	Rect~X^J \ ::= \ \,\displaystyle\bigcup_{\mathclap{J' \subset J \text{ finite}}}\ 
+		\left\{\textstyle\prod_{j \in J} A_j\ \middle| \ A_j : Rect~X,\ j \not\in J' \iff A_j = X \right\}
+\label{eqn:standard-rect-arbitrary-product-rule}
+\end{equation}
+i.e. for $A : Rect~X^J$, only finitely many axes of $A$ are proper subsets of $X$.
+Joins of products are defined by
 \begin{align}
-	Rect~\pair{X_1,X_2} &\ = \ (Rect~X_1) \boxtimes (Rect~X_2)
-	\label{eqn:standard-rect-finite-product-rule}
-\\
-	Rect~X^J &\ = \ (Rect~X)^{\boxtimes J}
-	\label{eqn:standard-rect-arbitrary-product-rule}
-%\\
-%	X' \in Rect~X \ \implies \ Rect~X' &\ =\ \setb{X' \i A}{A \in Rect~X}
-%	\label{eqn:standard-rect-subset-rule}
-\end{align}
-where the following operations lift cartesian products to sets of sets:
-\begin{align}
-	\A_1 \boxtimes \A_2 &\ := \ \setb{A_1 \times A_2}{A_1 \in \A_1, A_2 \in \A_2}
-\\
-	\A^{\boxtimes J} &\ := \ \!\!\!\!\!\!\!\displaystyle\bigcup_{J' \subset J \text{ finite}}\!\!\!\!\!\! \left\{\textstyle\prod_{j \in J} A_j\ \middle|\ A_j \in \A, j \in J' \iff A_j \subset \U\A\right\}
-\label{eqn:rectangular-product}
+	(A_1 \times A_2) \join (B_1 \times B_2) &\ = \ (A_1 \join B_1) \times (A_2 \join B_2) \\
+	(\textstyle\prod_{j \in J} A_j) \join (\textstyle\prod_{j \in J} B_j) &\ = \ \textstyle\prod_{j \in J} (A_j \join B_j)
 \end{align}
 \end{definition}
 
-We additionally define $Rect~Bool ::= \powerset~Bool$.
-It is easy to show the collection of all rectangular families is closed under products, projections, and $unproj$.
+For non-product types $X$, $Rect~X$ may be any bounded sublattice of $Set~X$; e.g. $Rect~\Re$ may contain all intervals, or just closed intervals with rational endpoints (as well as $\emptyset$ and $\Re$).
+We additionally define $Rect~Bool ::= Set~Bool$.
 
-Further, all of the operations in~\eqref{eqn:exact-rectangle-ops} can be exactly implemented if finite sets are modeled directly, sets in ordered spaces (such as $\Re$) are modeled by intervals, and sets in $Rect~\pair{X_1,X_2}$ are modeled by pairs of type $\pair{Rect~X_1,Rect~X_2}$.
-By~\eqref{eqn:rectangular-product}, sets in $Rect~X^J$ have no more than finitely many axes that are proper subsets of $X$.
-They can be modeled by \emph{finite} binary trees, where unrepresented axes are implicitly $X$.
+It is not hard to show that joins overapproximate unions; i.e. $A \u B \subseteq A \join B$.
 
-The set of branch traces $T$ is nonrectangular, but we can model $T$ subsets by $Bool_\bot^J$ rectangles, implicitly intersected with $T$.
+Intervals in ordered spaces can be implemented as pairs of endpoints.
+Products in $Rect~\pair{X_1,X_2}$ can be implemented as pairs of type $\pair{Rect~X_1,Rect~X_2}$.
+By~\eqref{eqn:standard-rect-arbitrary-product-rule}, products in $Rect~X^J$ have only finitely many axes that are proper subsets of $X$, so they can be implemented as \emph{finite} binary trees.
+Intersection, join, projection and emptiness testing all proceed by simple structural recursion.
+The lifts in \figref{fig:extra-preimage-arrow-defs} are therefore implementable using rectangles.
 
-\begin{theorem}[$T$ model]
-If $T' \in Rect~Bool_\bot^J$ and $j \in J$, then $proj~j~T' = proj~j~(T' \i T)$.
-If $B \subseteq Bool_\bot$, then $unproj~j~(T' \i T)~B = unproj~j~T'~B \i T$.
-\end{theorem}
-
-Rectangular families are not closed under $(\u)$.
-For conditionals, then, we need a lattice join $(\join)$ with respect to $(\subseteq)$ with the following additional properties:
-\begin{equation}
-\begin{aligned}
-	(A_1 \times A_2) \join (B_1 \times B_2) &\ = \ (A_1 \join B_1) \times (A_2 \join B_2) \\
-	(\textstyle\prod_{j \in J} A_j) \join (\textstyle\prod_{j \in J} B_j) &\ = \ \textstyle\prod_{j \in J} A_j \join B_j
-\label{eqn:join-laws}
-\end{aligned}
-\end{equation}
-If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then rectangular families are clearly closed under $(\join)$. Further, for any $A$ and $B$, $A \u B \subseteq A \join B$.
+\subsection{Abstract Arrows}
 
 \begin{figure*}[!tb]\centering
 \smallmathfont
@@ -1444,7 +1426,7 @@ If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then recta
 	&\begin{aligned}[t]
 		&\lzfcsplit{
 			\pair{\cdot,\cdot}\prehat &{}: (X \prehatpto Y_1) \to (X \prehatpto Y_2) \\
-				&{}\to (X \prehatpto Y_1 \times Y_2)
+				&{}\to (X \prehatpto \pair{Y_1,Y_2})
 		} \\
 		&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\prehat \ := \\
 		&\tab\pair{Y_1' \times Y_2',\fun{B}{p_1~(proj_1~B) \i p_2~(proj_2~B)}}
@@ -1456,7 +1438,7 @@ If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then recta
 		&\tab\pair{Y_1' \join Y_2',\fun{B}{ap\prehat~\pair{Y_1',p_1}~B \join ap\prehat~\pair{Y_2',p_2}~B}
 		}
 	\end{aligned}
-\end{aligned}
+\end{aligned}\!\!\!
 \end{align*}
 \vspace{3pt}
 \hrule
@@ -1464,7 +1446,8 @@ If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then recta
 \label{fig:abstract-preimage-mapping-defs}
 }
 
-\subfloat[Abstract preimage arrow, defined using abstract preimage functions.]{
+\subfloat[Abstract preimage arrow, defined using abstract preimage functions.
+While $arr\prehat$ is not computable, specific applications of it are (see \figref{fig:extra-preimage-arrow-defs}).]{
 \begin{minipage}{0.98\textwidth}
 \begin{align*}
 \\[-6pt]
@@ -1489,7 +1472,7 @@ If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then recta
 		}{h_2' \u\prehat h_3'}}
 \\
 	&lazy\prehat~h~A \ := \ if~A = \emptyset~then~\emptyset\prehat~else~h~0~A
-\end{aligned}
+\end{aligned}\!\!\!
 \end{align*}
 \vspace{3pt}
 \hrule
@@ -1504,24 +1487,24 @@ If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then recta
 \\[-6pt]
 \begin{aligned}[t]
 	&\begin{aligned}[t]
-		&X \pprehatto Y ::= AStore~(R \times T)~(X \prehatto Y)
+		&X \pprehatto Y ::= AStore~\pair{R,T}~(X \prehatto Y)
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
 		&random\pprehat : X \pprehatto [0,1] \\
-		&\lzfcsplit{&random\pprehat~j \ := \ \\ &\tab fst\pre~\acomp\prehat~fst\pre~\acomp\prehat~\pi\pre~j}
+		&\lzfcsplit{&random\pprehat~j \ := \ \\ &\tab fst\prehat~\acomp\prehat~fst\prehat~\acomp\prehat~\pi\prehat~j}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
 		&branch\pprehat : X \pprehatto Bool \\
-		&\lzfcsplit{&branch\pprehat~j \ := \ \\ &\tab fst\pre~\acomp\prehat~snd\pre~\acomp\prehat~\pi\pre~j}
+		&\lzfcsplit{&branch\pprehat~j \ := \ \\ &\tab fst\prehat~\acomp\prehat~snd\prehat~\acomp\prehat~\pi\prehat~j}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
-		fst\pprehat &:= \eta\pprehat~fst\pre;\ \cdots
+		fst\pprehat &:= \eta\pprehat~fst\prehat;\ \cdots
 	\end{aligned}
 \end{aligned}
-&
+&\ \ 
 \begin{aligned}[t]
 	&\begin{aligned}[t]
 		&\lzfcsplit{
@@ -1532,35 +1515,43 @@ If for every nonproduct type $X$, $Rect~X$ is closed under $(\join)$, then recta
 			&ifte\conv\pprehat~k_1~k_2~k_3~j \ := \\
 			&\tab\lzfclet{
 				\pair{C_k,p_k} & k_1~(left~j)~A \\
-				\pair{C_b,p_b} & branch\ppre~j~A \\
+				\pair{C_b,p_b} & branch\pprehat~j~A \\
 				C_2 & C_k \i C_b \i \set{true} \\
 				C_3 & C_k \i C_b \i \set{false} \\
 				A_2 & p_k~C_2 \i p_b~C_2 \\
 				A_3 & p_k~C_3 \i p_b~C_3 \\
 			}{\lzfcsplit{
 					&if~C_b = \set{true,false} \\
-					&then~\pair{\top,\fun{B}\lzfcsplit{A_2 \join A_3}} \\
-					&else~k_2~(left~(right~j))~A_2 \u\prehat k_3~(right~(right~j))~A_3}}\!\!\!\!\!\!\!\!
+					&then~\pair{Y,\fun{B}\lzfcsplit{A_2 \join A_3}} \\
+					&else~k_2~(left~(right~j))~A_2 \u\prehat k_3~(right~(right~j))~A_3}}
 		}
 	\end{aligned}
-\end{aligned}
+\end{aligned}\mspace{-30mu}
 \end{align*}
 \vspace{3pt}
 \hrule
 \end{minipage}
 \label{fig:abstract-preimage*-arrow-defs}
 }
-\caption[ ]{Implementable arrows that approximate preimage arrows.
-Specific lifts like $fst\pre := arr\pre~fst$ are computable (see \figref{fig:extra-preimage-arrow-defs}), but $arr\prehat$ and $arr\pprehat$ are not.
-}
+\caption[ ]{Implementable arrows that approximate preimage arrows.}
 \label{fig:abstract-arrow-defs}
 \end{figure*}
 
-\figref{fig:abstract-arrow-defs} defines abstract preimage arrows.
-Abstract preimage function operations (\figref{fig:abstract-preimage-mapping-defs}) are defined in terms of lattice operations on rectangular families.
-Every abstract preimage arrow combinator (\figref{fig:abstract-preimage-arrow-defs}) is defined the same way as its corresponding concrete preimage arrow combinator, but using abstract preimage function operations instead of concrete.
-\figref{fig:abstract-preimage*-arrow-defs} defines $random\pprehat$ and $branch\pprehat$ without using the uncomputable $arr\pprehat$,
-and $ifte\conv\pprehat$, for interpreting expressions using $\meaningofconv{\cdot}\pprehat$ for guaranteed termination.
+
+To define the preimage arrow, we started by defining preimage functions.
+To define the \emph{abstract} preimage arrow, we start by defining \emph{abstract} preimage functions, by replacing set types in $(\prepto)$ with abstract set types:
+\begin{equation}
+	X \prehatpto Y ::= \pair{Rect~Y, Rect~Y \to Rect~X}
+\end{equation}
+\figref{fig:abstract-preimage-mapping-defs} defines the necessary operations on abstract preimage functions.
+The fact that $preimage$ distributes over pairing and products~\eqref{eqn:preimage-identities} allows $\pair{\cdot,\cdot}\prehat$ to be computed easily. (Compare \figref{fig:preimage-mapping-defs}.)
+\figref{fig:abstract-preimage-arrow-defs} defines the abstract preimage arrow simply by replacing preimage function types and operations in the preimage arrow's definition with \emph{abstract} preimage function types and operations.
+(Compare \figref{fig:preimage-arrow-defs}.)
+Only the uncomputable $arr\prehat$ is not listed.
+
+
+\figref{fig:abstract-preimage*-arrow-defs} defines the abstract preimage* arrow using the $AStore$ arrow transformer (see \figref{fig:astore-arrow-defs}), in terms of the abstract preimage arrow.
+It also shows $random\pprehat$ and $branch\pprehat$ defined without using the uncomputable $arr\pprehat$ (using the manual lifts in \figref{fig:extra-preimage-arrow-defs}), and $ifte\conv\pprehat$, for interpreting expressions using $\meaningofconv{\cdot}\pprehat$ for guaranteed termination.
 
 Let $h := \meaningofconv{\mathit{e}}\ppre : X \ppreto Y$ and $\hat{h} := \meaningofconv{\mathit{e}}\pprehat : X \pprehatto Y$ for some expression $\mathit{e}$.
 
