@@ -1716,9 +1716,9 @@ Probabilistic languages can be approximately placed into two groups: those defin
 
 \newcommand{\randomworldfootnote}{\footnote{The term \emph{random-world semantics} was coined by McAllester et al~\cite{cit:mcallester-2008tr-random-world}, and alludes to the \emph{possible-world semantics} used to explain modal logic.}}
 
-Kozen's seminal work~\cite{cit:kozen-1979fcs-prob-programs-short} on probabilistic semantics defines two measure-theoretic, denotational semantics, in two different styles: a \keyword{random-world semantics},\randomworldfootnote\ that interprets programs as deterministic functions that operate on a random source, and a \keyword{distributional semantics} that interprets programs as probability measures.
+Kozen's seminal work~\cite{cit:kozen-1979fcs-prob-programs-short} on probabilistic semantics defines two measure-theoretic, denotational semantics, in two different styles: a \keyword{random-world semantics}\randomworldfootnote\ that interprets programs as deterministic functions that operate on a random source, and a \keyword{distributional semantics} that interprets programs as probability measures.
 It seems that all semantics work thereafter is in one of these styles.
-For example, Hurd~\cite{cit:hurd-2002thesis} develops a random-world semantics in HOL and uses it to formally verify randomized algorithms such as the Miller-Rabin primaility test.
+For example, Hurd~\cite{cit:hurd-2002thesis} develops a random-world semantics in HOL and uses it to formally verify randomized algorithms such as the Miller-Rabin primality test.
 Ours is also a random-world semantics.
 
 Jones~\cite{cit:jones-1990thesis} defines the probability monad as a categorical metatheory for interpreting probabilistic programs as distributions.
@@ -1730,13 +1730,9 @@ They implement the probability monad using probability mass functions, show that
 To put Infer.NET~\cite{cit:inferdotnet} on solid footing, Borgstr\"om et al~\cite{cit:borgstrom-2011esop-measure-transformer} define a distributional semantics for a first-order probabilistic language with bounded loops and constraints, by transforming terms into arrow-like combinators that produce measures.
 But Infer.NET interprets programs as probability density functions,\factorgraphfootnote so they develop a semantics that does the same and prove equivalence.
 
-Borgstr\"om et al's work and Ramsey and Pfeffer's work are just two examples of a larger trend: while \emph{defining} probabilistic languages can be done using measure theory, \emph{implementing} them to support more than just straightforward evaluation (e.g. allowing constraints) has seemed hopeless enough to necessitate using a less explanatory theory of probability that has more obvious computational content.
+Borgstr\"om et al's work and Ramsey and Pfeffer's work are just two examples of a larger trend: while \emph{defining} probabilistic languages can be done using measure theory, \emph{implementing} them to support more than just evaluation (such as allowing constraints) has seemed hopeless enough to necessitate using a less explanatory theory of probability that has more obvious computational content.
 Indeed, the distributional semantics of Pfeffer's IBAL~\cite{cit:pfeffer-2007chapter-ibal} and Nori et al's R2~\cite{cit:nori-2014aaai-preimage} are defined in terms of probability mass and density functions in the first place.
 R2 lifts some of the resulting restrictions and speeds up sampling by propagating constraints toward the random values they refer to.
-
-%Poole~\cite{cit:poole-2010-ppls} advocates using random-world semantics as a way to allow constraining deterministic functions of random values.
-
-
 
 \begin{comment}
 Semantics       Measure-theoretic?   Conditioning?   Random World?
@@ -1754,7 +1750,6 @@ Fun Impl.               N                  Y              N
 IBAL                    N                  Y              N
 Nori's R2               N                  Y              N
 \end{comment}
-
 
 Some languages defined by an implementation are probabilistic Scheme~\cite{cit:koller-1997aaai-bayes-programs-short}, BUGS~\cite{cit:winbugs-language-short}, BLOG~\cite{cit:blog-language-short}, BLAISE~\cite{cit:blaise-language}, Church~\cite{cit:church-language-short}, and Kiselyov's embedded language for OCaml~\cite{cit:kiselyov-2008uai-monolingual}.
 Recently, Wingate et al~\cite{cit:wingate-2011nips-nonstandard} define nonstandard semantics that enable efficient inference, but do not define the languages.
