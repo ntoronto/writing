@@ -61,7 +61,7 @@
 \newcommand{\Univ}{\mathbb{U}}
 \newcommand{\Un}{\mathcal{U}}
 
-\newcommand{\join}{\vee}
+\newcommand{\join}{\sqcup}
 
 \newcommand{\conv}{^{\mspace{-2mu}\Downarrow\mspace{-2mu}}}
 
@@ -469,7 +469,7 @@ More precisely, types are characterized by these rules:
 	\item $\pair{x,y}$ is the type of pairs of values with types $x$ and $y$.
 	\item $Set~x$ is the type of sets whose members have type $x$.
 	\item An uppercase type variable such as $X$ represents a set used as a type.
-	\item $X^J$ is the type of extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$. ($J$ is called the \keyword{index set}.)
+	\item $X^J$ is the type of extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$. ($J$ is called an \keyword{index set}.)
 \end{itemize}
 Because the inhabitants of the type $Set~X$ and $\powerset~X$ (i.e. subsets of the set $X$) are the same, they are equivalent types.
 Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
@@ -1305,66 +1305,25 @@ In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always ter
 \section{Abstract Semantics}
 \label{sec:abstract-semantics}
 
-\begin{figure*}[!tb]\centering
-\smallmathfont
-\begin{align*}
-\begin{aligned}[t]
-	&\begin{aligned}[t]
-		id\pre~A &\ := \ \pair{A,\fun{B}{B}} \\
-		fst\pre~A &\ := \ \pair{proj_1~A,unproj_1~A} \\
-		snd\pre~A &\ := \ \pair{proj_2~A,unproj_2~A} \\
-	\end{aligned} \\
-\\[-8pt]
-\hline
-\\[-8pt]
-	&\begin{aligned}[t]
-		&proj_1 := image~fst \\
-		&proj_2 := image~snd \\
-		&unproj_1~A~B \ := \ A \i (B \times proj_2~A) \\
-		&unproj_2~A~B \ := \ A \i (proj_1~A \times B)
-	\end{aligned}
-\end{aligned}
-&\tab\tab\tab\tab\tab
-\begin{aligned}[t]
-	&\begin{aligned}[t]
-		const\pre~b~A &\ := \ \pair{\set{b},\fun{B}{if~B = \emptyset~then~\emptyset~else~A}} \\
-		\pi\pre~j~A &\ := \ \pair{proj~j~A, unproj~j~A}
-	\end{aligned} \\
-\\[-8pt]
-\hline
-\\[-8pt]
-	&\begin{aligned}[t]
-		&proj : J \to Set~X^J \to Set~X \\
-		&proj~j~A \ := \ image~(\pi~j)~A
-	\end{aligned} \\
-\\[-6pt]
-	&\begin{aligned}[t]
-		&unproj : J \to Set~X^J \to Set~X \to Set~X^J \\
-		&unproj~j~A~B \ := \ A \i \prod_{i \in J} if~j = i~then~B~else~proj~j~A
-	\end{aligned}
-\end{aligned}
-\end{align*}
-\bottomhrule
-\caption[ ]{Preimage arrow lifts needed to interpret probabilistic programs.}
-\label{fig:extra-preimage-arrow-defs}
-\end{figure*}
+Most preimages of uncountable sets are uncomputable.
+We therefore define a semantics for approximate preimage computation by
+\begin{enumerate}
+	\item Choosing abstract set types that can be finitely represented, and operations that overapproximate concrete set operations.
+	\item Replacing concrete set types and operations with abstract set types and operations in the definitions of the preimage and preimage* arrows.
+	\item Proving termination, soundness, and other desirable properties.
+\end{enumerate}
+In a sense, this is typical abstract interpretation.
+But not having a fixpoint operator in the language, while a subtle omission, has a profound effect.
+Because there is no abstract fixpoint to compute, abstract preimage arrow computations actually apply functions.
+The result is neither evaluation nor static analysis, but something in between, akin to highly generalized interval arithmetic.
 
-We would like to compute preimages of uncountable sets, such as real intervals, but $preimage_\bot~f~A~B$ is uncomputable for most uncountable sets $A$ and $B$ no matter how cleverly they are represented.
-Further, because $pre$, $lift\pre$ and $arr\pre$ are defined in terms of $preimage_\bot$, we cannot implement them.
+\subsection{Abstract Sets}
 
-Fortunately, implementing $\meaningof{\cdot}\pre$ as defined in \figref{fig:semantic-function} requires applying $arr\pre$ to only a few pure functions: $id$, $fst$, $snd$ and $const~\emph{v}$ for any literal constant $\emph{v}$.
-According to~\eqref{eqn:random-def} and~\eqref{eqn:ifppre-def}, implementing the extended semantics $\meaningofconv{\cdot}\ppre$, which supports random choice and guarantees termination, requires only one more lift: $arr\pre~(\pi~j)$ for any $j \in J$.
-\figref{fig:extra-preimage-arrow-defs} gives explicit definitions for all of these lifts.
-
-\subsection{Abstract Domains}
-
-If the manual lifts $id\pre$, $fst\pre$, $snd\pre$, $const\pre$ and $\pi\pre$ in \figref{fig:extra-preimage-arrow-defs} can be implemented using abstract sets, we may be able to approximate $\meaningofconv{\cdot}\ppre$.
-Abstract sets should include $\emptyset$ and singletons, and set operations should include products, intersections, projections, and emptiness testing (e.g. $B = \emptyset$ in the definition of $const\pre$).
-The abstract domain of rectangles, with a slightly unusual extension to represent rectangles of $X^J$ (i.e. infinite binary trees of $X$), will do nicely.
+We use the abstract domain of rectangles with an atypical extension to represent rectangles of $X^J$ (i.e. infinite binary trees of $X$).
 
 \begin{definition}[rectangular sets]
 \label{def:standard-rectangle}
-For a type $X$ of language values, $Rect~X$ denotes the type of \mykeyword{rectangular sets} of $X$: a bounded lattice ordered by $(\subseteq)$; i.e. it contains $\emptyset$ and $X$, and is closed under intersection $(\i)$ and join $(\join)$.
+For a type $X$ of language values, $Rect~X$ denotes the type of \mykeyword{rectangular sets} of $X$: a bounded lattice of sets in $Set~X$ ordered by $(\subseteq)$; i.e. it contains $\emptyset$ and $X$, and is closed under meet $(\i)$ and join $(\join)$.
 Rectangles of cartesian products are defined by
 \begin{equation}
 	Rect~\pair{X_1,X_2} \ ::= \ \setb{A_1 \times A_2}{A_1 : Rect~X_1, A_2 : Rect~X_2}
@@ -1384,16 +1343,14 @@ Joins of products are defined by
 \end{align}
 \end{definition}
 
-For non-product types $X$, $Rect~X$ may be any bounded sublattice of $Set~X$; e.g. $Rect~\Re$ may contain all intervals, or just closed intervals with rational endpoints (as well as $\emptyset$ and $\Re$).
-We additionally define $Rect~Bool ::= Set~Bool$.
-
-It is not hard to show that joins overapproximate unions; i.e. $A \u B \subseteq A \join B$.
+The lattice properties imply that $(\join)$ overapproximates $(\u)$; i.e. $A \u B \subseteq A \join B$.
+For non-product types $X$, $Rect~X$ may be any bounded sublattice of $Set~X$.
+Interpreting conditionals requires singleton boolean sets; thus $Rect~Bool ::= Set~Bool$.
 
 Intervals in ordered spaces can be implemented as pairs of endpoints.
 Products in $Rect~\pair{X_1,X_2}$ can be implemented as pairs of type $\pair{Rect~X_1,Rect~X_2}$.
 By~\eqref{eqn:standard-rect-arbitrary-product-rule}, products in $Rect~X^J$ have only finitely many axes that are proper subsets of $X$, so they can be implemented as \emph{finite} binary trees.
-Intersection, join, projection and emptiness testing all proceed by simple structural recursion.
-The lifts in \figref{fig:extra-preimage-arrow-defs} are therefore implementable using rectangles.
+All operations on products proceed by simple structural recursion.
 
 \subsection{Abstract Arrows}
 
@@ -1413,12 +1370,12 @@ The lifts in \figref{fig:extra-preimage-arrow-defs} are therefore implementable 
 \\[-6pt]
 	&\begin{aligned}[t]
 		&ap\prehat : (X \prehatpto Y) \to Rect~Y \to Rect~X \\
-		&ap\prehat~\pair{Y',p}~B := p~(B \i Y') 
+		&ap\prehat~\pair{Y',p}~B \ := \ p~(B \i Y') 
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
 		&(\circ\prehat) : (Y \prehatpto Z) \to (X \prehatpto Y) \to (X \prehatpto Z) \\
-		&\pair{Z',p_2} \circ\prehat h_1 := \pair{Z', \fun{C}{ap\prehat~h_1~(p_2~C)}}
+		&\pair{Z',p_2} \circ\prehat h_1 \ := \ \pair{Z', \fun{C}{ap\prehat~h_1~(p_2~C)}}
 	\end{aligned} \\
 \end{aligned}
 &\tab\ \,
@@ -1447,12 +1404,12 @@ The lifts in \figref{fig:extra-preimage-arrow-defs} are therefore implementable 
 }
 
 \subfloat[Abstract preimage arrow, defined using abstract preimage functions.
-While $arr\prehat$ is not computable, specific applications of it are (see \figref{fig:extra-preimage-arrow-defs}).]{
+While $arr\prehat$ is not unique nor computable, specific applications of it are (see \figref{fig:extra-preimage-arrow-defs}).]{
 \begin{minipage}{0.98\textwidth}
 \begin{align*}
-\\[-6pt]
+\\ % add space between subfloat above and this one
 \begin{aligned}[t]
-	&X \prehatto Y ::= Rect~X \to (X \prehatpto Y)
+	&X \prehatto Y \ ::= Rect~X \to (X \prehatpto Y)
 \\[0.5\baselineskip]
 	&(h_1~\acomp\prehat~h_2)~A \ := \ 
 		\lzfclet{
@@ -1462,7 +1419,7 @@ While $arr\prehat$ is not computable, specific applications of it are (see \figr
 \\
 	&(h_1~\apair\prehat~h_2)~A \ := \ \pair{h_1~A,h_2~A}\prehat
 \end{aligned}
-&\tab\tab\tab
+&\tab\tab
 \begin{aligned}[t]
 	&\lzfcsplit{&ifte\prehat~h_1~h_2~h_3~A \ := \ \\
 		&\tab\lzfclet{
@@ -1480,11 +1437,57 @@ While $arr\prehat$ is not computable, specific applications of it are (see \figr
 \label{fig:abstract-preimage-arrow-defs}
 }
 
+\subfloat[Abstract preimage arrow lifts needed to interpret probabilistic programs.]{
+\begin{minipage}{0.98\textwidth}
+\begin{align*}
+\\ % add space between subfloat above and this one
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		id\prehat~A &\ := \ \pair{A,\fun{B}{B}} \\
+		fst\prehat~A &\ := \ \pair{proj_1~A,unproj_1~A} \\
+		snd\prehat~A &\ := \ \pair{proj_2~A,unproj_2~A} \\
+	\end{aligned} \\
+\\[-8pt]
+\hline
+\\[-8pt]
+	&\begin{aligned}[t]
+		&proj_1 := image~fst \\
+		&proj_2 := image~snd \\
+		&unproj_1~A~B \ := \ A \i (B \times proj_2~A) \\
+		&unproj_2~A~B \ := \ A \i (proj_1~A \times B)
+	\end{aligned}
+\end{aligned}
+&\tab\tab\tab\tab
+\begin{aligned}[t]
+	&\begin{aligned}[t]
+		const\prehat~b~A &\ := \ \pair{\set{b},\fun{B}{if~B = \emptyset~then~\emptyset~else~A}} \\
+		\pi\prehat~j~A &\ := \ \pair{proj~j~A, unproj~j~A}
+	\end{aligned} \\
+\\[-8pt]
+\hline
+\\[-8pt]
+	&\begin{aligned}[t]
+		&proj : J \to Set~X^J \to Set~X \\
+		&proj~j~A \ := \ image~(\pi~j)~A
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
+		&unproj : J \to Set~X^J \to Set~X \to Set~X^J \\
+		&unproj~j~A~B \ := \ A \i \textstyle\prod_{i \in J} if~j = i~then~B~else~proj~j~A
+	\end{aligned}
+\end{aligned}
+\end{align*}
+\vspace{3pt}
+\hrule
+\end{minipage}
+\label{fig:extra-preimage-arrow-defs}
+}
+
 \subfloat[Abstract preimage* arrow combinators for probabilistic choice and guaranteed termination.
 \figref{fig:astore-arrow-defs} defines $\eta\pprehat$, $(\acomp\pprehat)$, $(\apair\pprehat)$, $ifte\pprehat$ and $lazy\pprehat$.]{
 \begin{minipage}{0.98\textwidth}
 \begin{align*}
-\\[-6pt]
+\\ % add space between subfloat above and this one
 \begin{aligned}[t]
 	&\begin{aligned}[t]
 		&X \pprehatto Y ::= AStore~\pair{R,T}~(X \prehatto Y)
@@ -1537,61 +1540,65 @@ While $arr\prehat$ is not computable, specific applications of it are (see \figr
 \label{fig:abstract-arrow-defs}
 \end{figure*}
 
-
-To define the preimage arrow, we started by defining preimage functions.
-To define the \emph{abstract} preimage arrow, we start by defining \emph{abstract} preimage functions, by replacing set types in $(\prepto)$ with abstract set types:
+To define the abstract preimage arrow, we start by defining abstract preimage functions, by replacing set types in $(\prepto)$ with abstract set types:
 \begin{equation}
 	X \prehatpto Y ::= \pair{Rect~Y, Rect~Y \to Rect~X}
 \end{equation}
-\figref{fig:abstract-preimage-mapping-defs} defines the necessary operations on abstract preimage functions.
-The fact that $preimage$ distributes over pairing and products~\eqref{eqn:preimage-identities} allows $\pair{\cdot,\cdot}\prehat$ to be computed easily. (Compare \figref{fig:preimage-mapping-defs}.)
-\figref{fig:abstract-preimage-arrow-defs} defines the abstract preimage arrow simply by replacing preimage function types and operations in the preimage arrow's definition with \emph{abstract} preimage function types and operations.
+\figref{fig:abstract-preimage-mapping-defs} defines the necessary operations on abstract preimage functions by replacing set operations with \emph{abstract} set operations---except for $\pair{\cdot,\cdot}\prehat$, which is greatly simplified by the fact that $preimage$ distributes over pairing and products~\eqref{eqn:preimage-identities}.
+(Compare \figref{fig:preimage-mapping-defs}.)
+Similarly, \figref{fig:abstract-preimage-arrow-defs} defines the abstract preimage arrow by replacing preimage function types and operations in the preimage arrow's definition with \emph{abstract} preimage function types and operations.
 (Compare \figref{fig:preimage-arrow-defs}.)
-Only the uncomputable $arr\prehat$ is not listed.
+A lift $lift\prehat : (X \botto Y) \to (X \prehatto Y)$ exists, but it is not unique nor computable; we thus do not define $arr\prehat$ in terms of it.
 
+Fortunately, implementing $\meaningof{\cdot}\prehat$ as defined in \figref{fig:semantic-function} requires lifting only a few pure functions: $id$, $fst$, $snd$, $const~\emph{v}$ for any literal constant $\emph{v}$, and primitives $\delta$.
+According to~\eqref{eqn:random-def} and~\eqref{eqn:ifppre-def}, implementing the extended semantics $\meaningofconv{\cdot}\pprehat$, which supports random choice and guarantees termination, requires lifting only $\pi~j$ for any $j \in J$.
+\figref{fig:extra-preimage-arrow-defs} gives explicit definitions for $id\prehat$, $fst\prehat$, $snd\prehat$, $const\prehat$ and $\pi\prehat$.
 
-\figref{fig:abstract-preimage*-arrow-defs} defines the abstract preimage* arrow using the $AStore$ arrow transformer (see \figref{fig:astore-arrow-defs}), in terms of the abstract preimage arrow.
-It also shows $random\pprehat$ and $branch\pprehat$ defined without using the uncomputable $arr\pprehat$ (using the manual lifts in \figref{fig:extra-preimage-arrow-defs}), and $ifte\conv\pprehat$, for interpreting expressions using $\meaningofconv{\cdot}\pprehat$ for guaranteed termination.
+\figref{fig:abstract-preimage*-arrow-defs} defines the abstract preimage* arrow using the $AStore$ arrow transformer (see \figref{fig:astore-arrow-defs}), in terms of the abstract preimage arrow, and defines $random\pprehat$ and $branch\pprehat$ using the manual lifts in \figref{fig:extra-preimage-arrow-defs}.
+
+Guaranteeing termination requires some care.
+The definition of $ifte\conv\pprehat$ in \figref{fig:abstract-preimage*-arrow-defs} is obtained by expanding the definition of $ifte\conv\ppre$, and changing the case in which the set of branch traces allows both branches.
+Instead of taking both branches, it takes neither, and returns a loose but sound approximation.
+
+\subsection{Correctness and Termination}
 
 Let $h := \meaningofconv{\mathit{e}}\ppre : X \ppreto Y$ and $\hat{h} := \meaningofconv{\mathit{e}}\pprehat : X \pprehatto Y$ for some expression $\mathit{e}$.
 
-\begin{theorem}[monotone]
-\label{thm:monotonicity}
-$\fun{A\,B}{ap\prehat~(\hat{h}~j_0~A)~B}$ is monotone in $A$ and $B$.%
+\begin{theorem}[terminating, monotone, sound and decreasing]
+\label{thm:correctness}%
+For all $A : Rect~\pair{\pair{R,T},X}$ and $B : Rect~Y$,
+\begin{itemize}
+	\item $ap\prehat~(\hat{h}~j_0~A)~B$ terminates.
+	\item $\fun{A'}{ap\prehat~(\hat{h}~j_0~A')~B}$ and $\fun{B'}{ap\prehat~(\hat{h}~j_0~A)~B'}$ are monotone.
+	\item $ap\pre~(h~j_0~A)~B \ \subseteq \ ap\prehat~(\hat{h}~j_0~A)~B \ \subseteq \ A$ (i.e. sound and decreasing).
+\end{itemize}%
 \end{theorem}
 
-\begin{theorem}[sound, terminating, decreasing]
-\label{thm:approximation}
-For all $A \in Rect~\pair{\pair{R,T},X}$ and $B \in Rect~Y$,
-$ap\pre~(h~j_0~A)~B \subseteq ap\prehat~(\hat{h}~j_0~A)~B \subseteq A$.
-\end{theorem}
-
-Given these properties, we  might try to compute preimages of $B$ by computing preimages with respect to increasingly fine discretizations of $A$.
+Given these properties, we  might try to compute preimages of $B$ by computing preimages restricted to the parts of increasingly fine discretizations of $A$.
 
 \begin{definition}[preimage refinement algorithm]
 \label{def:preimage-refinement}
-Let $B \in Rect~Y$ and
+Let $B : Rect~Y$ and
 \begin{equation}
 \begin{aligned}
 	&refine : Rect~\pair{\pair{R,T},X} \to Rect~\pair{\pair{R,T},X} \\
-	&refine~A := ap\prehat~(\hat{h}~j_0~A)~B
+	&refine~A \ := \ ap\prehat~(\hat{h}~j_0~A)~B
 \end{aligned}
 \end{equation}
 Define $partition : Rect~\pair{\pair{R,T},X} \to Set~(Rect~\pair{\pair{R,T},X})$ to produce positive-measure, disjoint rectangles, and define
 \begin{equation}
 \begin{aligned}
 	&refine^* : Set~(Rect~\pair{\pair{R,T},X}) \to Set~(Rect~\pair{\pair{R,T},X}) \\
-	&refine^*~\A := image~refine~\left(\U_{A \in \A} partition~A \right)
+	&refine^*~\A \ := \ image~refine~\left(\U_{A \in \A} partition~A \right)
 \end{aligned}
 \end{equation}
-For any $A \in Rect~\pair{\pair{R,T},X}$, iterate $refine^*$ on $\set{A}$.
+For any $A : Rect~\pair{\pair{R,T},X}$, iterate $refine^*$ on $\set{A}$.
 \end{definition}
 
-Theorem~\ref{thm:monotonicity} guarantees that refining a partition of $A$ never does worse than refining $A$ itself.
-Theorem~\ref{thm:approximation} guarantees that $refine~A \subseteq A$, and that the algorithm is \keyword{sound}: the preimage of $B$ is always contained in the covering partition $refine^*$ returns.
-Ideally, it would be complete in the sense that covering partitions converge to a set that overapproximates by a measure-zero subset.
+Monotonicity ensures refining a partition of $A$ never does worse than refining $A$ itself, decreasingness ensures $refine~A \subseteq A$, and soundness ensures the preimage of $B$ is covered by the partition $refine^*$ returns.
+Ideally, the algorithm would be complete in that covering partitions converge to a set that overapproximates by a measure-zero subset.
 Unfortunately, convergence fails on some examples that terminate with probability less than one.
-We leave completeness conditions for future work, and for now, use Monte Carlo algorithms, which depend only on soundness.
+We leave completeness conditions for future work, and for now, use algorithms that depend only on soundness.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1603,12 +1610,12 @@ We leave completeness conditions for future work, and for now, use Monte Carlo a
 We have three implementations: two direct implementations of the abstract semantics, and a less direct but more efficient one called \mykeyword{Dr.~Bayes}.
 All of them can be found at \url{https://github.com/ntoronto/drbayes}.
 
-Given a library for operating on rectangular sets, the abstract preimage arrows defined in \figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:abstract-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
+Given a library for operating on rectangular sets, the abstract preimage arrows defined in \figsref{fig:astore-arrow-defs} and~\ref{fig:abstract-arrow-defs} can be implemented with few changes in any practical $\lambda$-calculus.
 We have done so in Typed Racket~\cite{cit:tobin-hochstadt-2008popl-typed-scheme} and Haskell~\cite{cit:haskell-lang}.
 Both implementations are almost line-for-line transliterations from the figures.
 
 Dr.~Bayes is written in Typed Racket.
-It includes $\meaningof{\cdot}\genc$ (\figref{fig:semantic-function}), its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow (\figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}), the abstract preimage and preimage* arrows (\figsref{fig:extra-preimage-arrow-defs} and~\ref{fig:abstract-arrow-defs}), and manual lifts such as $arr\prehat~(+)$ to compute approximate preimages under arithmetic.
+It includes $\meaningof{\cdot}\genc$ (\figref{fig:semantic-function}), its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow (\figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}), the abstract preimage and preimage* arrows (\figsref{fig:abstract-arrow-defs} and~\ref{fig:astore-arrow-defs}), and other manual lifts to compute abstract preimages under arithmetic.
 The preimage arrows operate on a monomorphic rectangular set data type, which includes tagged rectangles and disjoint unions for ad-hoc polymorphism, and floating-point intervals to overapproximate real intervals.
 
 Definition~\ref{def:preimage-refinement} outlines preimage refinement, a discretization algorithm that repeatedly shrinks and repartitions a program's domain.
