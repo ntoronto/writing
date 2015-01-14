@@ -469,11 +469,11 @@ More precisely, types are characterized by these rules:
 	\item $\pair{x,y}$ is the type of pairs of values with types $x$ and $y$.
 	\item $Set~x$ is the type of sets whose members have type $x$.
 	\item An uppercase type variable such as $X$ represents a set used as a type.
-	\item $X^J$ is the type of extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$. ($J$ is called an \keyword{index set}.)
 \end{itemize}
 Because the inhabitants of the type $Set~X$ and $\powerset~X$ (i.e. subsets of the set $X$) are the same, they are equivalent types.
 Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
 
+The set $X^J$ contains all extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$.
 We use adjacency (i.e. $f~a$) to apply both intensional and extensional functions.
 For example, the first element of the infinite vector $f : [0,1]^\Nat$ is $f~0$.
 
@@ -1067,20 +1067,21 @@ We need bottom and preimage arrows that thread a random source.
 To ensure random sources contain enough numbers, they should be infinite.
 
 In a pure $\lambda$-calculus, random sources are typically infinite streams, threaded monadically: each computation receives and produces a random source.
-A little-used alternative is for the random source to be a tree~\cite{cit:mcallester-2008tr-random-world}, threaded applicatively: each computation receives, but does not produce, a random source.
+A little-used alternative is for the random source to be an infinite tree~\cite{cit:mcallester-2008tr-random-world}, threaded applicatively: each computation receives, but does not produce, a random source.
 Combinators split the tree and pass subtrees to subcomputations.
 
 With either alternative, for arrows, the resulting definitions are large, conceptually difficult, and hard to manipulate.
 Fortunately, it is relatively easy to assign each subcomputation a unique index into a tree-shaped random source and pass the random source unchanged.
-To do this, we need an indexing scheme.
+For this, we need an indexing scheme.
 
 \begin{definition}[binary indexing scheme]
-Let $J$ be an index set, $j_0 \in J$ a distinguished element, and $left : J \to J$ and $right : J \to J$ be total, injective functions. If for all $j \in J$, $j = next~j_0$ for some finite composition $next$ of $left$ and $right$, then $J$, $j_0$, $left$ and $right$ define a \mykeyword{binary indexing scheme}.
+Let $J$ be the set of finite lists of $Bool$.
+Define $j_0 := \pair{}$ as the root node's index, and $left : J \to J$; $left~j := \pair{true,j}$ and $right : J \to J$; $right~j := \pair{false,j}$ to construct child node indexes.
 \end{definition}
 
-For example, let $J$ be the set of lists of $\set{0,1}$, $j_0 := \pair{}$, and $left~j := \pair{0,j}$ and $right~j := \pair{1,j}$.
-In any case, $J$ is countable, and can be thought of as a set of indexes into an infinite binary tree.
-Values of type $X^J$ encode an infinite binary tree of $X$ values as an infinite vector (i.e. total, extensional function).
+There are many ways to represent infinite binary trees whose nodes are labeled with values in $X$.
+The way most compatible with measure theory is as a vector of $X$ indexed by $J$.
+The set of all such vectors is $X^J$.
 
 \begin{figure*}[!tb]\centering
 \smallmathfont
