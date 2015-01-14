@@ -348,7 +348,7 @@ To compute the probability that $max~\pair{0.5,random}$ evaluates to $0.5$, we a
 \end{equation}
 For any $f$ and $B$, the set $\setb{a \in domain~f}{f~a \in B}$ is called the \keyword{preimage of $B$ under $f$}.
 Functions that compute preimages are often denoted $f^{-1}$ to emphasize that they are a sort of generalized inverse function.
-However, we find this notation confusing: inverse functions operate on \emph{values} and may not be well-defined, whereas preimage functions operate on \emph{sets} and are \emph{always} well-defined.\footnote{If $f^{-1}~b$ is undefined, then the preimage of $\set{b}$ under $f$ is simply $\emptyset$.}
+However, we find this notation confusing: inverse functions operate on \emph{values} and may not be well-defined, whereas preimage functions operate on \emph{sets} and are \emph{always} well-defined.\footnote{If $f^{-1}~b$ is undefined, then the preimage of $\set{b}$ under $f$ is simply $\emptyset$.}\xspace
 Thus, we denote $f$'s preimage function by $preimage~f$.
 The probability that $f$ outputs a value in $B$ is therefore $P~((preimage~f)~B)$, or $P~(preimage~f~B)$.
 
@@ -388,7 +388,7 @@ where $\pair{f_1,f_2} = \fun{a \in (domain~f_1) \i (domain~f_2)} \pair{f_1~a,f_2
 It might seem we can easily use identities like those in~\eqref{eqn:preimage-identities} directly to define a semantic function $\meaningof{\cdot}\pre$ that interprets programs as preimage functions.
 Unfortunately, our task is not that simple, for the following reasons.
 \begin{enumerate}
-	\item The $preimage$ function requires its argument to have an observable domain. This includes \keyword{extensional} functions, which are sets of intput/output pairs (i.e. possibly infinite hash tables), but not \keyword{intensional} functions, which are syntactic rules for computing outputs from inputs (e.g. lambdas).\footnote{The lambda $\fun{r} max~\pair{0.5,r}$ is intensional, but $\fun{r \in [0,1]} max~\pair{0.5,r}$ constructs an extensional function by pairing every $r \in [0,1]$ with its corresponding $max~\pair{0.5,r}$.}
+	\item The $preimage$ function requires its argument to have an observable domain. This includes \keyword{extensional} functions, which are sets of intput/output pairs (i.e. possibly infinite hash tables), but not \keyword{intensional} functions, which are syntactic rules for computing outputs from inputs (e.g. lambdas).\footnote{The lambda $\fun{r} max~\pair{0.5,r}$ is intensional, but $\fun{r \in [0,1]} max~\pair{0.5,r}$ constructs an extensional function by pairing every $r \in [0,1]$ with its corresponding $max~\pair{0.5,r}$.}\xspace
 \label{problem:observable-domain}
 	\item We must ensure $preimage~f~B$ is always in the domain of the chosen probability measure $P$. (Recall that probability measures are partial functions.) If this is true, we say $f$ is \keyword{measurable}. Proving measurability is difficult, especially if $f$ may not terminate.%
 \label{problem:measurability}
@@ -414,7 +414,7 @@ Unfortunately, the required machinery does not fit in this report; see the first
 We avoid difficulty~\ref{problem:higher-orderness} for now by interpreting a language with \emph{first-order} functions and recursion.
 We address~\ref{problem:backward-efficient} by deriving and implementing a \emph{conservative approximation} of the preimage semantics, and using its approximations to compute measures of preimages with arbitrary accuracy.
 
-\subsection{Nonstandard Abstract Interpretation, Categorically}
+\subsection{Abstract Interpretation, Categorically}
 
 \todo{David: Need a transition from previous subsection.}
 
@@ -423,7 +423,7 @@ We address~\ref{problem:backward-efficient} by deriving and implementing a \emph
 We interpret nonrecursive, nonprobabilistic programs three different ways, using
 \begin{enumerate}
 	\item A \keyword{standard semantics} $\meaningof{\cdot}_\bot$ that interprets programs that may raise errors (e.g. divide-by-zero) as functions.
-	\item A \keyword{nonstandard semantics} $\meaningof{\cdot}\pre$ that interprets programs as preimage functions, which operate on uncountable sets, and are thus unimplementable.
+	\item A \keyword{concrete semantics} $\meaningof{\cdot}\pre$ that interprets programs as preimage functions, which operate on uncountable sets, and are thus unimplementable.
 	\item An \keyword{abstract semantics} $\meaningof{\cdot}\prehat$ that interprets programs as \emph{abstract} preimage functions, which operate only on overapproximating, finite representations of uncountable sets, and thus \emph{are} implementable.
 \end{enumerate}
 Of course, we must prove for any program $\mathit{p}$, that $\meaningof{\mathit{p}}\pre$ correctly computes preimages under $\meaningof{\mathit{p}}_\bot$, and that $\meaningof{\mathit{p}}\prehat$ is sound with respect to $\meaningof{\mathit{p}}\pre$.
@@ -513,10 +513,10 @@ Another allows lazy branching in a call-by-value language such as \lzfclang.
 For laziness, we need a singleton type for thunks.
 We use the set $1 := \set{0}$.
 
-\newcommand{\arrowfootnote}{These are actually arrows \emph{with choice}, which are typically defined using $first_a$ and $left_a$ instead of $(\apair_a)$ and $ifte_a$.
-We find $ifte_a$ more natural for semantics than $left_a$, and $(\apair_a)$ better matches the pairing preimage identity in~\eqref{eqn:preimage-identities}.}
+\newcommand{\arrowfootnote}{\footnote{These are actually arrows \emph{with choice}, which are typically defined using $first_a$ and $left_a$ instead of $(\apair_a)$ and $ifte_a$.
+We find $ifte_a$ more natural for semantics than $left_a$, and $(\apair_a)$ better matches the pairing preimage identity in~\eqref{eqn:preimage-identities}.}\xspace}
 
-\begin{definition}[arrow\footnote{\arrowfootnote}]A binary type constructor $(\arrow\gen)$ and the combinators
+\begin{definition}[arrow\arrowfootnote]A binary type constructor $(\arrow\gen)$ and the combinators
 \begin{displaybreaks}
 \begin{equation*}
 \begin{aligned}
@@ -1548,7 +1548,7 @@ To define the abstract preimage arrow, we start by defining abstract preimage fu
 (Compare \figref{fig:preimage-mapping-defs}.)
 Similarly, \figref{fig:abstract-preimage-arrow-defs} defines the abstract preimage arrow by replacing preimage function types and operations in the preimage arrow's definition with \emph{abstract} preimage function types and operations.
 (Compare \figref{fig:preimage-arrow-defs}.)
-A lift $lift\prehat : (X \botto Y) \to (X \prehatto Y)$ exists, but it is not unique nor computable; we thus do not define $arr\prehat$ in terms of it.
+The lift $arr\prehat : (X \to Y) \to (X \prehatto Y)$ exists, but it is not unique (because $Rect~X^J$ is necessarily an incomplete lattice) nor computable.
 
 Fortunately, implementing $\meaningof{\cdot}\prehat$ as defined in \figref{fig:semantic-function} requires lifting only a few pure functions: $id$, $fst$, $snd$, $const~\emph{v}$ for any literal constant $\emph{v}$, and primitives $\delta$.
 According to~\eqref{eqn:random-def} and~\eqref{eqn:ifppre-def}, implementing the extended semantics $\meaningofconv{\cdot}\pprehat$, which supports random choice and guarantees termination, requires lifting only $\pi~j$ for any $j \in J$.
@@ -1712,7 +1712,7 @@ We have used this technique to verify error bounds on the implementations of $hy
 
 Probabilistic languages can be approximately placed into two groups: those defined by a semantics, and those defined by an implementation.
 
-\newcommand{\randomworldfootnote}{\footnote{The term \emph{random-world semantics} was coined by McAllester et al~\cite{cit:mcallester-2008tr-random-world}, and alludes to the \emph{possible-world semantics} used to explain modal logic.}}
+\newcommand{\randomworldfootnote}{\footnote{The term \emph{random-world semantics} was coined by McAllester et al.~\cite{cit:mcallester-2008tr-random-world}, and alludes to the \emph{possible-world semantics} used to explain modal logic.}\xspace}
 
 Kozen's seminal work~\cite{cit:kozen-1979fcs-prob-programs-short} on probabilistic semantics defines two measure-theoretic, denotational semantics, in two different styles: a \keyword{random-world semantics}\randomworldfootnote\ that interprets programs as deterministic functions that operate on a random source, and a \keyword{distributional semantics} that interprets programs as probability measures.
 It seems that all semantics work thereafter is in one of these styles.
@@ -1723,13 +1723,13 @@ Jones~\cite{cit:jones-1990thesis} defines the probability monad as a categorical
 Ramsey and Pfeffer~\cite{cit:ramsey-2002popl-stochastic-short} reformulate it in terms of Haskell's \texttt{return} and `${>}\mspace{-6mu}{>}\mspace{-1mu}{=}$', and use it to define a distributional semantics for a probabilistic lambda calculus.
 They implement the probability monad using probability mass functions, show that computing certain queries is inefficient, and devise an equivalent semantics that is more amenable to efficient implementation, for programs with finite probabilistic choice.
 
-\newcommand{\factorgraphfootnote}{\footnote{More precisely, as factor graphs, which represent probability density functions.}}
+\newcommand{\factorgraphfootnote}{\footnote{More precisely, as factor graphs, which represent probability density functions.}\xspace}
 
-To put Infer.NET~\cite{cit:inferdotnet} on solid footing, Borgstr\"om et al~\cite{cit:borgstrom-2011esop-measure-transformer} define a distributional semantics for a first-order probabilistic language with bounded loops and constraints, by transforming terms into arrow-like combinators that produce measures.
+To put Infer.NET~\cite{cit:inferdotnet} on solid footing, Borgstr\"om et al.~\cite{cit:borgstrom-2011esop-measure-transformer} define a distributional semantics for a first-order probabilistic language with bounded loops and constraints, by transforming terms into arrow-like combinators that produce measures.
 But Infer.NET interprets programs as probability density functions,\factorgraphfootnote so they develop a semantics that does the same and prove equivalence.
 
-Borgstr\"om et al's work and Ramsey and Pfeffer's work are just two examples of a larger trend: while \emph{defining} probabilistic languages can be done using measure theory, \emph{implementing} them to support more than just evaluation (such as allowing constraints) has seemed hopeless enough to necessitate using a less explanatory theory of probability that has more obvious computational content.
-Indeed, the distributional semantics of Pfeffer's IBAL~\cite{cit:pfeffer-2007chapter-ibal} and Nori et al's R2~\cite{cit:nori-2014aaai-preimage} are defined in terms of probability mass and density functions in the first place.
+The work of Borgstr\"om et al. and Ramsey and Pfeffer exemplify a larger trend: while \emph{defining} probabilistic languages can be done using measure theory, \emph{implementing} them to support more than just evaluation (such as allowing constraints) has seemed hopeless enough to necessitate using a less explanatory theory of probability that has more obvious computational content.
+Indeed, the distributional semantics of Pfeffer's IBAL~\cite{cit:pfeffer-2007chapter-ibal} and Nori et al.'s R2~\cite{cit:nori-2014aaai-preimage} are defined in terms of probability mass and density functions in the first place.
 R2 lifts some of the resulting restrictions and speeds up sampling by propagating constraints toward the random values they refer to.
 
 \begin{comment}
@@ -1750,12 +1750,15 @@ Nori's R2               N                  Y              N
 \end{comment}
 
 Some languages defined by an implementation are probabilistic Scheme~\cite{cit:koller-1997aaai-bayes-programs-short}, BUGS~\cite{cit:winbugs-language-short}, BLOG~\cite{cit:blog-language-short}, BLAISE~\cite{cit:blaise-language}, Church~\cite{cit:church-language-short}, and Kiselyov's embedded language for OCaml~\cite{cit:kiselyov-2008uai-monolingual}.
-Recently, Wingate et al~\cite{cit:wingate-2011nips-nonstandard} define nonstandard semantics that enable efficient inference, but do not define the languages.
+Recently, Wingate et al.~\cite{cit:wingate-2011nips-nonstandard} define nonstandard semantics that enable efficient inference, but do not define the languages.
 All of these languages are implemented in terms of probability mass or density functions.
 
-Our work similar in structure to monadic abstract interpretation~\cite{cit:sergey-2013pldi-monadic-abstract}, which also parameterizes a semantics on categorical meanings.
-It is superficially similar to probabilistic abstract interpretation~\cite{cit:cousot-2012esop-prob}, which is a general framework for lifting static analyses into probabilistic settings.
-In contrast, we build a specific probabilistic language and---in contrast to most other abstract interpretation as well---use our abstract semantics to \emph{run} programs rather than \emph{analyze} them.
+Our work is similar in structure to monadic abstract interpretation~\cite{cit:sergey-2013pldi-monadic-abstract}, which also parameterizes a semantics on categorical meanings.
+
+Cousot's probabilistic abstract interpretation~\cite{cit:cousot-2012esop-prob} is a general framework for static analyses of probabilistic languages.
+It considers only random-world semantics, which is quite practical: because programs are interpreted as deterministic functions, many existing analyses easily apply.
+Our random-world semantics fits in this framework, but the concrete domain of preimage functions does not appear among Cousot's many examples, and we do not compute fixed points.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
