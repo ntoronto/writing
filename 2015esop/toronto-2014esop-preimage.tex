@@ -475,7 +475,7 @@ Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
 
 The set $X^J$ contains all extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$.
 We use adjacency (i.e. $f~a$) to apply both intensional and extensional functions.
-For example, the first element of the infinite vector $f : [0,1]^\Nat$ is $f~0$.
+For example, the first element of $f : [0,1]^\Nat$ is $f~0$.
 
 Type constructors are defined using `$::=$'; e.g. $X \botto Y ::= X \to (Y \u \set{\bot})$.
 
@@ -1079,10 +1079,6 @@ Let $J$ be the set of finite lists of $Bool$.
 Define $j_0 := \pair{}$ as the root node's index, and $left : J \to J$; $left~j := \pair{true,j}$ and $right : J \to J$; $right~j := \pair{false,j}$ to construct child node indexes.
 \end{definition}
 
-There are many ways to represent infinite binary trees whose nodes are labeled with values in $X$.
-The way most compatible with measure theory is as a vector of $X$ indexed by $J$.
-The set of all such vectors is $X^J$.
-
 \begin{figure*}[!tb]\centering
 \smallmathfont
 \begin{align*}
@@ -1134,6 +1130,10 @@ We thus think of programs interpreted as $AStore$ arrows as being completely unr
 
 To interpret probabilistic programs, we put infinite random trees in the store.
 
+There are many ways to represent infinite binary trees whose nodes are labeled with values in $[0,1]$.
+The way most compatible with measure theory is as a vector of $[0,1]$ indexed by $J$.
+The set of all such vectors is $[0,1]^J$.
+
 \begin{definition}[random source]
 Define $R := [0,1]^J$, the set of infinite binary trees whose node labels are in $[0,1]$.
 A \keyword{random source} is any $r \in R$.
@@ -1141,11 +1141,12 @@ A \keyword{random source} is any $r \in R$.
 
 To interpret partial programs, we need to ensure termination.
 One ultimately implementable way is to have the store dictate which branch of each conditional, if any, is taken.
+If the store dictates that all but finitely many branches must not be taken, well-defined programs must terminate (see Definition~\ref{def:well-defined-expression}).
 
 \begin{definition}[branch trace]
 A \mykeyword{branch trace} is any $t \in Bool_\bot^J$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
 
-Let $T \subset Bool_\bot^J$ be the largest set of branch traces.
+Let $T \subset Bool_\bot^J$ be the set of all branch traces.
 \end{definition}
 
 Let $X \arrow\genc Y ::= AStore~\pair{R,T}~(X \arrow\gen Y)$ be an $AStore$ arrow type that threads both random stores and branch traces.
@@ -1623,7 +1624,8 @@ Definition~\ref{def:preimage-refinement} outlines preimage refinement, a discret
 \emph{Dr.~Bayes does not use this algorithm directly} because it is inefficient: good accuracy requires fine discretization, which is exponential in the number of discretized axes.
 Instead of \emph{enumerating} covering partitions of the random source, Dr.~Bayes \emph{samples parts} from the covering partitions and then \emph{samples a point} from each sampled part, with time complexity linear in the number of samples and discretized axes.
 It applies bottom* arrow computations to the random source samples to get output samples, rejecting those outside the requested output set.
-In short, Dr.~Bayes uses preimage refinement reduce the rejection rate, and relies only on its soundness.
+
+In short, Dr.~Bayes uses preimage refinement only to reduce the rate of rejection when sampling under constraints, and thus relies only on its soundness.
 
 We have tested Dr.~Bayes on a variety of Bayesian inference tasks, including Bayesian regression and model selection~\cite{cit:toronto-thesis}.
 Some of our Bayesian inference tests use recursion and constrain the outputs of deterministic functions, suggesting that Dr.~Bayes and future probabilistic languages like it will allow practitioners to model real-world processes more expressively and precisely.
