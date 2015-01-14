@@ -1623,7 +1623,7 @@ Definition~\ref{def:preimage-refinement} outlines preimage refinement, a discret
 \emph{Dr.~Bayes does not use this algorithm directly} because it is inefficient: good accuracy requires fine discretization, which is exponential in the number of discretized axes.
 Instead of \emph{enumerating} covering partitions of the random source, Dr.~Bayes \emph{samples parts} from the covering partitions and then \emph{samples a point} from each sampled part, with time complexity linear in the number of samples and discretized axes.
 It applies bottom* arrow computations to the random source samples to get output samples, rejecting those outside the requested output set.
-Thus, it relies only on preimage refinement's soundness.
+In short, Dr.~Bayes uses preimage refinement reduce the rejection rate, and relies only on its soundness.
 
 We have tested Dr.~Bayes on a variety of Bayesian inference tasks, including Bayesian regression and model selection~\cite{cit:toronto-thesis}.
 Some of our Bayesian inference tests use recursion and constrain the outputs of deterministic functions, suggesting that Dr.~Bayes and future probabilistic languages like it will allow practitioners to model real-world processes more expressively and precisely.
@@ -1776,7 +1776,7 @@ To allow arbitrary constraints and recursion in probabilistic programs, we combi
 \end{enumerate}
 We implemented the abstract semantics and carried out Bayesian inference, stochastic ray tracing, and probabilistic verification.
 
-In the future, we intend to extend our first-order language's expressiveness by adding lambdas, explore ways to use static or dynamic analyses to speed up Monte Carlo algorithms, and explore preimage computation's connections to type checking and type inference.
+In the future, we intend to add expressiveness by adding lambdas (possibly via closure conversion), explore ways to use static or dynamic analyses to speed up Monte Carlo algorithms, and explore preimage computation's connections to type checking and type inference.
 More broadly, we hope to advance probabilistic inference by providing a rich modeling language with an efficient, correct implementation, which allows general recursion and arbitrary constraints.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
