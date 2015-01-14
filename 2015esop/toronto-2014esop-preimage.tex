@@ -844,7 +844,7 @@ By Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
-		&pre : (X \botto Y) \to (X \prepto Y) \\
+		&pre : (X \botto Y) \to Set~X \to (X \prepto Y) \\
 		&\lzfcsplit{&pre~f~A \ := \ \pair{image_\bot~f~A, preimage_\bot~f~A}}
 	\end{aligned} \\
 \\[-6pt]
@@ -1216,8 +1216,8 @@ We assume each $r \in R$ is random, but not $t \in T$ nor $a \in X$; therefore, 
 The probability of $B \subseteq Y$ is therefore
 \begin{equation}
 \begin{aligned}
-	&P~(image~(fst~\acomp~fst)~(preimage_\bot~f~X'~B)) \\
-	&\tab =\ P~(image~(fst~\acomp~fst)~(ap\pre~(h~X')~B))
+	&P~(image~(fst~\acomp~fst)~(preimage_\bot~(f~j_0)~X'~B)) \\
+	&\tab =\ P~(image~(fst~\acomp~fst)~(ap\pre~(h~j_0~X')~B))
 \end{aligned}
 \end{equation}
 where $h := \meaningofconv{\mathit{e}}\ppre$, if $f$ and $h$ always terminate and $\meaningofconv{\cdot}\ppre$ is correct.
@@ -1596,7 +1596,7 @@ For any $A : Rect~\pair{\pair{R,T},X}$, iterate $refine^*$ on $\set{A}$.
 \end{definition}
 
 Monotonicity ensures refining a partition of $A$ never does worse than refining $A$ itself, decreasingness ensures $refine~A \subseteq A$, and soundness ensures the preimage of $B$ is covered by the partition $refine^*$ returns.
-Ideally, the algorithm would be complete in that covering partitions converge to a set that overapproximates by a measure-zero subset.
+Ideally, the algorithm would be complete, in that covering partitions converge to a set that overapproximates by a measure-zero subset.
 Unfortunately, convergence fails on some examples that terminate with probability less than one.
 We leave completeness conditions for future work, and for now, use algorithms that depend only on soundness.
 
