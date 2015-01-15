@@ -108,7 +108,7 @@
 
 \author{\tab\tab Neil Toronto$^1$ \tab\tab\tab\tab\tab Jay McCarthy$^2$ \tab\tab\tab David Van Horn$^1$ \\
 \footnotesize{\texttt{neil.toronto@gmail.com} \tab \texttt{jay.mccarthy@gmail.com} \tab \texttt{dvanhorn@cs.umd.edu}}}
-\institute{$^1$University of Maryland, College Park \tab $^2$Vassar College}
+\institute{$^1$University of Maryland \tab $^2$Vassar College}
 
 \date{}
 
@@ -258,7 +258,7 @@ In fact, our primary implementation, \emph{Dr.~Bayes}, produced \figref{fig:ray-
 
 \vspace{0.5\baselineskip}
 
-The rest of this report is organized as follows.
+The rest of this paper is organized as follows.
 \begin{itemize}
 	\item Section~\ref{sec:background} demonstrates why density functions are insufficient for interpreting probabilistic programs. It shows how measure-theoretic probability defines probability distributions using set-valued inverses, or \emph{preimage functions}.
 	\item Section~\ref{sec:arrows} presents the categorical tools we use to derive many semantics from a single standard semantics in a way that makes them easy to prove correct.
@@ -409,7 +409,7 @@ It is essentially ordinary mathematics extended with lambdas and general recursi
 
 We have addressed difficulty~\ref{problem:measurability} by proving that all programs' interpretations as functions are measurable if language primitives are measurable, including uncomputable primitives such as limits and real equality, regardless of nontermination.
 The proof interprets programs as extensional functions and applies well-known theorems from measure theory such as the identities in~\eqref{eqn:preimage-identities}.
-Unfortunately, the required machinery does not fit in this report; see the first author's dissertation~\cite{cit:toronto-thesis} for the entire development.
+Unfortunately, the required machinery does not fit in this paper; see the first author's dissertation~\cite{cit:toronto-thesis} for the entire development.
 
 We avoid difficulty~\ref{problem:higher-orderness} for now by interpreting a language with \emph{first-order} functions and recursion.
 We address~\ref{problem:backward-efficient} by deriving and implementing a \emph{conservative approximation} of the preimage semantics, and using its approximations to compute measures of preimages with arbitrary accuracy.
@@ -488,6 +488,8 @@ Proofs, which we elide to save space, are in the first author's dissertation~\ci
 \section{Arrows and First-Order Semantics}
 \label{sec:arrows}
 
+This section presents the categorical tools we use to derive many semantics from a single standard semantics in a way that makes them easy to prove correct.
+%
 Arrows~\cite{cit:hughes-2000scp-arrows}, like monads~\cite{cit:wadler-2001-monads}, thread effects through computations in a way that imposes structure.
 But arrow computations are always
 \begin{enumerate}
@@ -777,6 +779,9 @@ X \pbotto Y  @>>lift\ppre>  X \ppreto Y%
 \end{equation}%
 }
 
+This section defines the semantics of nonrecursive, nonprobabilistic
+programs, which interprets programs as preimage functions.
+%
 The following commutative diagram shows the relationships between the concrete arrows we define.
 We will use it as a sort of roadmap.
 \youarehere{eqn:roadmap-diagram2}
@@ -1033,6 +1038,8 @@ By Definition~\ref{def:preimage-arrow-law}, $lift\pre$ has a right inverse; by T
 \section{The Bottom* and Preimage* Arrows}
 \label{sec:recursive-arrows}
 
+This section lifts the prior semantics to recursive, probabilistic programs.
+%
 We have defined the top of our roadmap:
 \youarehere{eqn:roadmap-diagram3}
 so that $lift\pre$ is a homomorphism.
@@ -1307,6 +1314,8 @@ In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always ter
 \section{Abstract Semantics}
 \label{sec:abstract-semantics}
 
+This section derives a sound, implementable abstract semantics.
+%
 Most preimages of uncountable sets are uncomputable.
 We therefore define a semantics for approximate preimage computation by
 \begin{enumerate}
@@ -1609,6 +1618,8 @@ We leave completeness conditions for future work, and for now, use algorithms th
 \section{Implementations and Examples}
 \label{sec:implementation}
 
+This section describes our implementations and gives examples, including probabilistic verification of floating-point error bounds.
+%
 We have three implementations: two direct implementations of the abstract semantics, and a less direct but more efficient one called \mykeyword{Dr.~Bayes}.
 All of them can be found at \url{https://github.com/ntoronto/drbayes}.
 
@@ -1756,7 +1767,7 @@ Some languages defined by an implementation are probabilistic Scheme~\cite{cit:k
 Recently, Wingate et al.~\cite{cit:wingate-2011nips-nonstandard} define nonstandard semantics that enable efficient inference, but do not define the languages.
 All of these languages are implemented in terms of probability mass or density functions.
 
-Our work is similar in structure to monadic abstract interpretation~\cite{cit:sergey-2013pldi-monadic-abstract}, which also parameterizes a semantics on categorical meanings.
+Our work is similar in structure to monadic abstract interpretation~\cite{cit:sergey-2013pldi-monadic-abstract,DBLP:journals/corr/DaraisMH14}, which also parameterizes a semantics on categorical meanings.
 
 Cousot's probabilistic abstract interpretation~\cite{cit:cousot-2012esop-prob} is a general framework for static analyses of probabilistic languages.
 It considers only random-world semantics, which is quite practical: because programs are interpreted as deterministic functions, many existing analyses easily apply.
@@ -1785,7 +1796,13 @@ More broadly, we hope to advance probabilistic inference by providing a rich mod
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection*{Acknowledgments.} Special thanks to Mitch Wand for an additional careful review and helpful feedback.
+\subsubsection*{Acknowledgments.} Special thanks to Mitchell Wand for an additional careful review and helpful feedback.
+%
+This material is based on research sponsored by DARPA under the
+Automated Program Analysis for Cybersecurity (FA8750-12-2-0106)
+project. The U.S. Government is authorized to reproduce and distribute
+reprints for Governmental purposes notwithstanding any copyright
+notation thereon.
 
 \mathversion{normal}
 
