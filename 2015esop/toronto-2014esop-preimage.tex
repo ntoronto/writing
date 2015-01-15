@@ -752,7 +752,7 @@ By structural induction and homomorphism properties~\eqref{eqn:lift-distributes-
 Much of our development proceeds in the following way.
 \begin{enumerate}
 	\item Define an arrow $a$ to interpret programs using $\meaningof{\cdot}_a$.
-	\item Define $lift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ from arrow $a$ to $b$ in such a way that $lift\genb~f$ for any $f : x \arrow_a y$ is obviously correct.
+	\item Define $lift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ from arrow $a$ to $b$ with the property that if $f : x \arrow\gen y$, then $lift\genb~f$ is correct.
 	\item Prove $lift_b$ is a homomorphism; therefore $\meaningof{\mathit{e}}\genb$ is correct (Theorem~\ref{thm:homomorphism-implies-correct}).
 	\item Prove $lift_b$ is right-invertible; therefore $b$ obeys the arrow laws (Theorem~\ref{thm:arrow-epimorphism}).
 \end{enumerate}
@@ -777,10 +777,9 @@ X \pbotto Y  @>>lift\ppre>  X \ppreto Y%
 \end{equation}%
 }
 
-The following commutative diagram shows the relationships between the concrete arrows we define.
-We will use it as a sort of roadmap.
+The following commutative diagram shows the relationships between the arrows $X \botto Y$ and $X \preto Y$ for interpreting nonrecursive, nonprobabilistic programs, and $X \pbotto Y$ and $X \ppreto Y$ for interpreting recursive, probabilistic programs.
 \youarehere{eqn:roadmap-diagram2}
-In this section, we define the top row, which are the concrete arrows for interpreting nonrecursive, nonprobabilistic programs.
+In this section, we define the top row.
 
 \subsection{The Bottom Arrow}
 
@@ -854,38 +853,33 @@ By Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
 \\[-6pt]
 	&\begin{aligned}[t]
 		&ap\pre : (X \prepto Y) \to Set~Y \to Set~X \\
-		&ap\pre~\pair{Y',p}~B \ := \ p~(B \i Y') 
+		&ap\pre~\pair{B',p}~B \ := \ p~(B \i B') 
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
 		&range\pre : (X \prepto Y) \to Set~Y \\
-		&range\pre~\pair{Y',p} \ := \ Y'
+		&range\pre~\pair{B',p} \ := \ B'
 	\end{aligned}
 \end{aligned}
 &&\begin{aligned}[t]
 	&\begin{aligned}[t]
 		&\pair{\cdot,\cdot}\pre : (X \prepto Y_1) \to (X \prepto Y_2) \to (X \prepto \pair{Y_1,Y_2}) \\
-		&\pair{\pair{Y_1',p_1},\pair{Y_2',p_2}}\pre \ := \ \\
+		&\pair{\pair{B_1',p_1},\pair{B_2',p_2}}\pre \ := \ \\
 		&\tab\lzfclet{
-			Y' & Y_1' \times Y_2' \\
+			B' & B_1' \times B_2' \\
 			p & \fun{B}{\ \displaystyle\bigcup\limits_{\mathclap{\pair{b_1,b_2} \in B}}~(p_1~\set{b_1}) \i (p_2~\set{b_2})} \\
-		}{\pair{Y',p}}
+		}{\pair{B',p}}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
 		&(\circ\pre) : (Y \prepto Z) \to (X \prepto Y) \to (X \prepto Z) \\
-		&\pair{Z',p_2} \circ\pre h_1 \ := \ \pair{Z', \fun{C}{ap\pre~h_1~(p_2~C)}}
+		&\pair{C',p_2} \circ\pre h_1 \ := \ \pair{C', \fun{C}{ap\pre~h_1~(p_2~C)}}
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
 		&(\u\pre) : (X \prepto Y) \to (X \prepto Y) \to (X \prepto Y) \\
-		&\lzfcsplit{
-			&h_1 \u\pre h_2 \ := \ 
-			\lzfclet{
-					Y' & (range\pre~h_1) \u (range\pre~h_2) \\
-					p & \fun{B}{(ap\pre~h_1~B) \u (ap\pre~h_2~B)}
-				}{\pair{Y',p}}
-		}
+		&\pair{B_1',p_1} \u\pre \pair{B_2',p_2} \ := \\
+		&\tab\pair{B_1' \u B_2',\fun{B}{ap\pre~\pair{B_1',p_1}~B \u ap\pre~\pair{B_2',p_2}~B}}
 	\end{aligned}
 \end{aligned}
 \\[-6pt]
@@ -901,7 +895,7 @@ By Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
 \hline
 \\[-8pt]
 	&\begin{aligned}[t]
-		&preimage_\bot : (X \botto Y) \to Set~X \to Set~Y \to Set~X \\
+		&preimage_\bot : (X \botto Y) \to Set~X \to Set~Y \to Set~X \mspace{25mu} \\
 		&preimage_\bot~f~A~B \ := \ \setb{a \in A}{f~a \in B}
 	\end{aligned}
 \end{aligned}
@@ -912,7 +906,7 @@ By Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
 \end{figure*}
 
 Before defining the preimage arrow, we need a type of preimage functions.
-$Set~Y \to Set~X$ would be a good candidate, except that the $(\acomp\pre)$ combinator will require preimage functions to have observable domains, but instances of $Set~Y \to Set~X$ may be intensional functions.
+$Set~Y \to Set~X$ would be a good candidate, except that the $(\acomp\pre)$ combinator will require preimage functions to have observable domains, but instances of $Set~Y \to Set~X$ are intensional functions.
 We therefore define
 \begin{equation}
 	X \prepto Y \ ::= \ \pair{Set~Y, Set~Y \to Set~X}
@@ -1144,9 +1138,9 @@ One ultimately implementable way is to have the store dictate which branch of ea
 If the store dictates that all but finitely many branches must not be taken, well-defined programs must terminate (see Definition~\ref{def:well-defined-expression}).
 
 \begin{definition}[branch trace]
-A \mykeyword{branch trace} is any $t \in Bool_\bot^J$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
+A \mykeyword{branch trace} is any $t \in (Bool_\bot)^J$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
 
-Let $T \subset Bool_\bot^J$ be the set of all branch traces.
+Let $T \subset (Bool_\bot)^J$ be the set of all branch traces.
 \end{definition}
 
 Let $X \arrow\genc Y ::= AStore~\pair{R,T}~(X \arrow\gen Y)$ be an $AStore$ arrow type that threads both random stores and branch traces.
@@ -1212,17 +1206,16 @@ Define
 as the type constructors for the \mykeyword{bottom*} and \mykeyword{preimage* arrows}.
 \end{definition}
 
-Suppose $f := \meaningofconv{\mathit{e}}_\pbot : X \pbotto Y$.
-Its domain is $X' := (R \times T) \times X$.
-We assume each $r \in R$ is random, but not $t \in T$ nor $a \in X$; therefore, neither $T$ nor $X$ should affect the probabilities of output sets.
-The probability of $B \subseteq Y$ is therefore
+Suppose $f := (\meaningofconv{\mathit{e}}_\pbot~j) : X' \botto Y$ and $h := (\meaningofconv{\mathit{e}}\ppre~j) : X' \preto Y$, where $X' = (R \times T) \times X$.
+For each $\pair{\pair{r,t},a} \in X'$, we assume that only $r$ is chosen randomly.
+Thus, the probability of $B \subseteq Y$ is
 \begin{equation}
 \begin{aligned}
-	&P~(image~(fst~\acomp~fst)~(preimage_\bot~(f~j_0)~X'~B)) \\
-	&\tab =\ P~(image~(fst~\acomp~fst)~(ap\pre~(h~j_0~X')~B))
+	&P~(image~(fst~\circ~fst)~(preimage_\bot~f~X'~B)) \\
+	&\tab =\ P~(image~(fst~\circ~fst)~(ap\pre~(h~X')~B))
 \end{aligned}
 \end{equation}
-where $h := \meaningofconv{\mathit{e}}\ppre$, if $f$ and $h$ always terminate and $\meaningofconv{\cdot}\ppre$ is correct.
+if $f$ and $h$ always terminate and $\meaningofconv{\cdot}\ppre$ is correct with respect to $\meaningofconv{\cdot}_\pbot$.
 
 \subsection{Correctness and Termination}
 
@@ -1356,7 +1349,7 @@ All operations on products proceed by simple structural recursion.
 
 \subsection{Abstract Arrows}
 
-\begin{figure*}[!tb]\centering
+\begin{figure*}\centering
 \smallmathfont
 \subfloat[Definitions for abstract preimage functions, which compute rectangular covers.]{
 \begin{minipage}{0.98\textwidth}
@@ -1376,9 +1369,9 @@ All operations on products proceed by simple structural recursion.
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
-		&(\circ\prehat) : (Y \prehatpto Z) \to (X \prehatpto Y) \to (X \prehatpto Z) \\
-		&\pair{Z',p_2} \circ\prehat h_1 \ := \ \pair{Z', \fun{C}{ap\prehat~h_1~(p_2~C)}}
-	\end{aligned} \\
+		&range\prehat : (X \prehatpto Y) \to Rect~Y \\
+		&range\prehat~\pair{Y',p} \ := \ Y'
+	\end{aligned}
 \end{aligned}
 &\tab\ \,
 \begin{aligned}[t]
@@ -1392,10 +1385,14 @@ All operations on products proceed by simple structural recursion.
 	\end{aligned} \\
 \\[-6pt]
 	&\begin{aligned}[t]
+		&(\circ\prehat) : (Y \prehatpto Z) \to (X \prehatpto Y) \to (X \prehatpto Z) \\
+		&\pair{Z',p_2} \circ\prehat h_1 \ := \ \pair{Z', \fun{C}{ap\prehat~h_1~(p_2~C)}}
+	\end{aligned} \\
+\\[-6pt]
+	&\begin{aligned}[t]
 		&(\u\prehat) : (X \prehatpto Y) \to (X \prehatpto Y) \to (X \prehatpto Y) \\
 		&\pair{Y_1',p_1} \u\prehat \pair{Y_2',p_2} \ := \\
-		&\tab\pair{Y_1' \join Y_2',\fun{B}{ap\prehat~\pair{Y_1',p_1}~B \join ap\prehat~\pair{Y_2',p_2}~B}
-		}
+		&\tab\pair{Y_1' \join Y_2',\fun{B}{ap\prehat~\pair{Y_1',p_1}~B \join ap\prehat~\pair{Y_2',p_2}~B}}
 	\end{aligned}
 \end{aligned}\!\!\!
 \end{align*}
@@ -1405,8 +1402,7 @@ All operations on products proceed by simple structural recursion.
 \label{fig:abstract-preimage-mapping-defs}
 }
 
-\subfloat[Abstract preimage arrow, defined using abstract preimage functions.
-While $arr\prehat$ is not unique nor computable, specific applications of it are (see \figref{fig:extra-preimage-arrow-defs}).]{
+\subfloat[Abstract preimage arrow, defined using abstract preimage functions.]{
 \begin{minipage}{0.98\textwidth}
 \begin{align*}
 \\ % add space between subfloat above and this one
@@ -1439,7 +1435,7 @@ While $arr\prehat$ is not unique nor computable, specific applications of it are
 \label{fig:abstract-preimage-arrow-defs}
 }
 
-\subfloat[Abstract preimage arrow lifts needed to interpret probabilistic programs.]{
+\subfloat[Explicit instances of $arr\prehat~f$ (e.g. $arr\prehat~id$) needed to interpret probabilistic programs.]{
 \begin{minipage}{0.98\textwidth}
 \begin{align*}
 \\ % add space between subfloat above and this one
@@ -1550,7 +1546,7 @@ To define the abstract preimage arrow, we start by defining abstract preimage fu
 (Compare \figref{fig:preimage-mapping-defs}.)
 Similarly, \figref{fig:abstract-preimage-arrow-defs} defines the abstract preimage arrow by replacing preimage function types and operations in the preimage arrow's definition with \emph{abstract} preimage function types and operations.
 (Compare \figref{fig:preimage-arrow-defs}.)
-The lift $arr\prehat : (X \to Y) \to (X \prehatto Y)$ exists, but it is not unique (because $Rect~X^J$ is necessarily an incomplete lattice) nor computable.
+The lift $arr\prehat : (X \to Y) \to (X \prehatto Y)$ exists, but $arr\prehat~f$ is not always unique (because $Rect~X^J$ is necessarily an incomplete lattice) nor computable.
 
 Fortunately, implementing $\meaningof{\cdot}\prehat$ as defined in \figref{fig:semantic-function} requires lifting only a few pure functions: $id$, $fst$, $snd$, $const~\emph{v}$ for any literal constant $\emph{v}$, and primitives $\delta$.
 According to~\eqref{eqn:random-def} and~\eqref{eqn:ifppre-def}, implementing the extended semantics $\meaningofconv{\cdot}\pprehat$, which supports random choice and guarantees termination, requires lifting only $\pi~j$ for any $j \in J$.
