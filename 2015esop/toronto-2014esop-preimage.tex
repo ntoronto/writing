@@ -817,7 +817,7 @@ In this section, we define the top row.
 
 To use Theorem~\ref{thm:homomorphism-implies-correct} to prove correct the interpretations of expressions as preimage arrow computations, we need to define the preimage arrow in terms of a simpler arrow with easily understood behavior.
 The function arrow~\eqref{eqn:function-arrow} is an obvious candidate.
-However, we will need to explicitly handle nontermination as an error value, so we need a slightly more complicated arrow.
+However, we will need to represent possible nontermination as an error value, so we need a slightly more complicated arrow.
 
 \figref{fig:bottom-arrow-defs} defines the \mykeyword{bottom arrow}, which is similar to the function arrow but propagates the error value $\bot$.
 Its computations have type $X \botto Y ::= X \to Y_\bot$, where $Y_\bot ::= Y \u \set{\bot}$.
@@ -1041,18 +1041,17 @@ The following probabilistic function defines the well-known geometric distributi
 	geometric~p \ := \ if~random < p~then~0~else~1 + geometric~p
 \label{eqn:geometric-def}
 \end{equation}
-For any $p > 0$, $geometric~p$ may not terminate, but the probability of never taking the ``else'' branch is $(1-p) \cdot (1-p) \cdot (1-p) \cdot \cdots = 0$.
+For any $p > 0$, $geometric~p$ may not terminate, but the probability of not terminating (i.e. always taking the ``else'' branch) is $(1-p) \cdot (1-p) \cdot (1-p) \cdot \cdots = 0$.
 
-Suppose we interpret $geometric~p$ as $h : R \preto \Nat$, a preimage arrow computation from random sources to naturals, and we have a probability measure $P : Set~R \to [0,1]$.
+Suppose we interpret $geometric~p$ as $h : R \preto \Nat$, a preimage arrow computation from random sources to $\Nat$, and we have a probability measure $P : Set~R \to [0,1]$.
 The probability of $N \subseteq \Nat$ is $P~(ap\pre~(h~R)~N)$.
 To compute this, we must
-%We have three hurdles to leap:
 \begin{itemize}
-	\item Ensure $ap\pre~(h~R)~N$ terminates.
 	\item Ensure each $r \in R$ contains enough random numbers.
 	\item Determine how $random$ indexes numbers in $r$.
+	\item Ensure $ap\pre~(h~R)~N$ terminates even though there are random sources in $R$ for which $geometric~p$ does not terminate.
 \end{itemize}
-Ensuring $ap\pre~(h~R)~N$ terminates is the most difficult, but doing the other two will provide structure that makes it much easier.
+The last task is the most difficult, but doing the first two will provide structure that makes it much easier.
 
 \subsection{Threading and Indexing}
 \label{sec:threading-and-indexing}
@@ -1061,7 +1060,7 @@ We need bottom and preimage arrows that thread a random source.
 To ensure random sources contain enough numbers, they should be infinite.
 
 In a pure $\lambda$-calculus, random sources are typically infinite streams, threaded monadically: each computation receives and produces a random source.
-A little-used alternative is for the random source to be an infinite tree~\cite{cit:mcallester-2008tr-random-world}, threaded applicatively: each computation receives, but does not produce, a random source.
+A little-used alternative is for the random source to be an infinite tree, threaded applicatively: each computation receives, but does not produce, a random source.
 Combinators split the tree and pass subtrees to subcomputations.
 
 With either alternative, for arrows, the resulting definitions are large, conceptually difficult, and hard to manipulate.
@@ -1070,7 +1069,7 @@ For this, we need an indexing scheme.
 
 \begin{definition}[binary indexing scheme]
 Let $J$ be the set of finite lists of $Bool$.
-Define $j_0 := \pair{}$ as the root node's index, and $left : J \to J$; $left~j := \pair{true,j}$ and $right : J \to J$; $right~j := \pair{false,j}$ to construct child node indexes.
+Define $j_0 := \pair{}$ as the root node's index, and $left : J \to J$; $left~j := \pair{true,j}$ and $right : J \to J$; $right~j := \pair{false,j}$ to construct left and right child indexes.
 \end{definition}
 
 \begin{figure*}[!tb]\centering
@@ -1119,13 +1118,12 @@ Each subcomputation receives $left~j$, $right~j$, or some other unique binary in
 We thus think of programs interpreted as $AStore$ arrows as being completely unrolled into an infinite binary tree, with each expression labeled with its tree index.
 
 
-\subsection{Partial, Probabilistic Programs}
+\subsection{Recursive, Probabilistic Programs}
 \label{sec:probabilistic-programs}
 
 To interpret probabilistic programs, we put infinite random trees in the store.
 
-There are many ways to represent infinite binary trees whose nodes are labeled with values in $[0,1]$.
-The way most compatible with measure theory is as a vector of $[0,1]$ indexed by $J$.
+Of all the ways to represent infinite binary trees whose nodes are labeled with values in $[0,1]$, the way most compatible with measure theory is to flatten them into vectors of $[0,1]$ indexed by $J$.
 The set of all such vectors is $[0,1]^J$.
 
 \begin{definition}[random source]
@@ -1133,9 +1131,9 @@ Define $R := [0,1]^J$, the set of infinite binary trees whose node labels are in
 A \keyword{random source} is any $r \in R$.
 \end{definition}
 
-To interpret partial programs, we need to ensure termination.
+To interpret recursive programs, we need to ensure termination.
 One ultimately implementable way is to have the store dictate which branch of each conditional, if any, is taken.
-If the store dictates that all but finitely many branches must not be taken, well-defined programs must terminate (see Definition~\ref{def:well-defined-expression}).
+If the store dictates that all but finitely many branches cannot be taken, well-defined programs must terminate (see Definition~\ref{def:well-defined-expression}).
 
 \begin{definition}[branch trace]
 A \mykeyword{branch trace} is any $t \in (Bool_\bot)^J$ such that $t~j = true$ or $t~j = false$ for no more than finitely many $j \in J$.
@@ -1143,7 +1141,15 @@ A \mykeyword{branch trace} is any $t \in (Bool_\bot)^J$ such that $t~j = true$ o
 Let $T \subset (Bool_\bot)^J$ be the set of all branch traces.
 \end{definition}
 
-Let $X \arrow\genc Y ::= AStore~\pair{R,T}~(X \arrow\gen Y)$ be an $AStore$ arrow type that threads both random stores and branch traces.
+Let $X \arrow\genc Y ::= AStore~\pair{R,T}~(X \arrow\gen Y)$ denote the $AStore$ arrow type that threads both random sources and branch traces through another arrow $a$.
+Thus, the type constructors for the \mykeyword{bottom*} and \mykeyword{preimage*} arrows are
+\begin{equation}
+\begin{aligned}
+	X \pbotto Y &\ ::= \ AStore~\pair{R,T}~(X \botto Y) \\
+	X \ppreto Y &\ ::= \ AStore~\pair{R,T}~(X \preto Y)
+\end{aligned}
+\end{equation}
+
 
 For probabilistic programs, we define a combinator $random\genc$ that returns the number at its tree index in the random source, and extend $\meaningof{\cdot}\genc$ for arrows $a^*$:
 \begin{equation}
@@ -1159,12 +1165,17 @@ For probabilistic programs, we define a combinator $random\genc$ that returns th
 \end{equation}
 where $\pi : J \to X^J \to X$, defined by $\pi~j~f \ := \ f~j$, produces projection functions.
 
-For partial programs, we define a combinator that reads branch traces, and an if-then-else combinator that ensures its test expression agrees with the trace:
+For recursive programs, we define a combinator that reads branch traces, and a new if-then-else combinator that yields $\bot$ when its test expression does not agree with the branch trace at its tree index:
 \begin{equation}
 \begin{aligned}
 	&\begin{aligned}
 		&branch\genc : X \arrow\genc Bool \\
 		&branch\genc~j \ := \ arr\gen~fst~\acomp\gen~arr\gen~snd~\acomp\gen~arr\gen~(\pi~j)
+	\end{aligned} \\
+\\[-9pt]
+	&\begin{aligned}
+		&agrees : \pair{Bool,Bool} \to Bool_\bot \\
+		&agrees~\pair{b_1,b_2} \ := \ if~b_1 = b_2~then~b_1~else~\bot
 	\end{aligned} \\
 \\[-9pt]
 	&\begin{aligned}
@@ -1179,8 +1190,6 @@ For partial programs, we define a combinator that reads branch traces, and an if
 \end{aligned}
 \label{eqn:ifppre-def}
 \end{equation}
-where $agrees~\pair{b_1,b_2} := if~b_1 = b_2~then~b_1~else~\bot$.
-Thus, if the branch trace does not agree with the test expression, it returns an error.
 We define a new semantic function $\meaningofconv{\cdot}\genc$ by replacing the $if$ rule in $\meaningof{\cdot}\genc$:
 \begin{equation}
 \begin{aligned}
@@ -1192,19 +1201,8 @@ We define a new semantic function $\meaningofconv{\cdot}\genc$ by replacing the 
 \end{aligned}
 \end{equation}
 
-For an $AStore$ computation $k$, we obviously must run $k$ on every branch trace in $T$ and filter out $\bot$, or somehow find inputs $\pair{\pair{r,t},a}$ for which $agrees$ never returns $\bot$.
-Preimage $AStore$ arrows do the former by first computing an image, and the latter by computing preimages of sets that cannot contain $\bot$.
-
-\begin{definition}[terminating, probabilistic arrows]
-Define
-\begin{equation}
-\begin{aligned}
-	X \pbotto Y &\ ::=\ AStore~\pair{R,T}~(X \botto Y) \\
-	X \ppreto Y &\ ::=\ AStore~\pair{R,T}~(X \preto Y) \\
-\end{aligned}
-\end{equation}
-as the type constructors for the \mykeyword{bottom*} and \mykeyword{preimage* arrows}.
-\end{definition}
+%For an $AStore$ computation $k$, we obviously must run $k$ on every branch trace in $T$ and filter out $\bot$, or somehow find inputs $\pair{\pair{r,t},a}$ for which $agrees$ never returns $\bot$.
+%Preimage $AStore$ arrows do the former by first computing an image, and the latter by computing preimages of sets that cannot contain $\bot$.
 
 Suppose $f := (\meaningofconv{\mathit{e}}_\pbot~j) : X' \botto Y$ and $h := (\meaningofconv{\mathit{e}}\ppre~j) : X' \preto Y$, where $X' = (R \times T) \times X$.
 For each $\pair{\pair{r,t},a} \in X'$, we assume that only $r$ is chosen randomly.
@@ -1219,12 +1217,13 @@ if $f$ and $h$ always terminate and $\meaningofconv{\cdot}\ppre$ is correct with
 
 \subsection{Correctness and Termination}
 
-For correctness, we have two arrow lifts to prove homomorphic: one from pure computations to effectful (i.e. from those that do not access the store to those that do), and one from effectful computations to effectful.
-For both, we need $AStore$ arrow equivalence to be a little coarser.
+The proofs in this section require $AStore$ arrow equivalence to be a little coarser.
 
 \begin{definition}[$AStore$ arrow equivalence]
 Two $AStore$ arrow computations $k_1$ and $k_2$ are equivalent, or $k_1 \equiv k_2$, when $k_1~j \equiv k_2~j$ for all $j \in J$.
 \end{definition}
+
+Proving $\meaningof{\cdot}_\pbot$ and $\meaningof{\cdot}\ppre$ correct with respect to $\meaningof{\cdot}_\bot$ and $\meaningof{\cdot}\pre$, for programs without $random$, only requires proving $\eta\genc$ homomorphic, using the arrow laws.
 
 \begin{theorem}[pure $AStore$ arrow correctness]
 $\eta\genc$ is a homomorphism.
@@ -1239,15 +1238,15 @@ Expand definitions and use arrow laws to factor out $arr\gen~snd$.
 For all pure $\mathit{e}$, $\meaningof{\mathit{e}}\genc \equiv \eta\genc~\meaningof{\mathit{e}}\gen$.
 \end{corollary}
 
-We need a lift between $AStore$ arrows.
-Let $x \arrow\genc y ::= AStore~s~(x \arrow\gen y)$, $x \arrow\gend y ::= AStore~s~(x \arrow\genb y)$, and $lift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$.
-Define
+We use a homomorphic lift to prove $\meaningofconv{\cdot}\ppre$ correct with respect to $\meaningofconv{\cdot}_\pbot$
+If we define it in terms of $lift\genb : (x \arrow\gen y) \to (x \arrow\genb y)$ as
 \begin{equation}
 \begin{aligned}
 	&lift\gend : (x \arrow\genc y) \to (x \arrow\gend y) \\
 	&lift\gend~f~j \ := \ lift\genb~(f~j)
 \end{aligned}
 \end{equation}
+then we need only use the fact that $a$ and $b$ are arrows to prove the following.
 
 \begin{theorem}[effectful $AStore$ arrow correctness]
 If $lift\genb$ is an arrow homomorphism from $a$ to $b$, then $lift\gend$ is an arrow homomorphism from $a^*$ to $b^*$.
@@ -1257,12 +1256,12 @@ For each of~\eqref{eqn:lift-distributes-over-comp}--\eqref{eqn:lift-distributes-
 \qed
 \end{proof}
 
-\begin{corollary}[preimage* arrow correctness]
-$lift\ppre$ is a homomorphism.
-\end{corollary}
+%\begin{corollary}[preimage* arrow correctness]
+%$lift\ppre$ is a homomorphism.
+%\end{corollary}
 
 \begin{corollary}[effectful semantic correctness]
-For all expressions $\mathit{e}$, $\meaningof{\mathit{e}}\ppre \equiv lift\ppre~\meaningof{\mathit{e}}_\pbot$ and $\meaningofconv{\mathit{e}}\ppre \equiv lift\ppre~\meaningofconv{\mathit{e}}_\pbot$.
+For all $\mathit{e}$, $\meaningof{\mathit{e}}\ppre \equiv lift\ppre~\meaningof{\mathit{e}}_\pbot$ and $\meaningofconv{\mathit{e}}\ppre \equiv lift\ppre~\meaningofconv{\mathit{e}}_\pbot$.
 \end{corollary}
 
 For termination, we need to define the largest domain on which $\meaningofconv{\mathit{e}}\genc$ and $\meaningof{\mathit{e}}\genc$ computations should agree.
@@ -1291,7 +1290,7 @@ Roughly, every $a$ for which $\meaningof{\mathit{e}}_\pbot~j_0~a$ terminates has
 \qed
 \end{proof}
 
-In other words, preimages computed using $\meaningofconv{\cdot}\ppre$ always terminate, never include inputs that give rise to errors or nontermination, and are correct.
+In other words, $\meaningofconv{\cdot}\ppre$ computations always terminate, and the sets they yield are correct preimages.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
