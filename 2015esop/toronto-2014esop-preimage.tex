@@ -108,7 +108,7 @@
 
 \author{\tab\tab Neil Toronto$^1$ \tab\tab\tab\tab\tab Jay McCarthy$^2$ \tab\tab\tab David Van Horn$^1$ \\
 \footnotesize{\texttt{neil.toronto@gmail.com} \tab \texttt{jay.mccarthy@gmail.com} \tab \texttt{dvanhorn@cs.umd.edu}}}
-\institute{$^1$University of Maryland, College Park \tab $^2$Vassar College}
+\institute{$^1$University of Maryland \tab $^2$Vassar College}
 
 \date{}
 
@@ -185,12 +185,14 @@ The time complexity of computing $p$ is generally exponential in the number of r
 One popular way to avoid this exponential explosion is to use advanced Monte Carlo algorithms to sample according to $p$ on the constraint's corresponding subdomain without explicitly enumerating that subdomain.
 The number of samples required is typically quadratic in the answer's desired accuracy~\cite[Sec. 12.2]{cit:degroot-2012book-probability}.
 
+Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for simulating \keyword{rare events} (i.e. very low-probability events) by encoding the events as constraints.
+
 \begin{figure*}[!tb]\centering
 %\smallmathfont%
 \subfloat[Simulated photons from a single source, constrained to pass through an aperture.]{
 \begin{minipage}{0.49\textwidth}
 \centering
-\includegraphics[width=\textwidth]{ray-tracing.pdf}
+\includegraphics[width=.8\textwidth]{ray-tracing.pdf}
 \end{minipage}
 \label{fig:ray-tracing-paths}
 }
@@ -198,7 +200,7 @@ The number of samples required is typically quadratic in the answer's desired ac
 \subfloat[Simulated photons constrained to pass through the aperture, projected onto a plane and accumulated.]{
 \begin{minipage}{0.43\textwidth}
 \centering
-\includegraphics[width=\textwidth]{ray-tracing-projection.png}
+\includegraphics[width=.8\textwidth]{ray-tracing-projection.png}
 \end{minipage}
 \label{fig:ray-tracing-projection}
 }
@@ -206,8 +208,6 @@ The number of samples required is typically quadratic in the answer's desired ac
 \caption[ ]{Ray tracing by constraining the outputs of a probabilistic program.}
 \label{fig:ray-tracing}
 \end{figure*}
-
-Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for simulating \keyword{rare events} (i.e. very low-probability events) by encoding the events as constraints.
 
 Stochastic ray tracing~\cite{cit:veach-1997siggraph-mlt} is one such rare-event simulation task.
 As illustrated in \figref{fig:ray-tracing}, to carry out stochastic ray tracing, a probabilistic program simulates a light source emitting a single photon in a random direction, which is reflected or absorbed when it hits a wall.
@@ -258,15 +258,13 @@ In fact, our primary implementation, \emph{Dr.~Bayes}, produced \figref{fig:ray-
 
 \vspace{0.5\baselineskip}
 
-The rest of this report is organized as follows.
-\begin{itemize}
-	\item Section~\ref{sec:background} demonstrates why density functions are insufficient for interpreting probabilistic programs. It shows how measure-theoretic probability defines probability distributions using set-valued inverses, or \emph{preimage functions}.
-	\item Section~\ref{sec:arrows} presents the categorical tools we use to derive many semantics from a single standard semantics in a way that makes them easy to prove correct.
-	\item Section~\ref{sec:nonrecursive-arrows} defines the semantics of nonrecursive, nonprobabilistic programs, which interprets programs as preimage functions.
-	\item Section~\ref{sec:recursive-arrows} lifts this semantics to recursive, probabilistic programs.
-	\item Section~\ref{sec:abstract-semantics} derives a sound, implementable abstract semantics.
-	\item Section~\ref{sec:implementation} describes our implementations and gives examples, including probabilistic verification of floating-point error bounds.
-\end{itemize}
+The rest of this paper is organized as follows.
+ Section~\ref{sec:background} demonstrates why density functions are insufficient for interpreting probabilistic programs. It shows how measure-theoretic probability defines probability distributions using set-valued inverses, or \emph{preimage functions}.
+ Section~\ref{sec:arrows} presents the categorical tools we use to derive many semantics from a single standard semantics in a way that makes them easy to prove correct.
+ Section~\ref{sec:nonrecursive-arrows} defines the semantics of nonrecursive, nonprobabilistic programs, which interprets programs as preimage functions.
+ Section~\ref{sec:recursive-arrows} lifts this semantics to recursive, probabilistic programs.
+ Section~\ref{sec:abstract-semantics} derives a sound, implementable abstract semantics.
+ Section~\ref{sec:implementation} describes our implementations and gives examples, including probabilistic verification of floating-point error bounds.
 In short, we show why and how to run probabilistic programs under constraints by computing preimage functions---that is, by running programs backwards.
 
 \section{Background}
@@ -409,7 +407,7 @@ It is essentially ordinary mathematics extended with lambdas and general recursi
 
 We have addressed difficulty~\ref{problem:measurability} by proving that all programs' interpretations as functions are measurable if language primitives are measurable, including uncomputable primitives such as limits and real equality, regardless of nontermination.
 The proof interprets programs as extensional functions and applies well-known theorems from measure theory such as the identities in~\eqref{eqn:preimage-identities}.
-Unfortunately, the required machinery does not fit in this report; see the first author's dissertation~\cite{cit:toronto-thesis} for the entire development.
+Unfortunately, the required machinery does not fit in this paper; see the first author's dissertation~\cite{cit:toronto-thesis} for the entire development.
 
 We avoid difficulty~\ref{problem:higher-orderness} for now by interpreting a language with \emph{first-order} functions and recursion.
 We address~\ref{problem:backward-efficient} by deriving and implementing a \emph{conservative approximation} of the preimage semantics, and using its approximations to compute measures of preimages with arbitrary accuracy.
@@ -488,6 +486,8 @@ Proofs, which we elide to save space, are in the first author's dissertation~\ci
 \section{Arrows and First-Order Semantics}
 \label{sec:arrows}
 
+This section presents the categorical tools we use to derive many semantics from a single standard semantics in a way that makes them easy to prove correct.
+%
 Arrows~\cite{cit:hughes-2000scp-arrows}, like monads~\cite{cit:wadler-2001-monads}, thread effects through computations in a way that imposes structure.
 But arrow computations are always
 \begin{enumerate}
@@ -500,13 +500,12 @@ The second property makes arrows a good fit for the semantics of a first-order l
 \subsection{Arrow Combinators and Laws}
 \label{sec:arrow-definitions}
 
-Arrows factor computation into the following tasks.
-\begin{enumerate}
-	\item Referring to pure, primitive functions.
-	\item Applying primitive or first-order functions.
-	\item Binding values to local variables and creating data structures.
-	\item Branching based on the results of prior computations.
-\end{enumerate}
+Arrows factor computation into the following tasks:
+(1) referring to pure, primitive functions,
+(2) applying primitive or first-order functions,
+(3) binding values to local variables and creating data structures, and
+(4) branching based on the results of prior computations.
+%
 The first four arrow combinators correspond respectively with each of these tasks.
 Another allows lazy branching in a call-by-value language such as \lzfclang.
 
@@ -779,7 +778,7 @@ X \pbotto Y  @>>lift\ppre>  X \ppreto Y%
 
 The following commutative diagram shows the relationships between the arrows $X \botto Y$ and $X \preto Y$ for interpreting nonrecursive, nonprobabilistic programs, and $X \pbotto Y$ and $X \ppreto Y$ for interpreting recursive, probabilistic programs.
 \youarehere{eqn:roadmap-diagram2}
-In this section, we define the top row.
+In this section, we define the top row. [TODO: make nonrecursive, nonprobabilistic more explicit]
 
 \subsection{The Bottom Arrow}
 
@@ -1027,6 +1026,8 @@ By Definition~\ref{def:preimage-arrow-law}, $lift\pre$ has a right inverse; by T
 \section{The Bottom* and Preimage* Arrows}
 \label{sec:recursive-arrows}
 
+This section lifts the prior semantics to recursive, probabilistic programs.
+%
 We have defined the top of our roadmap:
 \youarehere{eqn:roadmap-diagram3}
 so that $lift\pre$ is a homomorphism.
@@ -1299,6 +1300,8 @@ In other words, $\meaningofconv{\cdot}\ppre$ computations always terminate, and 
 \section{Abstract Semantics}
 \label{sec:abstract-semantics}
 
+This section derives a sound, implementable abstract semantics.
+%
 Most preimages of uncountable sets are uncomputable.
 We therefore define a semantics for approximate preimage computation by
 \begin{enumerate}
@@ -1307,9 +1310,7 @@ We therefore define a semantics for approximate preimage computation by
 	\item Proving termination, soundness, and other desirable properties.
 \end{enumerate}
 In a sense, this is typical abstract interpretation.
-But not having a fixpoint operator in the language, while a subtle omission, has a profound effect.
-Because there is no abstract fixpoint to compute, abstract preimage arrow computations actually apply functions.
-The result is neither evaluation nor static analysis, but something in between, akin to highly generalized interval arithmetic.
+However, not having a fixpoint operator in the language means there is no abstract fixpoint to compute and abstract preimage arrow computations actually apply functions.
 
 \subsection{Abstract Sets}
 
@@ -1604,6 +1605,8 @@ We leave completeness conditions for future work, and for now, use algorithms th
 \section{Implementations and Examples}
 \label{sec:implementation}
 
+This section describes our implementations and gives examples, including probabilistic verification of floating-point error bounds.
+%
 We have three implementations: two direct implementations of the abstract semantics, and a less direct but more efficient one called \mykeyword{Dr.~Bayes}.
 All of them can be found at \url{https://github.com/ntoronto/drbayes}.
 
@@ -1688,7 +1691,7 @@ That is, we want the distribution of inputs for which the floating-point output 
 
 Dr.~Bayes returns samples of $\pair{u,p}$ within about $(0,1) \times (\varepsilon,0.284)$, a fairly large domain on which error is greater than $3$ epsilons.
 Realizing that the rounding error in $1-p$ is magnified by $log$'s relative error when $p$ is small, we define
-\vspace{-0.5\baselineskip}
+\vspace{-1\baselineskip}
 \begin{center}
 \begin{schemedisplay}
 (define/drbayes (flgeometric-inv-cdf u p)
@@ -1712,7 +1715,7 @@ Probabilistic languages can be approximately placed into two groups: those defin
 
 \newcommand{\randomworldfootnote}{\footnote{The term \emph{random-world semantics} was coined by McAllester et al.~\cite{cit:mcallester-2008tr-random-world}, and alludes to the \emph{possible-world semantics} used to explain modal logic.}\xspace}
 
-Kozen's seminal work~\cite{cit:kozen-1979fcs-prob-programs-short} on probabilistic semantics defines two measure-theoretic, denotational semantics, in two different styles: a \keyword{random-world semantics}\randomworldfootnote\ that interprets programs as deterministic functions that operate on a random source, and a \keyword{distributional semantics} that interprets programs as probability measures.
+Kozen's seminal work~\cite{cit:kozen-1979fcs-prob-programs-short} on probabilistic semantics defines two measure-theoretic, denotational semantics, in two different styles: a \keyword{random-world semantics} that interprets programs as deterministic functions that operate on a random source, and a \keyword{distributional semantics} that interprets programs as probability measures.
 It seems that all semantics work thereafter is in one of these styles.
 For example, Hurd~\cite{cit:hurd-2002thesis} develops a random-world semantics in HOL and uses it to formally verify randomized algorithms such as the Miller-Rabin primality test.
 Ours is also a random-world semantics.
@@ -1724,7 +1727,7 @@ They implement the probability monad using probability mass functions, show that
 \newcommand{\factorgraphfootnote}{\footnote{More precisely, as factor graphs, which represent probability density functions.}\xspace}
 
 To put Infer.NET~\cite{cit:inferdotnet} on solid footing, Borgstr\"om et al.~\cite{cit:borgstrom-2011esop-measure-transformer} define a distributional semantics for a first-order probabilistic language with bounded loops and constraints, by transforming terms into arrow-like combinators that produce measures.
-But Infer.NET interprets programs as probability density functions,\factorgraphfootnote so they develop a semantics that does the same and prove equivalence.
+But Infer.NET interprets programs as probability density functions, so they develop a semantics that does the same and prove equivalence.
 
 The work of Borgstr\"om et al. and Ramsey and Pfeffer exemplify a larger trend: while \emph{defining} probabilistic languages can be done using measure theory, \emph{implementing} them to support more than just evaluation (such as allowing constraints) has seemed hopeless enough to necessitate using a less explanatory theory of probability that has more obvious computational content.
 Indeed, the distributional semantics of Pfeffer's IBAL~\cite{cit:pfeffer-2007chapter-ibal} and Nori et al.'s R2~\cite{cit:nori-2014aaai-preimage} are defined in terms of probability mass and density functions in the first place.
@@ -1751,7 +1754,7 @@ Some languages defined by an implementation are probabilistic Scheme~\cite{cit:k
 Recently, Wingate et al.~\cite{cit:wingate-2011nips-nonstandard} define nonstandard semantics that enable efficient inference, but do not define the languages.
 All of these languages are implemented in terms of probability mass or density functions.
 
-Our work is similar in structure to monadic abstract interpretation~\cite{cit:sergey-2013pldi-monadic-abstract}, which also parameterizes a semantics on categorical meanings.
+Our work is similar in structure to monadic abstract interpretation~\cite{cit:sergey-2013pldi-monadic-abstract,DBLP:journals/corr/DaraisMH14}, which also parameterizes a semantics on categorical meanings.
 
 Cousot's probabilistic abstract interpretation~\cite{cit:cousot-2012esop-prob} is a general framework for static analyses of probabilistic languages.
 It considers only random-world semantics, which is quite practical: because programs are interpreted as deterministic functions, many existing analyses easily apply.
@@ -1765,12 +1768,11 @@ Our random-world semantics fits in this framework, but the concrete domain of pr
 \section{Conclusions and Future Work}
 
 To allow arbitrary constraints and recursion in probabilistic programs, we combined the power of measure theory with the unifying elegance of arrows. We
-\begin{enumerate}
-	\item Defined a transformation from first-order programs to arbitrary arrows.
-	\item Defined the bottom arrow as a standard translation target.
-	\item Derived the uncomputable preimage arrow as an alternative target.
-	\item Derived a sound, computable approximation of the preimage arrow, and enough computable lifts to transform programs.
-\end{enumerate}
+(a) defined a transformation from first-order programs to arbitrary arrows,
+(b) defined the bottom arrow as a standard translation target,
+(c) derived the uncomputable preimage arrow as an alternative target, and
+(d) derived a sound, computable approximation of the preimage arrow, and enough computable lifts to transform programs.
+%
 We implemented the abstract semantics and carried out Bayesian inference, stochastic ray tracing, and probabilistic verification.
 
 In the future, we intend to add expressiveness by adding lambdas (possibly via closure conversion), explore ways to use static or dynamic analyses to speed up Monte Carlo algorithms, and explore preimage computation's connections to type checking and type inference.
@@ -1780,7 +1782,13 @@ More broadly, we hope to advance probabilistic inference by providing a rich mod
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection*{Acknowledgments.} Special thanks to Mitch Wand for an additional careful review and helpful feedback.
+\paragraph{Acknowledgments} Special thanks to Mitchell Wand for careful review and helpful feedback.
+%
+This material is based on research sponsored by DARPA under the
+Automated Program Analysis for Cybersecurity (FA8750-12-2-0106)
+project. The U.S. Government is authorized to reproduce and distribute
+reprints for Governmental purposes notwithstanding any copyright
+notation thereon.
 
 \mathversion{normal}
 
