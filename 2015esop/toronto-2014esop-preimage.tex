@@ -187,7 +187,7 @@ The number of samples required is typically quadratic in the answer's desired ac
 
 Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for simulating \keyword{rare events} (i.e. very low-probability events) by encoding the events as constraints.
 
-\begin{figure*}[!tbh]\centering
+\begin{figure*}[!t]\centering
 %\smallmathfont%
 \subfloat[Simulated photons from a single source, constrained to pass through an aperture.]{
 \begin{minipage}{0.49\textwidth}
@@ -204,8 +204,7 @@ Probabilistic languages that are implemented using advanced Monte Carlo algorith
 \end{minipage}
 \label{fig:ray-tracing-projection}
 }
-
-\caption[ ]{Ray tracing by constraining the outputs of a probabilistic program.}
+\caption[ ]{Ray tracing by constraining the outputs of a probabilistic program.\captionsquash}
 \label{fig:ray-tracing}
 \end{figure*}
 
@@ -300,11 +299,7 @@ Similarly, the probability of $[0.5,0.5]$ or any other singleton set is zero.
 In fact, \emph{every} probability density function integrates to zero on singleton sets.
 
 This fact makes it trivial to write a probabilistic program whose distribution cannot be defined by a density.
-For example, consider
-\begin{equation}
-	max~\pair{0.5,random}
-\end{equation}
-where $max~\pair{a,b}$ returns the greater of the pair $\pair{a,b}$.
+For example, consider $max~\pair{0.5,random}$, where $max~\pair{a,b}$ returns the greater of the pair $\pair{a,b}$.
 This program evaluates to $0.5$ whenever $random$ returns a number in $[0,0.5]$.
 In other words, the value of $max~\pair{0.5,random}$ is in $[0.5,0.5]$ with probability $0.5$.
 But if its distribution is defined by a density, then $[0.5,0.5]$ must have probability zero---not $0.5$.
@@ -643,8 +638,8 @@ For each law, substitute right inverses, factor out $lift\genb$, apply law for a
 
 \subsection{First-Order Let-Calculus Semantics}
 
-\begin{figure*}[!tb]\centering
-\smallmathfont
+\begin{figure*}[!t]\centering
+\smallmathfont\smalldisplay
 \begin{align*}
 	\mathit{p} &\ ::\equiv \ \mathit{f := e};\ ...\ ; \mathit{e}
 \\
@@ -707,6 +702,7 @@ For each law, substitute right inverses, factor out $lift\genb$, apply law for a
 \bottomhrule
 \caption[ ]{Interpretation of a let-calculus with first-order definitions and De-Bruijn-indexed bindings as arrow $\mathrm{a}$ computations.
 Here, `$::\equiv$' denotes definitional extension for grammars and `$:\equiv$' denotes definitional extension for syntax.
+\captionsquash
 }
 \label{fig:semantic-function}
 \end{figure*}
@@ -768,13 +764,15 @@ In shorter terms, \emph{if $b$ is defined in terms of a right-invertible homomor
 
 \newcommand{\youarehere}[1]%
 {%
+\vspace{-4pt}%
 \begin{equation}%
 \begin{CD}%
-X \botto Y   @>lift\pre>>   X \preto Y \\%
-@V{\eta_\pbot}VV              @VV{\eta\ppre}V\\%
+X \botto Y   @>lift\pre>>   X \preto Y \\[-4pt]%
+@V{\eta_\pbot}VV              @VV{\eta\ppre}V\\[-6pt]%
 X \pbotto Y  @>>lift\ppre>  X \ppreto Y%
 \end{CD}%
 \label{#1}%
+\vspace{-4pt}%
 \end{equation}%
 }
 
@@ -784,8 +782,8 @@ In this section, we define the top row. %[TODO: make nonrecursive, nonprobabilis
 
 \subsection{The Bottom Arrow}
 
-\begin{figure*}[!tb]\centering
-\smallmathfont
+\begin{figure*}[!t]\centering
+\smallmathfont\smalldisplay
 \begin{align*}
 \begin{aligned}[t]
 	&X \botto Y \ ::= \ X \to Y_\bot
@@ -797,22 +795,22 @@ In this section, we define the top row. %[TODO: make nonrecursive, nonprobabilis
 			\bot & \bot \\
 			b & f_2~b}
 \\
-	&(f_1~\pairbot~f_2)~a \ := \ 
-	\lzfccase{\pair{f_1~a,f_2~a}}{
-		\pair{\bot,\uscore} & \bot \\
-		\pair{\uscore,\bot} & \bot \\
-		\pair{b_1,b_2} & \pair{b_1,b_2}}
+	&\lazybot~f~a \ := \ f~0~a
 \end{aligned}
 &\tab\tab\tab
 \begin{aligned}[t]
 	&\ifbot~f_1~f_2~f_3~a \ := \ 
 		\lzfccase{f_1~a}{true & f_2~a \\ false & f_3~a \\ \bot & \bot}
 \\
-	&\lazybot~f~a \ := \ f~0~a
+	&(f_1~\pairbot~f_2)~a \ := \ 
+	\lzfccase{\pair{f_1~a,f_2~a}}{
+		\pair{\bot,\uscore} & \bot \\
+		\pair{\uscore,\bot} & \bot \\
+		\pair{b_1,b_2} & \pair{b_1,b_2}}
 \end{aligned}
 \end{align*}
 \bottomhrule
-\caption[ ]{Bottom arrow definitions.}
+\caption[ ]{Bottom arrow definitions.\captionsquash}
 \label{fig:bottom-arrow-defs}
 \end{figure*}
 
@@ -835,8 +833,8 @@ By Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
 \subsection{The Preimage Function Type and Operations}
 \label{sec:lazy-preimage-mappings}
 
-\begin{figure*}[!tb]\centering
-\smallmathfont
+\begin{figure*}[!t]\centering
+\smallmathfont\smalldisplay
 \begin{align*}
 &\begin{aligned}[t]
 	&\begin{aligned}[t]
@@ -902,7 +900,7 @@ By Theorem~\ref{thm:arrow-epimorphism}, the arrow laws hold.
 \end{aligned}
 \end{align*}
 \bottomhrule
-\caption[ ]{Preimage functions and operations.}
+\caption[ ]{Preimage functions and operations.\captionsquash}
 \label{fig:preimage-mapping-defs}
 \end{figure*}
 
@@ -940,8 +938,8 @@ Expand definitions; use basic facts about $(\w)$, $(\i)$ and $image$.
 \subsection{The Preimage Arrow}
 \label{sec:preimage-arrow}
 
-\begin{figure*}[!tb]\centering
-\smallmathfont
+\begin{figure*}[!t]\centering
+\smallmathfont\smalldisplay
 \begin{align*}
 \begin{aligned}[t]
 	X \preto Y &\ ::=\ Set~X \to (X \prepto Y)
@@ -971,7 +969,7 @@ Expand definitions; use basic facts about $(\w)$, $(\i)$ and $image$.
 \end{aligned}
 \end{align*}
 \bottomhrule
-\caption[ ]{Preimage arrow definitions.}
+\caption[ ]{Preimage arrow definitions.\captionsquash}
 \label{fig:preimage-arrow-defs}
 \end{figure*}
 
@@ -1070,15 +1068,15 @@ With either alternative, for arrows, the resulting definitions are large, concep
 Fortunately, it is relatively easy to assign each subcomputation a unique index into a tree-shaped random source and pass the random source unchanged.
 For this, we need an indexing scheme.
 
-One easy way to identify a particular node in an infinite tree is by the path from the root to the node.
+%One easy way to identify a particular node in an infinite tree is by the path from the root to the node.
 
 \begin{definition}[binary indexing scheme]
 Let $J$ be the set of finite lists of $Bool$.
 Define $j_0 := \pair{}$ as the root node's index, and $left : J \to J$; $left~j := \pair{true,j}$ and $right : J \to J$; $right~j := \pair{false,j}$ to construct left and right child indexes.
 \end{definition}
 
-\begin{figure*}[!tb]\centering
-\smallmathfont
+\begin{figure*}[!t]\centering
+\smallmathfont\smalldisplay
 \begin{align*}
 \begin{aligned}[t]
 	AStore~s~(x \arrow\gen y) &\ ::= \ J \to (\pair{s,x} \arrow\gen y) \\
@@ -1101,7 +1099,7 @@ Define $j_0 := \pair{}$ as the root node's index, and $left : J \to J$; $left~j 
 \end{aligned}
 \end{align*}
 \bottomhrule
-\caption[ ]{$AStore$ (associative store) arrow transformer definitions.}
+\caption[ ]{$AStore$ (associative store) arrow transformer definitions.\captionsquash}
 \label{fig:astore-arrow-defs}
 \end{figure*}
 
@@ -1179,11 +1177,6 @@ For recursive programs, we define a combinator that reads branch traces, and a n
 	\end{aligned} \\
 \\[-9pt]
 	&\begin{aligned}
-		&agrees : \pair{Bool,Bool} \to Bool_\bot \\
-		&agrees~\pair{b_1,b_2} \ := \ if~b_1 = b_2~then~b_1~else~\bot
-	\end{aligned} \\
-\\[-9pt]
-	&\begin{aligned}
 		&ifte\conv\genc : (x \arrow\genc Bool) \to (x \arrow\genc y) \to (x \arrow\genc y) \to (x \arrow\genc y) \\
 		&ifte\conv\genc~k_1~k_2~k_3~j \ := \
 			ifte\gen~\lzfcsplit{
@@ -1195,6 +1188,7 @@ For recursive programs, we define a combinator that reads branch traces, and a n
 \end{aligned}
 \label{eqn:ifppre-def}
 \end{equation}
+where $agrees~\pair{b_1,b_2} := if~b_1 = b_2~then~b_1~else~\bot$.
 We define a new semantic function $\meaningofconv{\cdot}\genc$ by replacing the $if$ rule in $\meaningof{\cdot}\genc$:
 \begin{equation}
 \begin{aligned}
@@ -1354,7 +1348,7 @@ All operations on products proceed by simple structural recursion.
 \subsection{Abstract Arrows}
 
 \begin{figure*}\centering
-\smallmathfont
+\smallmathfont\smalldisplay
 \subfloat[Definitions for abstract preimage functions, which compute rectangular covers.]{
 \begin{minipage}{0.98\textwidth}
 \begin{align*}

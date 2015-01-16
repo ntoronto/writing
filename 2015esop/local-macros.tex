@@ -23,52 +23,27 @@
 %	urlcolor={cyan!30!black},
 %}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SPACE HACKS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Uncomment the following two lines to get a good idea how much vertical space is being wasted
 %\raggedbottom
 %\usepackage{showframe}
 
-\makeatletter
-
-\renewcommand\normalsize{%
-   \@setfontsize\normalsize\@xpt{12pt}%
-   \abovedisplayskip 6.5\p@ \@minus4\p@
-   \belowdisplayskip 6.5\p@ \@minus4\p@
-   \abovedisplayshortskip \z@
-   \belowdisplayshortskip 4\p@ \@minus2\p@
-   \belowdisplayskip \abovedisplayskip
-}
-
-\renewcommand\small{%
-   \@setfontsize\small\@ixpt{11}%
-   \abovedisplayskip 0\p@
-   \belowdisplayskip 0\p@
-   \abovedisplayshortskip 0\p@
-   \belowdisplayshortskip 0\p@
-   \belowdisplayskip \abovedisplayskip
-}
-
-\setlength\floatsep       {3pt \@minus 1\p@}
-\setlength\textfloatsep   {12pt \@minus 4\p@}
-\setlength\intextsep      {3pt \@minus 1\p@}
-\setlength\dblfloatsep    {3pt \@minus 1\p@}
-\setlength\dbltextfloatsep{3pt \@minus 1\p@}
-\makeatother
-
+% Default list spacing is ridiculous, and we use a lot of lists
 \usepackage{enumitem}
 \setlist{noitemsep,topsep=2pt}
 \setitemize{noitemsep,topsep=2pt}
 \setenumerate{noitemsep,topsep=2pt}
 
-%\widowpenalty=14
-%\clubpenalty=14
+% For small math displays in figures
+\newcommand{\smalldisplay}{%
+   \abovedisplayskip 0pt%
+   \belowdisplayskip 0pt%
+   \abovedisplayshortskip 0pt%
+   \belowdisplayshortskip 0pt%
+   \belowdisplayskip \abovedisplayskip%
+}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% END SPACE HACKS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% For reclaiming some vertical space after captions
+\newcommand{\captionsquash}{\vspace{-6pt}}
 
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 
