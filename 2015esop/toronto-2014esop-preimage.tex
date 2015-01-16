@@ -187,12 +187,12 @@ The number of samples required is typically quadratic in the answer's desired ac
 
 Probabilistic languages that are implemented using advanced Monte Carlo algorithms could be used not just for Bayesian inference, but for simulating \keyword{rare events} (i.e. very low-probability events) by encoding the events as constraints.
 
-\begin{figure*}[!tb]\centering
+\begin{figure*}[!tbh]\centering
 %\smallmathfont%
 \subfloat[Simulated photons from a single source, constrained to pass through an aperture.]{
 \begin{minipage}{0.49\textwidth}
 \centering
-\includegraphics[width=.8\textwidth]{ray-tracing.pdf}
+\includegraphics[width=.75\textwidth]{ray-tracing.pdf}
 \end{minipage}
 \label{fig:ray-tracing-paths}
 }
@@ -200,7 +200,7 @@ Probabilistic languages that are implemented using advanced Monte Carlo algorith
 \subfloat[Simulated photons constrained to pass through the aperture, projected onto a plane and accumulated.]{
 \begin{minipage}{0.43\textwidth}
 \centering
-\includegraphics[width=.8\textwidth]{ray-tracing-projection.png}
+\includegraphics[width=.7\textwidth]{ray-tracing-projection.png}
 \end{minipage}
 \label{fig:ray-tracing-projection}
 }
@@ -259,12 +259,14 @@ In fact, our primary implementation, \emph{Dr.~Bayes}, produced \figref{fig:ray-
 \vspace{0.5\baselineskip}
 
 The rest of this paper is organized as follows.
- Section~\ref{sec:background} demonstrates why density functions are insufficient for interpreting probabilistic programs. It shows how measure-theoretic probability defines probability distributions using set-valued inverses, or \emph{preimage functions}.
- Section~\ref{sec:arrows} presents the categorical tools we use to derive many semantics from a single standard semantics in a way that makes them easy to prove correct.
- Section~\ref{sec:nonrecursive-arrows} defines the semantics of nonrecursive, nonprobabilistic programs, which interprets programs as preimage functions.
- Section~\ref{sec:recursive-arrows} lifts this semantics to recursive, probabilistic programs.
- Section~\ref{sec:abstract-semantics} derives a sound, implementable abstract semantics.
- Section~\ref{sec:implementation} describes our implementations and gives examples, including probabilistic verification of floating-point error bounds.
+\begin{itemize}
+ \item Section~\ref{sec:background} demonstrates why density functions are insufficient for interpreting probabilistic programs. It shows how measure-theoretic probability defines probability distributions using set-valued inverses, or \emph{preimage functions}.
+ \item Section~\ref{sec:arrows} presents the categorical tools we use to derive many semantics from a single standard semantics in a way that makes them easy to prove correct.
+ \item Section~\ref{sec:nonrecursive-arrows} defines the semantics of nonrecursive, nonprobabilistic programs, which interprets programs as preimage functions.
+ \item Section~\ref{sec:recursive-arrows} lifts this semantics to recursive, probabilistic programs.
+ \item Section~\ref{sec:abstract-semantics} derives a sound, implementable abstract semantics.
+ \item Section~\ref{sec:implementation} describes our implementations and gives examples, including probabilistic verification of floating-point error bounds.
+\end{itemize}
 In short, we show why and how to run probabilistic programs under constraints by computing preimage functions---that is, by running programs backwards.
 
 \section{Background}
@@ -420,7 +422,7 @@ We address~\ref{problem:backward-efficient} by deriving and implementing a \emph
 
 We interpret nonrecursive, nonprobabilistic programs three different ways, using
 \begin{enumerate}
-	\item A \keyword{standard semantics} $\meaningof{\cdot}_\bot$ that interprets programs that may raise errors (e.g. divide-by-zero) as functions.
+	\item A \keyword{standard semantics} $\meaningof{\cdot}_\bot$ that interprets programs that may raise errors (e.g. divide-by-zero) as intensional functions.
 	\item A \keyword{concrete semantics} $\meaningof{\cdot}\pre$ that interprets programs as preimage functions, which operate on uncountable sets, and are thus unimplementable.
 	\item An \keyword{abstract semantics} $\meaningof{\cdot}\prehat$ that interprets programs as \emph{abstract} preimage functions, which operate only on overapproximating, finite representations of uncountable sets, and thus \emph{are} implementable.
 \end{enumerate}
@@ -450,7 +452,7 @@ We therefore interpret programs 9 different ways by parameterizing a semantic fu
 In our formulation, an arrow category consists of a type constructor and five combinators; each is thus half as complicated as the semantic function.
 Their categorical properties also allow two drastic simplifications.
 First, they allow proving the correctness of a semantic function $\meaningof{\cdot}\genb$ with respect to $\meaningof{\cdot}\gen$ by proving a simple theorem about arrows $a$ and $b$.
-Second, they allow us to \emph{derive} all the arrows for recursive, probabilistic programs from the arrows for nonrecursive, nonprobabilistic programs, by defining one function and proving one theorem.
+Second, they allow us to \emph{derive} all the arrows for recursive, probabilistic programs at once, by lifting the arrows for nonrecursive, nonprobabilistic programs.
 
 \subsection{Types and Notation}
 
@@ -471,11 +473,11 @@ More precisely, types are characterized by these rules:
 Because the inhabitants of the type $Set~X$ and $\powerset~X$ (i.e. subsets of the set $X$) are the same, they are equivalent types.
 Similarly, $\pair{X,Y}$ is equivalent to $X \times Y$.
 
+Type constructors are defined using `$::=$'; e.g. $X \botto Y ::= X \to (Y \u \set{\bot})$.
+
 The set $X^J$ contains all extensional, total functions from set $J$ to set $X$; i.e. vectors of $X$ indexed by $J$.
 We use adjacency (i.e. $f~a$) to apply both intensional and extensional functions.
 For example, the first element of $f : [0,1]^\Nat$ is $f~0$.
-
-Type constructors are defined using `$::=$'; e.g. $X \botto Y ::= X \to (Y \u \set{\bot})$.
 
 Proofs, which we elide to save space, are in the first author's dissertation~\cite{cit:toronto-thesis}.
 
@@ -487,13 +489,13 @@ Proofs, which we elide to save space, are in the first author's dissertation~\ci
 \label{sec:arrows}
 
 This section presents the categorical tools we use to derive many semantics from a single standard semantics in a way that makes them easy to prove correct.
-%
+
 Arrows~\cite{cit:hughes-2000scp-arrows}, like monads~\cite{cit:wadler-2001-monads}, thread effects through computations in a way that imposes structure.
 But arrow computations are always
-\begin{enumerate}
+\begin{itemize}
 	\item Function-like. The type constructor for arrow $a$ is written $x \arrow_a y$ to connote this. In fact, the \emph{function arrow}'s type constructor is $x \arrow y ::= x \to y$.
 	\item First-order. There is no way to derive the higher-order application combinator $app : \pair{x \arrow_a y, x} \arrow_a y$ from the combinators that define arrow $a$.
-\end{enumerate}
+\end{itemize}
 The first property makes arrows a good fit for a compositional translation from expressions to pure functions that operate on random sources.
 The second property makes arrows a good fit for the semantics of a first-order language.
 
@@ -507,7 +509,7 @@ Arrows factor computation into the following tasks:
 (4) branching based on the results of prior computations.
 %
 The first four arrow combinators correspond respectively with each of these tasks.
-Another allows lazy branching in a call-by-value language such as \lzfclang.
+A fifth combinator allows lazy branching in a call-by-value language such as \lzfclang.
 
 For laziness, we need a singleton type for thunks.
 We use the set $1 := \set{0}$.
@@ -778,7 +780,7 @@ X \pbotto Y  @>>lift\ppre>  X \ppreto Y%
 
 The following commutative diagram shows the relationships between the arrows $X \botto Y$ and $X \preto Y$ for interpreting nonrecursive, nonprobabilistic programs, and $X \pbotto Y$ and $X \ppreto Y$ for interpreting recursive, probabilistic programs.
 \youarehere{eqn:roadmap-diagram2}
-In this section, we define the top row. [TODO: make nonrecursive, nonprobabilistic more explicit]
+In this section, we define the top row. %[TODO: make nonrecursive, nonprobabilistic more explicit]
 
 \subsection{The Bottom Arrow}
 
@@ -824,7 +826,7 @@ Its computations have type $X \botto Y ::= X \to Y_\bot$, where $Y_\bot ::= Y \u
 To prove the arrow laws, we need coarse enough notion of equivalence.
 
 \begin{definition}[bottom arrow equivalence]
-Two computations $f_1 : X \botto Y$ and $f_2 : X \botto Y$ are equivalent, or $f_1 \equiv f_2$, when $f_1~a = f_2~a$ for all $a \in X$.
+Two computations $f_1 : X \botto Y$ and $f_2 : X \botto Y$ are equivalent, or $f_1 \equiv f_2$, when $f_1~a \equiv f_2~a$ for all $a \in X$.
 \end{definition}
 
 Using bottom arrow equivalence, it is easy to show that $(\botto)$ is isomorphic to the Maybe monad's Kleisli arrow.
@@ -928,7 +930,7 @@ Preimage arrow correctness depends on $ap\pre$ and $pre$ behaving like $preimage
 
 \begin{theorem}[$ap\pre$ of $pre$ computes preimages]
 \label{thm:pre-like-preimage}
-Let $f : X \botto Y$. For all $A \subseteq X$ and $B \subseteq Y$, $ap\pre~(pre~f~A)~B = preimage_\bot~f~A~B$.
+Let $f : X \botto Y$. For all $A \subseteq X$ and $B \subseteq Y$, $ap\pre~(pre~f~A)~B \equiv preimage_\bot~f~A~B$.
 \end{theorem}
 \begin{proof}
 Expand definitions; use basic facts about $(\w)$, $(\i)$ and $image$.
@@ -985,7 +987,7 @@ For these definitions to make $lift\pre$ a homomorphism, preimage arrow equivale
 
 \begin{definition}[preimage arrow equivalence]
 Two preimage arrow computations $h_1 : X \preto Y$ and $h_2 : X \preto Y$ are equivalent, or $h_1 \equiv h_2$, when 
-$ap\pre~(h_1~A)~B = ap\pre~(h_2~A)~B$ for all $A \subseteq X$ and $B \subseteq Y$.
+$ap\pre~(h_1~A)~B \equiv ap\pre~(h_2~A)~B$ for all $A \subseteq X$ and $B \subseteq Y$.
 \end{definition}
 
 \begin{theorem}[preimage arrow correctness]
@@ -1027,7 +1029,7 @@ By Definition~\ref{def:preimage-arrow-law}, $lift\pre$ has a right inverse; by T
 \label{sec:recursive-arrows}
 
 This section lifts the prior semantics to recursive, probabilistic programs.
-%
+
 We have defined the top of our roadmap:
 \youarehere{eqn:roadmap-diagram3}
 so that $lift\pre$ is a homomorphism.
@@ -1067,6 +1069,8 @@ Combinators split the tree and pass subtrees to subcomputations.
 With either alternative, for arrows, the resulting definitions are large, conceptually difficult, and hard to manipulate.
 Fortunately, it is relatively easy to assign each subcomputation a unique index into a tree-shaped random source and pass the random source unchanged.
 For this, we need an indexing scheme.
+
+One easy way to identify a particular node in an infinite tree is by the path from the root to the node.
 
 \begin{definition}[binary indexing scheme]
 Let $J$ be the set of finite lists of $Bool$.
@@ -1205,7 +1209,7 @@ We define a new semantic function $\meaningofconv{\cdot}\genc$ by replacing the 
 %For an $AStore$ computation $k$, we obviously must run $k$ on every branch trace in $T$ and filter out $\bot$, or somehow find inputs $\pair{\pair{r,t},a}$ for which $agrees$ never returns $\bot$.
 %Preimage $AStore$ arrows do the former by first computing an image, and the latter by computing preimages of sets that cannot contain $\bot$.
 
-Suppose $f := (\meaningofconv{\mathit{e}}_\pbot~j) : X' \botto Y$ and $h := (\meaningofconv{\mathit{e}}\ppre~j) : X' \preto Y$, where $X' = (R \times T) \times X$.
+Suppose $f := (\meaningofconv{\mathit{p}}_\pbot~j_0) : X' \botto Y$ and $h := (\meaningofconv{\mathit{p}}\ppre~j_0) : X' \preto Y$, where $X' = (R \times T) \times X$.
 For each $\pair{\pair{r,t},a} \in X'$, we assume that only $r$ is chosen randomly.
 Thus, the probability of $B \subseteq Y$ is
 \begin{equation}
@@ -1310,7 +1314,7 @@ We therefore define a semantics for approximate preimage computation by
 	\item Proving termination, soundness, and other desirable properties.
 \end{enumerate}
 In a sense, this is typical abstract interpretation.
-However, not having a fixpoint operator in the language means there is no abstract fixpoint to compute and abstract preimage arrow computations actually apply functions.
+However, not having a fixpoint operator in the language means there is no abstract fixpoint to compute, and abstract preimage arrow computations actually apply functions.
 
 \subsection{Abstract Sets}
 
@@ -1340,7 +1344,7 @@ Joins of products are defined by
 
 The lattice properties imply that $(\join)$ overapproximates $(\u)$; i.e. $A \u B \subseteq A \join B$.
 For non-product types $X$, $Rect~X$ may be any bounded sublattice of $Set~X$.
-Interpreting conditionals requires singleton boolean sets; thus $Rect~Bool ::= Set~Bool$.
+Interpreting conditionals requires $\set{true}$ and $\set{false}$; thus $Rect~Bool ::= Set~Bool$.
 
 Intervals in ordered spaces can be implemented as pairs of endpoints.
 Products in $Rect~\pair{X_1,X_2}$ can be implemented as pairs of type $\pair{Rect~X_1,Rect~X_2}$.
@@ -1546,7 +1550,7 @@ To define the abstract preimage arrow, we start by defining abstract preimage fu
 (Compare \figref{fig:preimage-mapping-defs}.)
 Similarly, \figref{fig:abstract-preimage-arrow-defs} defines the abstract preimage arrow by replacing preimage function types and operations in the preimage arrow's definition with \emph{abstract} preimage function types and operations.
 (Compare \figref{fig:preimage-arrow-defs}.)
-The lift $arr\prehat : (X \to Y) \to (X \prehatto Y)$ exists, but $arr\prehat~f$ is not always unique (because $Rect~X^J$ is necessarily an incomplete lattice) nor computable.
+The lift $arr\prehat : (X \to Y) \to (X \prehatto Y)$ exists, but $arr\prehat~f$ is not always unique (because by definition, $Rect~X^J$ is an incomplete lattice) nor computable.
 
 Fortunately, implementing $\meaningof{\cdot}\prehat$ as defined in \figref{fig:semantic-function} requires lifting only a few pure functions: $id$, $fst$, $snd$, $const~\emph{v}$ for any literal constant $\emph{v}$, and primitives $\delta$.
 According to~\eqref{eqn:random-def} and~\eqref{eqn:ifppre-def}, implementing the extended semantics $\meaningofconv{\cdot}\pprehat$, which supports random choice and guarantees termination, requires lifting only $\pi~j$ for any $j \in J$.
@@ -1576,7 +1580,8 @@ Given these properties, we  might try to compute preimages of $B$ by computing p
 
 \begin{definition}[preimage refinement algorithm]
 \label{def:preimage-refinement}
-Let $B : Rect~Y$ and
+Let $B : Rect~Y$.
+Define
 \begin{equation}
 \begin{aligned}
 	&refine : Rect~\pair{\pair{R,T},X} \to Rect~\pair{\pair{R,T},X} \\
@@ -1606,7 +1611,7 @@ We leave completeness conditions for future work, and for now, use algorithms th
 \label{sec:implementation}
 
 This section describes our implementations and gives examples, including probabilistic verification of floating-point error bounds.
-%
+
 We have three implementations: two direct implementations of the abstract semantics, and a less direct but more efficient one called \mykeyword{Dr.~Bayes}.
 All of them can be found at \url{https://github.com/ntoronto/drbayes}.
 
@@ -1615,8 +1620,8 @@ We have done so in Typed Racket~\cite{cit:tobin-hochstadt-2008popl-typed-scheme}
 Both implementations are almost line-for-line transliterations from the figures.
 
 Dr.~Bayes is written in Typed Racket.
-It includes $\meaningof{\cdot}\genc$ (\figref{fig:semantic-function}), its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow (\figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}), the abstract preimage and preimage* arrows (\figsref{fig:abstract-arrow-defs} and~\ref{fig:astore-arrow-defs}), and other manual lifts to compute abstract preimages under arithmetic.
-The preimage arrows operate on a monomorphic rectangular set data type, which includes tagged rectangles and disjoint unions for ad-hoc polymorphism, and floating-point intervals to overapproximate real intervals.
+It includes $\meaningof{\cdot}\genc$ (\figref{fig:semantic-function}), its extension $\meaningof{\cdot}\genc\conv$, the bottom* arrow (\figsref{fig:bottom-arrow-defs} and~\ref{fig:astore-arrow-defs}), the abstract preimage and preimage* arrows (\figsref{fig:abstract-arrow-defs} and~\ref{fig:astore-arrow-defs}), and other manual lifts to compute abstract preimages under real functions such as arithmetic, $sqrt$ and $log$.
+The abstract preimage arrows operate on a monomorphic rectangular set data type, which includes tagged rectangles and disjoint unions for ad-hoc polymorphism, and floating-point intervals to overapproximate real intervals.
 
 Definition~\ref{def:preimage-refinement} outlines preimage refinement, a discretization algorithm that repeatedly shrinks and repartitions a program's domain.
 \emph{Dr.~Bayes does not use this algorithm directly} because it is inefficient: good accuracy requires fine discretization, which is exponential in the number of discretized axes.
@@ -1641,7 +1646,7 @@ Otherwise, the longer the program runs without returning samples, the likelier i
 As an extended example, we consider verifying floating-point error bounds.
 
 While Dr.~Bayes's numbers are implemented by floating-point intervals, semantically, they are real numbers.
-We therefore cannot represent floating-point numbers directly in Dr.~Bayes---but we do not want to.
+We therefore cannot easily represent floating-point numbers in Dr.~Bayes---but we do not want to.
 We want \emph{abstract} floating-point numbers, each consisting of an exact, real number and a bound on the relative error with which it is approximated.
 We define the following two structures to represent abstract floats.
 \vspace{-0.5\baselineskip}
@@ -1715,7 +1720,7 @@ Probabilistic languages can be approximately placed into two groups: those defin
 
 \newcommand{\randomworldfootnote}{\footnote{The term \emph{random-world semantics} was coined by McAllester et al.~\cite{cit:mcallester-2008tr-random-world}, and alludes to the \emph{possible-world semantics} used to explain modal logic.}\xspace}
 
-Kozen's seminal work~\cite{cit:kozen-1979fcs-prob-programs-short} on probabilistic semantics defines two measure-theoretic, denotational semantics, in two different styles: a \keyword{random-world semantics} that interprets programs as deterministic functions that operate on a random source, and a \keyword{distributional semantics} that interprets programs as probability measures.
+Kozen's seminal work~\cite{cit:kozen-1979fcs-prob-programs-short} on probabilistic semantics defines two measure-theoretic, denotational semantics, in two different styles: a \keyword{random-world semantics}~\cite{cit:mcallester-2008tr-random-world} that interprets programs as deterministic functions that operate on a random source, and a \keyword{distributional semantics} that interprets programs as probability measures.
 It seems that all semantics work thereafter is in one of these styles.
 For example, Hurd~\cite{cit:hurd-2002thesis} develops a random-world semantics in HOL and uses it to formally verify randomized algorithms such as the Miller-Rabin primality test.
 Ours is also a random-world semantics.
@@ -1727,7 +1732,7 @@ They implement the probability monad using probability mass functions, show that
 \newcommand{\factorgraphfootnote}{\footnote{More precisely, as factor graphs, which represent probability density functions.}\xspace}
 
 To put Infer.NET~\cite{cit:inferdotnet} on solid footing, Borgstr\"om et al.~\cite{cit:borgstrom-2011esop-measure-transformer} define a distributional semantics for a first-order probabilistic language with bounded loops and constraints, by transforming terms into arrow-like combinators that produce measures.
-But Infer.NET interprets programs as probability density functions, so they develop a semantics that does the same and prove equivalence.
+But Infer.NET interprets programs as probability density functions,\factorgraphfootnote so they develop a semantics that does the same and prove equivalence.
 
 The work of Borgstr\"om et al. and Ramsey and Pfeffer exemplify a larger trend: while \emph{defining} probabilistic languages can be done using measure theory, \emph{implementing} them to support more than just evaluation (such as allowing constraints) has seemed hopeless enough to necessitate using a less explanatory theory of probability that has more obvious computational content.
 Indeed, the distributional semantics of Pfeffer's IBAL~\cite{cit:pfeffer-2007chapter-ibal} and Nori et al.'s R2~\cite{cit:nori-2014aaai-preimage} are defined in terms of probability mass and density functions in the first place.
