@@ -79,7 +79,7 @@
 \newcommand{\convifpbot}{ifte\conv_{\mspace{-2mu}\pbot}}
 \newcommand{\lazypbot}{lazy_{\mspace{-2mu}\pbot}}
 
-\title{Sound Preimage Covers Under Real Functions}
+\title{Covering Rectangles of Real Function Preimages}
 
 \author{\tab\tab Neil Toronto$^1$ \tab\tab\tab\tab\tab Jay McCarthy$^2$ \tab\tab\tab David Van Horn$^1$ \\
 \footnotesize{\texttt{neil.toronto@gmail.com} \tab \texttt{jay.mccarthy@gmail.com} \tab \texttt{dvanhorn@cs.umd.edu}}}
@@ -92,6 +92,23 @@
 \maketitle
 
 \begin{abstract}
+Carrying out abstract interpretation at runtime requires space-efficient domains with time-efficient operations.
+
+probabilistic programming language whose runtime carries out both forward and backward analysis to constrain 
+
+compute sound overapproximations of image sets and preimage sets
+
+obvious how to compute preimage covers under single-argument, monotone real functions, and how to extend to piecewise monotone functions: use bijections
+
+not obvious how to compute preimage covers under multi-argument, monotone real functions such as addition, nor is it obvious how to extend to multi-argument, piecewise monotone functions such as multiplication
+
+need a generalization of bijections
+
+extend the cyclic group structure of bijections to functions with more arguments, yielding trijections, quadjections, and more generally polyjections
+
+efficiently compute sound, rectangular approximations of preimages under bijections such as log/exp, log1p/expm1, sqr/sqrt, trijections such as arithmetic operators and pow, and polyjections such as summation
+
+add rich real function support to probabilistic language; use it to probabilistically verify error bounds of floating-point functions
 \end{abstract}
 
 \keywords 
