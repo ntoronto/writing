@@ -1,0 +1,183 @@
+%-----------------------------------------------------------------------------
+%
+%               Template for sigplanconf LaTeX Class
+%
+% Name:         sigplanconf-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for SIGPLAN conference proceedings.
+%
+% Guide:        Refer to "Author's Guide to the ACM SIGPLAN Class,"
+%               sigplanconf-guide.pdf
+%
+% Author:       Paul C. Anagnostopoulos
+%               Windfall Software
+%               978 371-2316
+%               paul@windfall.com
+%
+% Created:      15 February 2005
+%
+%-----------------------------------------------------------------------------
+
+
+\documentclass{llncs}
+\pdfoutput=1
+
+% The following \documentclass options may be useful:
+%
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% authoryear    To obtain author/year citation style instead of numeric.
+
+\input{local-macros.tex}
+
+\newsavebox{\codebox}
+
+\newcommand{\Univ}{\mathbb{U}}
+\newcommand{\Un}{\mathcal{U}}
+
+\newcommand{\join}{\sqcup}
+
+\newcommand{\conv}{^{\mspace{-2mu}\Downarrow\mspace{-2mu}}}
+
+\newcommand{\meaningofconv}[1]{\left\llbracket{#1}\right\rrbracket\conv}
+
+\newcommand{\acomp}{\ensuremath{{>}\mspace{-6mu}{>}\mspace{-6mu}{>}}}
+\newcommand{\apair}{\ensuremath{\mathit{\&\mspace{-7.5mu}\&\mspace{-7.5mu}\&}}}
+
+\newcommand{\gen}{_a}
+\newcommand{\genb}{_b}
+\newcommand{\genc}{_{a^{\mspace{-2mu}*}}}
+\newcommand{\gend}{_{b^{\mspace{-2mu}*}}}
+
+\newcommand{\pbot}{{\bot^{\mspace{-4mu}*}}}
+\newcommand{\pre}{_\mathrm{pre}}
+\newcommand{\ppre}{_\mathrm{pre^{\mspace{-2mu}*}}}
+\newcommand{\prehat}{_\mathrm{\widehat{pre}}}
+\newcommand{\pprehat}{_\mathrm{\widehat{pre}^{\mspace{-2mu}*}}}
+
+\DeclareMathOperator{\botto}{{\arrow\mspace{-3mu}}_\bot}
+\DeclareMathOperator{\pbotto}{{\arrow\mspace{-3mu}}_\pbot}
+\DeclareMathOperator{\preto}{{\arrow\mspace{-1mu}}\pre}
+\DeclareMathOperator{\ppreto}{{\arrow\mspace{-1mu}}\ppre}
+\DeclareMathOperator{\prehatto}{{\arrow\mspace{-1mu}}\prehat}
+\DeclareMathOperator{\pprehatto}{{\arrow\mspace{-1mu}}\pprehat}
+
+\DeclareMathOperator{\prepto}{{\pto\mspace{-1mu}}\pre}
+\DeclareMathOperator{\prehatpto}{{\pto\mspace{-1mu}}\prehat}
+
+\newcommand{\arrbot}{arr_{\mspace{-3mu}\bot}}
+\newcommand{\compbot}{\acomp_{\mspace{-5mu}\bot}}
+\newcommand{\pairbot}{\apair_{\mspace{-3mu}\bot}}
+\newcommand{\ifbot}{ifte_{\mspace{-2mu}\bot}}
+\newcommand{\lazybot}{lazy_{\mspace{-2mu}\bot}}
+
+\newcommand{\arrpbot}{arr_{\mspace{-3mu}\pbot}}
+\newcommand{\comppbot}{\acomp_{\mspace{-5mu}\pbot}}
+\newcommand{\pairpbot}{\apair_{\mspace{-3mu}\pbot}}
+\newcommand{\ifpbot}{ifte_{\mspace{-2mu}\pbot}}
+\newcommand{\convifpbot}{ifte\conv_{\mspace{-2mu}\pbot}}
+\newcommand{\lazypbot}{lazy_{\mspace{-2mu}\pbot}}
+
+\title{Sound Preimage Covers Under Real Functions}
+
+\author{\tab\tab Neil Toronto$^1$ \tab\tab\tab\tab\tab Jay McCarthy$^2$ \tab\tab\tab David Van Horn$^1$ \\
+\footnotesize{\texttt{neil.toronto@gmail.com} \tab \texttt{jay.mccarthy@gmail.com} \tab \texttt{dvanhorn@cs.umd.edu}}}
+\institute{$^1$University of Maryland \tab $^2$Vassar College}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+\keywords 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\mathversion{sans}
+
+\section{Introduction}
+
+Citing something so BibTeX won't complain: \cite{cit:toronto-thesis}
+
+\subsubsection*{Acknowledgments}
+This material is based on research sponsored by DARPA under the
+Automated Program Analysis for Cybersecurity (FA8750-12-2-0106)
+project. The U.S. Government is authorized to reproduce and distribute
+reprints for Governmental purposes notwithstanding any copyright
+notation thereon.
+
+\mathversion{normal}
+
+\bibliographystyle{splncs03}
+\bibliography{local-cites}
+
+\begin{comment}
+\begin{equation}
+\begin{aligned}
+	preimage~f~[a,b]
+	&\ =\ \lzfclet{
+		A & [a,b] \i [0.5,1]
+	}{\lzfccase{A}{
+		\emptyset & \emptyset \\
+		{[a,b]} & [if~0.5 \leq a~then~0~else~a,b]
+		}
+	}
+\\
+	&\ =\ \lzfclet{
+		A & [a,b] \i [0.5,1]
+	}{if~0.5 \in A~then~A \u [0,0.5]~else~A
+	}
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+	preimage~f~B
+	\ =\ \lzfclet{
+		A & B \i [0.5,1]
+	}{if~0.5 \in A~then~A \u [0,0.5]~else~A
+	}
+\end{equation}
+
+Let $max : \Re^2 \to \Re$; then
+\begin{equation}
+\begin{aligned}
+	&\pair{x,y} \in preimage~max~[a,b]
+\\
+	&\tab \iff (x \in [a,b]~and~y \leq b)~or~(y \in [a,b]~and~x \leq b)
+\\
+	&\tab \iff (\pair{x,y} \in [a,b] \times (-\infty,b])~or~(\pair{x,y} \in (-\infty,b] \times [a,b])
+\\
+	&\tab \iff \pair{x,y} \in [a,b] \times (-\infty,b]~\u~(-\infty,b] \times [a,b]
+\end{aligned}
+\end{equation}
+therefore
+\begin{equation}
+	preimage~max~[a,b]\ =\ [a,b] \times (-\infty,b]~\u~(-\infty,b] \times [a,b]
+\end{equation}
+
+Let $f := \fun{a \in (domain~f_1) \i (domain~f_2)} \pair{f_1~a,f_2~a}$; then
+\begin{equation}
+\begin{aligned}
+	&a \in preimage~f~(B_1 \times B_2)
+\\
+	&\tab \iff a \in (domain~f_1)~and~a \in (domain~f_2)~and~(f_1~a) \in B_1~and~(f_2~a) \in B_2
+\\
+	&\tab \iff a \in (preimage~f_1~B_1) ~and~ a \in (preimage~f_2~B_2)
+\\
+	&\tab \iff a \in (preimage~f_1~B_1) \i (preimage~f_2~B_2)
+\end{aligned}
+\end{equation}
+therefore
+\begin{equation}
+	preimage~f~(B_1 \times B_2)\ =\ (preimage~f_1~B_1) \i (preimage~f_2~B_2)
+\end{equation}
+\end{comment}
+
+\end{document}
