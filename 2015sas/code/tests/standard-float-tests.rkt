@@ -1,18 +1,15 @@
 #lang typed/racket
 
 (require typed/rackunit
-         "bottom.rkt"
-         "semantic-function.rkt"
-         "standard-float.rkt")
+         "../semantics/standard-float.rkt"
+         "../semantic-function.rkt")
 
 (define-syntax-rule (valueof e)
-  (run (with-meaning standard-float e)))
+  (sf:run (with-meaning standard-float e)))
 
 (define-syntax-rule (check-valueof e1 e2)
   (check-equal? (valueof e1) e2))
 
-(check-valueof (+) 0.0)
-(check-valueof (+ 4.0) 4.0)
 (check-valueof (+ 4.0 5.0) 9.0)
 (check-valueof (+ 4.0 5.0 6.0) 15.0)
 
@@ -20,8 +17,6 @@
 (check-valueof (- 4.0 5.0) -1.0)
 (check-valueof (- 4.0 5.0 6.0) -7.0)
 
-(check-valueof (*) 1.0)
-(check-valueof (* 4.0) 4.0)
 (check-valueof (* 4.0 5.0) 20.0)
 (check-valueof (* 4.0 5.0 6.0) 120.0)
 
@@ -83,7 +78,7 @@
 (for* ([a  (in-list '(#t #f))]
        [b  (in-list '(#t #f))]
        [c  (in-list '(#t #f))])
-  (check-valueof (cond [a 4.0] [b 5.0] [c 6.0] [else 7.0])
+  (check-valueof (cond [(const a) 4.0] [(const b) 5.0] [(const c) 6.0] [else 7.0])
                  (cond [a 4.0] [b 5.0] [c 6.0] [else 7.0])))
 
 (check-valueof (and) #t)
@@ -92,7 +87,8 @@
 (for* ([a  (in-list '(#t #f))]
        [b  (in-list '(#t #f))]
        [c  (in-list '(#t #f))])
-  (check-valueof (and a b c) (and a b c)))
+  (check-valueof (and (const a) (const b) (const c))
+                 (and a b c)))
 
 (check-valueof (or) #f)
 (check-valueof (or #t) #t)
@@ -100,7 +96,8 @@
 (for* ([a  (in-list '(#t #f))]
        [b  (in-list '(#t #f))]
        [c  (in-list '(#t #f))])
-  (check-valueof (or a b c) (or a b c)))
+  (check-valueof (or (const a) (const b) (const c))
+                 (or a b c)))
 
 (check-valueof (let (+ 4.0 5.0) (+ (env 0) 6.0))
                15.0)

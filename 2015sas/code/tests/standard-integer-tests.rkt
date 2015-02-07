@@ -1,18 +1,15 @@
 #lang typed/racket
 
 (require typed/rackunit
-         "bottom.rkt"
-         "semantic-function.rkt"
-         "standard-integer.rkt")
+         "../semantics/standard-integer.rkt"
+         "../semantic-function.rkt")
 
 (define-syntax-rule (valueof e)
-  (run (with-meaning standard-integer e)))
+  (si:run (with-meaning standard-integer e)))
 
 (define-syntax-rule (check-valueof e1 e2)
   (check-equal? (valueof e1) e2))
 
-(check-valueof (+) 0)
-(check-valueof (+ 4) 4)
 (check-valueof (+ 4 5) 9)
 (check-valueof (+ 4 5 6) 15)
 
@@ -20,12 +17,9 @@
 (check-valueof (- 4 5) -1)
 (check-valueof (- 4 5 6) -7)
 
-(check-valueof (*) 1)
-(check-valueof (* 4) 4)
 (check-valueof (* 4 5) 20)
 (check-valueof (* 4 5 6) 120)
 
-(check-valueof (/ 40) 0)
 (check-valueof (/ 40 5) 8)
 (check-valueof (/ 400 5 6) 13)
 
@@ -83,7 +77,7 @@
 (for* ([a  (in-list '(#t #f))]
        [b  (in-list '(#t #f))]
        [c  (in-list '(#t #f))])
-  (check-valueof (cond [a 4] [b 5] [c 6] [else 7])
+  (check-valueof (cond [(const a) 4] [(const b) 5] [(const c) 6] [else 7])
                  (cond [a 4] [b 5] [c 6] [else 7])))
 
 (check-valueof (and) #t)
@@ -92,7 +86,8 @@
 (for* ([a  (in-list '(#t #f))]
        [b  (in-list '(#t #f))]
        [c  (in-list '(#t #f))])
-  (check-valueof (and a b c) (and a b c)))
+  (check-valueof (and (const a) (const b) (const c))
+                 (and a b c)))
 
 (check-valueof (or) #f)
 (check-valueof (or #t) #t)
@@ -100,7 +95,8 @@
 (for* ([a  (in-list '(#t #f))]
        [b  (in-list '(#t #f))]
        [c  (in-list '(#t #f))])
-  (check-valueof (or a b c) (or a b c)))
+  (check-valueof (or (const a) (const b) (const c))
+                 (or a b c)))
 
 (check-valueof (let (+ 4 5) (+ (env 0) 6))
                15)

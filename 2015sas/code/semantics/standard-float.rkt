@@ -1,33 +1,28 @@
 #lang typed/racket
 
-(provide Value
-         Maybe-Value
-         Computation
-         run)
+(require "bottom.rkt")
+
+(provide (all-from-out "bottom.rkt")
+         (prefix-out sf: (combine-out Value Maybe-Value Computation value? run)))
 
 ;; ===================================================================================================
 ;; Exported semantics
 
 (begin-for-syntax
-  (provide standard-integer)
-
-  (define standard-integer
+  (provide standard-float)
+  
+  (define standard-float
     (make-immutable-hasheq
      (list
+      (cons 'language-name "standard float")
+      (cons 'value? #'value?)
       ;; Expression combinators
       (cons 'comp #'comp)
       (cons 'pair #'pair)
       (cons 'ifte #'ifte)
       (cons 'const #'const)
       (cons 'id #'id)
-      ;; Constant values
-      (cons 'const? #'value?)
-      (cons 'zero #'(const 0))
-      (cons 'one #'(const 1))
-      (cons 'true #'(const #t))
-      (cons 'false #'(const #f))
-      (cons 'null #'(const '()))
-      ;; Pair and cons-lists computations
+      ;; Pair and list computations
       (cons 'fst #'fst)
       (cons 'snd #'snd)
       (cons 'pair? #'pair?)
@@ -40,19 +35,17 @@
       (cons 'eq #'eq)
       ;; Arithmetic computations
       (cons 'add #'add)
-      (cons 'sub #'sub)
       (cons 'neg #'neg)
+      (cons 'sub #'sub)
       (cons 'mul #'mul)
-      (cons 'div #'div)
       (cons 'rcp #'rcp)
+      (cons 'div #'div)
       ))))
 
 ;; ===================================================================================================
 ;; Types
 
-(require "bottom.rkt")
-
-(define-type Value (U Boolean Integer Null (Pair Value Value)))
+(define-type Value (U Boolean Flonum Null (Pair Value Value)))
 (define-type Maybe-Value (U Bottom Value))
 
 (define-predicate value? Value)
@@ -106,31 +99,31 @@
 (: lt Computation)
 (define (lt a)
   (match a
-    [(cons (? integer? x) (? integer? y))  (< x y)]
+    [(cons (? flonum? x) (? flonum? y))  (< x y)]
     [_  bottom]))
 
 (: le Computation)
 (define (le a)
   (match a
-    [(cons (? integer? x) (? integer? y))  (<= x y)]
+    [(cons (? flonum? x) (? flonum? y))  (<= x y)]
     [_  bottom]))
 
 (: gt Computation)
 (define (gt a)
   (match a
-    [(cons (? integer? x) (? integer? y))  (> x y)]
+    [(cons (? flonum? x) (? flonum? y))  (> x y)]
     [_  bottom]))
 
 (: ge Computation)
 (define (ge a)
   (match a
-    [(cons (? integer? x) (? integer? y))  (>= x y)]
+    [(cons (? flonum? x) (? flonum? y))  (>= x y)]
     [_  bottom]))
 
 (: eq Computation)
 (define (eq a)
   (match a
-    [(cons (? integer? x) (? integer? y))  (= x y)]
+    [(cons (? flonum? x) (? flonum? y))  (= x y)]
     [_  bottom]))
 
 ;; ===================================================================================================
@@ -139,35 +132,31 @@
 (: add Computation)
 (define (add a)
   (match a
-    [(cons (? integer? x) (? integer? y))  (+ x y)]
-    [_  bottom]))
-
-(: sub Computation)
-(define (sub a)
-  (match a
-    [(cons (? integer? x) (? integer? y))  (- x y)]
+    [(cons (? flonum? x) (? flonum? y))  (+ x y)]
     [_  bottom]))
 
 (: neg Computation)
 (define (neg a)
-  (if (integer? a) (- a) bottom))
+  (if (flonum? a) (- a) bottom))
+
+(: sub Computation)
+(define (sub a)
+  (match a
+    [(cons (? flonum? x) (? flonum? y))  (- x y)]
+    [_  bottom]))
 
 (: mul Computation)
 (define (mul a)
   (match a
-    [(cons (? integer? x) (? integer? y))  (* x y)]
-    [_  bottom]))
-
-(: div Computation)
-(define (div a)
-  (match a
-    [(cons (? integer? x) (? integer? y))  (if (zero? y) bottom (quotient x y))]
+    [(cons (? flonum? x) (? flonum? y))  (* x y)]
     [_  bottom]))
 
 (: rcp Computation)
 (define (rcp a)
+  (if (and (flonum? a) (not (zero? a))) (/ 1.0 a) bottom))
+
+(: div Computation)
+(define (div a)
   (match a
-    [0  bottom]
-    [1  1]
-    [(? integer? a)  0]
+    [(cons (? flonum? x) (? flonum? y))  (if (zero? y) bottom (/ x y))]
     [_  bottom]))
