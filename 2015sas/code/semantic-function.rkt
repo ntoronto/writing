@@ -181,7 +181,7 @@
       [(/ e1 e2)         (syntax/loc stx (_comp _div (_pair (meaning e1) (meaning e2))))]
       [(/ e1 e2 es ...)  (syntax/loc stx (meaning (/ (/ e1 e2) es ...)))]
       ;; Imported Racket constants and literals
-      [(const e)  (maybe-const (syntax/loc stx #'e))]
+      [(const e)  (maybe-const (syntax/loc stx e))]
       [null       (maybe-const stx)]
       [_
        (let ([lit-e-stx  (maybe-literal stx)])
