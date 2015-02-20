@@ -99,17 +99,24 @@
   (check-valueof (or (const a) (const b) (const c))
                  (or a b c)))
 
-(check-valueof (let (+ 4.0 5.0) (+ (env 0) 6.0))
+(check-valueof (let ([x  (+ 4.0 5.0)])
+                 (+ x 6.0))
                15.0)
 
-(check-valueof (let (+ 4.0 5.0)
-                 (let (+ (env 0) 6.0)
-                   (let (+ (env 0) 7.0)
-                     (+ (env 0) 8.0))))
+(check-valueof (let ([x  (+ 4.0 5.0)])
+                 (let ([y  (+ x 6.0)])
+                   (let ([z  (+ y 7.0)])
+                     (+ z 8.0))))
                (+ 4.0 5.0 6.0 7.0 8.0))
 
-(check-valueof (let (+ 4.0 5.0)
-                 (let (+ 6.0 7.0)
-                   (let 8.0
-                     (- (env 0) (env 1) (env 2)))))
+(check-valueof (let ([x  (+ 4.0 5.0)])
+                 (let ([y  (+ 6.0 7.0)])
+                   (let ([z  8.0])
+                     (- z y x))))
+               (- 8.0 (+ 6.0 7.0) (+ 4.0 5.0)))
+
+(check-valueof (let* ([x  (+ 4.0 5.0)]
+                      [y  (+ 6.0 7.0)]
+                      [z  8.0])
+                 (- z y x))
                (- 8.0 (+ 6.0 7.0) (+ 4.0 5.0)))

@@ -98,17 +98,24 @@
   (check-valueof (or (const a) (const b) (const c))
                  (or a b c)))
 
-(check-valueof (let (+ 4 5) (+ (env 0) 6))
+(check-valueof (let ([x (+ 4 5)])
+                 (+ x 6))
                15)
 
-(check-valueof (let (+ 4 5)
-                 (let (+ (env 0) 6)
-                   (let (+ (env 0) 7)
-                     (+ (env 0) 8))))
+(check-valueof (let ([x  (+ 4 5)])
+                 (let ([y  (+ x 6)])
+                   (let ([z  (+ y 7)])
+                     (+ z 8))))
                (+ 4 5 6 7 8))
 
-(check-valueof (let (+ 4 5)
-                 (let (+ 6 7)
-                   (let 8
-                     (- (env 0) (env 1) (env 2)))))
+(check-valueof (let ([x  (+ 4 5)])
+                 (let ([y  (+ 6 7)])
+                   (let ([z  8])
+                     (- z y x))))
+               (- 8 (+ 6 7) (+ 4 5)))
+
+(check-valueof (let* ([x  (+ 4 5)]
+                      [y  (+ 6 7)]
+                      [z  8])
+                 (- z y x))
                (- 8 (+ 6 7) (+ 4 5)))

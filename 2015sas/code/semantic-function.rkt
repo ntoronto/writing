@@ -7,7 +7,7 @@
 
 (provide with-meaning
          ;; Provide the exact identifiers used by the semantic function
-         let env const
+         let let* const ;env  ; obsoleted by named identifiers
          if cond else and or
          cons car cdr pair? null? null list
          < <= > >= =
@@ -119,6 +119,11 @@
     [(quote _)  (maybe-const orig-e)]
     [_  #f]))
 
+(define-syntax-parameter let-depth 0)
+
+(begin-for-syntax
+  (struct local-identifier (depth)))
+
 (define-syntax (meaning orig-stx)
   (define stx (syntax-case orig-stx () [(_ e) (syntax/loc stx e)]))
   (with-inner-relocations stx (_value?
@@ -128,17 +133,37 @@
                                _add _sub _neg
                                _mul _div _rcp)
     (syntax-parse stx
-      #:literals (let env const
+      #:literals (let let* env const
                    if cond else and or
                    cons car cdr pair? null? null list
                    < <= > >= =
                    + - * /)
       ;; Binding
-      [(let ex eb)  (syntax/loc stx (_comp (meaning eb) (_pair (meaning ex) _id)))]
+      [(let ([x:id ex]) eb)
+       (with-syntax ([d  (+ 1 (syntax-parameter-value #'let-depth))])
+         (syntax/loc stx
+           (_comp (let-syntax ([x  (local-identifier d)])
+                    (syntax-parameterize ([let-depth  d])
+                      (meaning eb)))
+                  (_pair (meaning ex) _id))))]
+      ;; Identifiers
+      [x:id
+       #:when (local-identifier? (syntax-local-value #'x (λ () #f)))
+       (define d (syntax-parameter-value #'let-depth))
+       (define old-d (local-identifier-depth (syntax-local-value #'x (λ () #f))))
+       (with-syntax ([n  (- d old-d)])
+         (syntax/loc stx (meaning (env n))))]
       [(env 0)  (syntax/loc stx _fst)]
       [(env n)  (exact-positive-integer? (syntax->datum #'n))
                 (with-syntax ([n-1  (- (syntax->datum #'n) 1)])
                   (syntax/loc stx (_comp (meaning (env n-1)) _snd)))]
+      ;; Sequential let
+      [(let* () e)
+       (syntax/loc stx
+         (meaning e))]
+      [(let* ([x0:id ex0] [x:id ex] ...) eb)
+       (syntax/loc stx
+         (meaning (let ([x0 ex0]) (let* ([x ex] ...) eb))))]
       ;; if
       [(if c t e)  (syntax/loc stx (_ifte (meaning c) (meaning t) (meaning e)))]
       ;; cond ... else
